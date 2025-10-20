@@ -610,12 +610,10 @@ const GRN = () => {
                     <label className="block text-gray-700 font-medium mb-2">
                       Supplier <span className="text-red-500">*</span>
                     </label>
-                    <input
+                    <select
                       type="text"
                       value={supplier}
-                      readOnly
-                      disabled
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                       placeholder="Enter supplier name"
                     />
                   </div>

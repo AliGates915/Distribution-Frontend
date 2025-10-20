@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import axios from "axios";
@@ -23,7 +22,7 @@ const staticLoads = [
     ],
     prevBalance: 10000,
     totalQty: 100,
-    totalAmount: 8400,
+    totalAmount: 18400,
     isEnable: true,
   },
   {
@@ -40,7 +39,7 @@ const staticLoads = [
     ],
     prevBalance: 5000,
     totalQty: 110,
-    totalAmount: 9600,
+    totalAmount: 14600,
     isEnable: true,
   },
 ];
@@ -71,20 +70,9 @@ const staticSalesmen = [
   },
 ];
 
-const staticItems = [
-  { _id: "p1", category: "Beverages", itemName: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
-  { _id: "p2", category: "Snacks", itemName: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
-  { _id: "p3", category: "Biscuits", itemName: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
-  { _id: "p4", category: "Dairy", itemName: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
-  { _id: "p5", category: "Bakery", itemName: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
-  { _id: "p6", category: "Beverages", itemName: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
-  { _id: "p7", category: "Snacks", itemName: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
-];
-
 const Loadsheet = () => {
   const [loads, setLoads] = useState([]);
   const [salesmenOptions, setSalesmenOptions] = useState([]);
-  const [itemOptions, setItemOptions] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadNo, setLoadNo] = useState("");
@@ -92,10 +80,6 @@ const Loadsheet = () => {
   const [salesman, setSalesman] = useState("");
   const [vehicleNo, setVehicleNo] = useState("");
   const [itemsList, setItemsList] = useState([]);
-  const [category, setCategory] = useState("");
-  const [item, setItem] = useState("");
-  const [pack, setPack] = useState("");
-  const [issues, setIssues] = useState("");
   const [totalQty, setTotalQty] = useState(0);
   const [prevBalance, setPrevBalance] = useState(0);
   const [amount, setAmount] = useState(0);
@@ -108,45 +92,6 @@ const Loadsheet = () => {
   const [nextLoadNo, setNextLoadNo] = useState("001");
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
-  // Handle adding items to the table in the form
-  const handleAddItem = () => {
-    if (!category || !item || !pack || !issues) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "⚠️ Please fill in Category, Item, Pack, and Issues.",
-        confirmButtonColor: "#d33",
-      });
-      return;
-    }
-
-    const selectedOption = itemOptions.find((opt) => opt._id === item);
-    const newItem = {
-      sr: itemsList.length + 1,
-      category,
-      item: selectedOption?.itemName || "",
-      pack,
-      issues: parseInt(issues, 10),
-      price: selectedOption?.price || 0,
-      amount: selectedOption?.price * parseInt(issues, 10) || 0,
-    };
-
-    const updatedItemsList = [...itemsList, newItem];
-    setItemsList(updatedItemsList);
-
-    // Update totalQty and totalAmount
-    const newTotalQty = updatedItemsList.reduce((sum, it) => sum + it.issues, 0);
-    const newTotalAmount = updatedItemsList.reduce((sum, it) => sum + it.amount, 0);
-    setTotalQty(newTotalQty);
-    setTotalAmount(newTotalAmount);
-
-    // Clear form
-    setCategory("");
-    setItem("");
-    setPack("");
-    setIssues("");
-  };
 
   // Fetch salesmen options
   const fetchSalesmenOptions = useCallback(async () => {
@@ -172,30 +117,6 @@ const Loadsheet = () => {
     fetchSalesmenOptions();
   }, [fetchSalesmenOptions]);
 
-  // Fetch item options
-  const fetchItemOptions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/items`, { headers });
-      setItemOptions(res.data.length ? res.data : staticItems);
-    } catch (error) {
-      console.error("Failed to fetch items:", error);
-      toast.error("Failed to fetch items. Using static data.");
-      setItemOptions(staticItems);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchItemOptions();
-  }, [fetchItemOptions]);
-
   // Fetch loads
   const fetchLoads = useCallback(async () => {
     try {
@@ -206,7 +127,6 @@ const Loadsheet = () => {
         "Content-Type": "application/json",
       };
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/loadsheets`, { headers });
-      console.log("Loadsheet API Response:", res.data); // Debug API response
       const transformedLoads = (res.data.length ? res.data : staticLoads).map((load) => ({
         _id: load._id,
         loadNo: load.loadNo || "N/A",
@@ -273,10 +193,6 @@ const Loadsheet = () => {
     setSalesman("");
     setVehicleNo("");
     setItemsList([]);
-    setCategory("");
-    setItem("");
-    setPack("");
-    setIssues("");
     setTotalQty(0);
     setPrevBalance(0);
     setAmount(0);
@@ -304,9 +220,11 @@ const Loadsheet = () => {
       }))
     );
     setTotalQty(load.totalQty || 0);
-    setPrevBalance(load.prevBalance || 0);
-    setAmount(load.products?.reduce((sum, it) => sum + it.amount, 0) || 0);
-    setTotalAmount(load.totalAmount || 0);
+    const newPrevBalance = load.prevBalance || 0;
+    const newAmount = load.products?.reduce((sum, it) => sum + it.amount, 0) || 0;
+    setPrevBalance(newPrevBalance);
+    setAmount(newAmount);
+    setTotalAmount(newPrevBalance + newAmount);
     setIsEnable(load.isEnable);
     setIsSliderOpen(true);
   };
@@ -450,27 +368,30 @@ const Loadsheet = () => {
     const selectedSalesman = salesmenOptions.find((sm) => sm._id === selectedId);
     if (selectedSalesman) {
       setVehicleNo(selectedSalesman.vehicleNo || "");
-      setPrevBalance(selectedSalesman.prevBalance || 0);
+      const newPrevBalance = selectedSalesman.prevBalance || 0;
+      setPrevBalance(newPrevBalance);
       const salesmanItems = selectedSalesman.products?.map((it, idx) => ({
-        _id: it._id,
+        sr: idx + 1,
         category: it.category,
-        itemName: it.itemName,
+        item: it.itemName,
         pack: it.pack,
         issues: it.issues,
         price: it.price,
         amount: it.amount,
       })) || [];
-      setItemOptions(salesmanItems);
+      setItemsList(salesmanItems);
       const newTotalQty = salesmanItems.reduce((sum, it) => sum + it.issues, 0);
-      const newTotalAmount = salesmanItems.reduce((sum, it) => sum + it.amount, 0);
+      const newAmount = salesmanItems.reduce((sum, it) => sum + it.amount, 0);
       setTotalQty(newTotalQty);
-      setTotalAmount(newTotalAmount);
+      setAmount(newAmount);
+      setTotalAmount(newPrevBalance + newAmount);
     } else {
       setVehicleNo("");
       setPrevBalance(0);
       setTotalQty(0);
+      setAmount(0);
       setTotalAmount(0);
-      setItemOptions(staticItems);
+      setItemsList([]);
     }
   };
 
@@ -575,10 +496,6 @@ const Loadsheet = () => {
                     setSalesman("");
                     setVehicleNo("");
                     setItemsList([]);
-                    setCategory("");
-                    setItem("");
-                    setPack("");
-                    setIssues("");
                     setTotalQty(0);
                     setPrevBalance(0);
                     setAmount(0);
@@ -642,16 +559,52 @@ const Loadsheet = () => {
                     <label className="block text-gray-700 font-medium mb-2">
                       Vehicle No. <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
+                    readOnly
+                    
                       value={vehicleNo}
-                      readOnly
-                      disabled
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
-                      placeholder="Vehicle No."
-                    />
+                      onChange={(e) => setVehicleNo(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-white"
+                    >
+                      <option value="">Select Vehicle No.</option>
+                      <option value="ABC-123">ABC-123</option>
+                      <option value="XYZ-456">XYZ-456</option>
+                      <option value="LMN-789">LMN-789</option>
+                    </select>
                   </div>
                 </div>
+
+                {itemsList.length > 0 && (
+                  <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
+                    <div className="overflow-x-auto">
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full border-collapse">
+                          <thead className="bg-gray-100 text-gray-600 text-sm">
+                            <tr>
+                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
+                              <th className="px-4 py-2 border border-gray-300">Category</th>
+                              <th className="px-4 py-2 border border-gray-300">Item</th>
+                              <th className="px-4 py-2 border border-gray-300">Pack</th>
+                              <th className="px-4 py-2 border border-gray-300">Issues</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-gray-700 text-sm">
+                            {itemsList.map((item, idx) => (
+                              <tr key={idx} className="hover:bg-gray-50 text-center">
+                                <td className="px-4 py-2 border border-gray-300 text-center">{item.sr}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.category}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.item}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.pack}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.issues}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-4">
                   <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
@@ -708,119 +661,6 @@ const Loadsheet = () => {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Category
-                      </label>
-                      <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      >
-                        <option value="">Select Category</option>
-                        {[...new Set(itemOptions.map((opt) => opt.category))].map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Item
-                      </label>
-                      <select
-                        value={item}
-                        onChange={(e) => {
-                          const selectedId = e.target.value;
-                          setItem(selectedId);
-                          const selectedOption = itemOptions.find((opt) => opt._id === selectedId);
-                          if (selectedOption) {
-                            setPack(selectedOption.pack || "");
-                            setIssues(selectedOption.issues || "");
-                            setAmount(selectedOption.amount || 0);
-                          }
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      >
-                        <option value="">Select Item</option>
-                        {itemOptions
-                          .filter((opt) => !category || opt.category === category)
-                          .map((opt) => (
-                            <option key={opt._id} value={opt._id}>
-                              {opt.itemName}
-                            </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Pack
-                      </label>
-                      <input
-                        type="text"
-                        value={pack}
-                        onChange={(e) => setPack(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter Pack"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Issues
-                      </label>
-                      <input
-                        type="number"
-                        value={issues}
-                        onChange={(e) => setIssues(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter Issues"
-                        min="1"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <button
-                        type="button"
-                        onClick={handleAddItem}
-                        className="w-40 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
-                      >
-                        + Add
-                      </button>
-                    </div>
-                  </div>
-                  {itemsList.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full border-collapse">
-                          <thead className="bg-gray-100 text-gray-600 text-sm">
-                            <tr>
-                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
-                              <th className="px-4 py-2 border border-gray-300">Category</th>
-                              <th className="px-4 py-2 border border-gray-300">Item</th>
-                              <th className="px-4 py-2 border border-gray-300">Pack</th>
-                              <th className="px-4 py-2 border border-gray-300">Issues</th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-gray-700 text-sm">
-                            {itemsList.map((item, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50 text-center">
-                                <td className="px-4 py-2 border border-gray-300 text-center">{item.sr}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.category}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.item}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.pack}</td>
-                                <td className="px-4 py-2 border border-gray-300 text-center">{item.issues}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 <button
                   type="submit"
                   disabled={loading}
