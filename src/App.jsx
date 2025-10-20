@@ -33,11 +33,22 @@ import CustomerwiseOrders from "./pages/admin/Sales/Reports/CustomerwiseOrders.j
 import Employee from "./pages/admin/Sales/SetUp/Employee.jsx";
 import Vehicle from "./pages/admin/Sales/SetUp/Vehicle.jsx";
 import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
+
+import AmountPayable from "./pages/admin/Sales/Reports/AmountPayable.jsx";
+import SupplierLedger from "./pages/admin/Sales/Reports/SupplierLedger.jsx";
+import DateWisePurchase from "./pages/admin/Sales/Reports/DateWisePurchase.jsx";
+import SupplierWisePurchase from "./pages/admin/Sales/Reports/SupplierWisePurchase.jsx";
+import ItemPurchases from "./pages/admin/Sales/Reports/ItemPurchases.jsx";
+import CustomerLedger from "./pages/admin/Sales/Reports/CustomerLedger.jsx";
+import DateWiseOrder from "./pages/admin/Sales/Reports/DateWiseOrder.jsx";
+import ProductWiseOrder from "./pages/admin/Sales/Reports/ProductWiseOrder.jsx";
+
 import DatewiseCashReceived from "./pages/admin/Sales/Reports/DatewiseCashReceived.jsx";
 import DatewiseRecovery from "./pages/admin/Sales/Reports/DatewiseRecovery.jsx";
 import ItemwiseRecovery from "./pages/admin/Sales/Reports/ItemwiseRecovery.jsx";
 import SalesmanwiseOrders from "./pages/admin/Sales/Reports/SalesmanwiseOrders.jsx";
 import SalesmanwiseRecoveries from "./pages/admin/Sales/Reports/SalesmanwiseRecoveries.jsx";
+
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -70,7 +81,6 @@ function AppContent() {
 
             <Route path="bank" element={<Bank />} />
 
-            {/* fbr */}
 
             <Route path="sales/grn" element={<GRN />} />
 
@@ -87,6 +97,21 @@ function AppContent() {
             <Route path="sales/load-return" element={<LoadReturn />} />
             <Route path="sales/opening-balance" element={<OpeningBalance />} />
             <Route path="sales/expense-voucher" element={<ExpenseVoucher />} />
+
+          
+           {/* Reports */}
+              <Route path="report/amount-payable" element={<AmountPayable />} />
+              <Route path="report/supplier-ledger" element={<SupplierLedger />} />
+              <Route path="report/datewise-purchase" element={<DateWisePurchase />} />
+              <Route path="report/supplierwise-purchase" element={<SupplierWisePurchase />} />
+              <Route path="report/item-purchases" element={<ItemPurchases />} />
+              <Route path="report/customer-ledger" element={<CustomerLedger />} />
+              <Route path="report/datewise-Orders" element={<DateWiseOrder />} />
+              <Route path="report/productwise-orders" element={<ProductWiseOrder />} />
+           
+           
+           
+
             <Route path="report/bank-ledger" element={<BankLedger />} />
             <Route
               path="report/datewise-recovery"
@@ -113,6 +138,7 @@ function AppContent() {
               path="report/salesmanwise-recovery"
               element={<SalesmanwiseRecoveries />}
             />
+
             <Route path="item-type" element={<ItemType />} />
             <Route path="customers-list" element={<CustomerList />} />
             <Route path="employee" element={<Employee />} />

@@ -5,7 +5,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const FbrLedger = () => {
+const AmountPayable = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
   const [ledgerId, setLedgerId] = useState("");
@@ -699,4 +699,4 @@ const FbrLedger = () => {
   );
 };
 
-export default FbrLedger;
+export default AmountPayable;
