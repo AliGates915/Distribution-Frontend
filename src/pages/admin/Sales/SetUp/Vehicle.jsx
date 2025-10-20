@@ -19,6 +19,10 @@ const Vehicle = () => {
   const [isEnable, setIsEnable] = useState(true);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const sliderRef = useRef(null);
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [make, setMake] = useState("");
+  const [vehicleType, setVehicleType] = useState("company"); // default radio button
+  const [startingDate, setStartingDate] = useState("");
 
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vehicles`;
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -63,23 +67,32 @@ const Vehicle = () => {
     }
   }, [isSliderOpen]);
 
-  // Handlers
+  // Update handleAddClick
   const handleAddClick = () => {
     setEditingVehicle(null);
+    setVehicleNo("");
     setVehicleName("");
+    setMake("");
     setModel("");
     setCategory("Car");
     setRegistrationNo("");
+    setStartingDate("");
+    setVehicleType("company");
     setIsEnable(true);
     setIsSliderOpen(true);
   };
 
+  // Update handleEditClick
   const handleEditClick = (vehicle) => {
     setEditingVehicle(vehicle);
-    setVehicleName(vehicle.vehicleName);
-    setModel(vehicle.model);
-    setCategory(vehicle.category);
-    setRegistrationNo(vehicle.registrationNo);
+    setVehicleNo(vehicle.vehicleNo || "");
+    setVehicleName(vehicle.vehicleName || "");
+    setMake(vehicle.make || "");
+    setModel(vehicle.model || "");
+    setCategory(vehicle.category || "Car");
+    setRegistrationNo(vehicle.registrationNo || "");
+    setStartingDate(vehicle.startingDate || "");
+    setVehicleType(vehicle.vehicleType || "company");
     setIsEnable(vehicle.isEnable);
     setIsSliderOpen(true);
   };
@@ -87,41 +100,58 @@ const Vehicle = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!vehicleName.trim() || !model.trim() || !registrationNo.trim()) {
+    console.log({
+      vehicleNo,
+      vehicleName,
+      make,
+      model,
+      registrationNo,
+      startingDate,
+      vehicleType,
+    });
+
+    if (
+      !vehicleNo ||
+      !vehicleName ||
+      !make ||
+      !model ||
+      !registrationNo ||
+      !startingDate ||
+      !vehicleType
+    ) {
       toast.error("❌ All fields are required.");
       return;
     }
 
     setLoading(true);
 
+    // Update handleSubmit payload
     const payload = {
+      vehicleNo,
       vehicleName,
+      make,
       model,
       category,
       registrationNo,
+      startingDate,
+      vehicleType,
       isEnable,
     };
-
     try {
       let res;
       if (editingVehicle) {
-        res = await axios.put(`${API_URL}/${editingVehicle._id}`, payload, {
+        await axios.put(`${API_URL}/${editingVehicle._id}`, payload, {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         });
-        setVehicles(
-          vehicles.map((v) => (v._id === editingVehicle._id ? res.data : v))
-        );
         toast.success("✅ Vehicle updated!");
       } else {
-        res = await axios.post(API_URL, payload, {
+        await axios.post(API_URL, payload, {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         });
-        setVehicles([...vehicles, res.data]);
         toast.success("✅ Vehicle added!");
       }
-
       setIsSliderOpen(false);
-      fetchVehiclesList();
+      await fetchVehiclesList(); // Wait to ensure backend updated
       setEditingVehicle(null);
     } catch (error) {
       console.error(error);
@@ -187,18 +217,21 @@ const Vehicle = () => {
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-full">
-              <div className="hidden lg:grid grid-cols-[80px_1fr_1fr_1fr_1fr_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              {/* Table Header */}
+              <div className="hidden lg:grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_120px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>SR</div>
-                <div>Name</div>
+                <div>Vehicle No</div>
+                <div>Make</div>
                 <div>Model</div>
-                <div>Category</div>
                 <div>Registration No</div>
+                <div>Starting Date</div>
                 <div className="text-center">Actions</div>
               </div>
 
+              {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
                 {loading ? (
-                  <TableSkeleton rows={5} cols={6} />
+                  <TableSkeleton rows={5} cols={7} />
                 ) : vehicles.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No vehicles found.
@@ -207,27 +240,33 @@ const Vehicle = () => {
                   vehicles.map((vehicle, index) => (
                     <div
                       key={vehicle._id}
-                      className="grid grid-cols-1 lg:grid-cols-[80px_1fr_1fr_1fr_1fr_150px] gap-4 lg:gap-6 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_120px] gap-4 lg:gap-6 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div className="font-medium text-gray-700">
                         {index + 1}
                       </div>
-                      <div className="text-gray-700">{vehicle.vehicleName}</div>
+                      <div className="text-gray-700">{vehicle.vehicleNo}</div>
+                      <div className="text-gray-700">{vehicle.make}</div>
                       <div className="text-gray-700">{vehicle.model}</div>
-                      <div className="text-gray-700">{vehicle.category}</div>
                       <div className="text-gray-700">
                         {vehicle.registrationNo}
                       </div>
-                      <div className="text-center">
+                      <div className="text-gray-700">
+                        {vehicle.startingDate
+                          ? new Date(vehicle.startingDate).toLocaleDateString()
+                          : "—"}
+                      </div>
+
+                      <div className="text-center flex justify-center gap-2">
                         <button
                           onClick={() => handleEditClick(vehicle)}
-                          className="px-3 py-1 text-sm text-blue-600"
+                          className="text-blue-600 hover:text-blue-800"
                         >
                           <SquarePen size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(vehicle._id)}
-                          className="px-3 py-1 text-sm text-red-600"
+                          className="text-red-600 hover:text-red-800"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -262,14 +301,27 @@ const Vehicle = () => {
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Vehicle Name <span className="text-red-500">*</span>
+                    Vehicle No. <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    value={vehicleName}
-                    onChange={(e) => setVehicleName(e.target.value)}
+                    value={vehicleNo}
+                    onChange={(e) => setVehicleNo(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-                    placeholder="e.g. Honda Civic"
+                    placeholder="e.g. ABC-1234"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Make <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={make}
+                    onChange={(e) => setMake(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                    placeholder="e.g. Honda"
                   />
                 </div>
 
@@ -288,22 +340,6 @@ const Vehicle = () => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-                  >
-                    <option>Car</option>
-                    <option>Truck</option>
-                    <option>Bus</option>
-                    <option>Motorcycle</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
                     Registration Number <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -315,29 +351,42 @@ const Vehicle = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <label className="text-gray-700 font-medium">Status</label>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setIsEnable(!isEnable)}
-                      className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                        isEnable ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                          isEnable ? "translate-x-6" : "translate-x-0"
-                        }`}
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Starting Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={startingDate || ""}
+                    onChange={(e) => setStartingDate(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex gap-6 mt-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="vehicleType"
+                        value="company"
+                        checked={vehicleType === "company"}
+                        onChange={(e) => setVehicleType(e.target.value)}
+                        className="form-radio"
                       />
-                    </button>
-                    <span
-                      className={`text-sm font-medium ${
-                        isEnable ? "text-green-600" : "text-gray-500"
-                      }`}
-                    >
-                      {isEnable ? "Enabled" : "Disabled"}
-                    </span>
+                      Company Own
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="vehicleType"
+                        value="rental"
+                        checked={vehicleType === "rental"}
+                        onChange={(e) => setVehicleType(e.target.value)}
+                        className="form-radio"
+                      />
+                      Rental
+                    </label>
                   </div>
                 </div>
 
