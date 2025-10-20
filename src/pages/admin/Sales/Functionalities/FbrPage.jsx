@@ -16,6 +16,8 @@ import {
   FaFileInvoiceDollar,
   FaBook,
   FaBuilding,
+  FaCar,
+  FaUser,
 } from "react-icons/fa";
 import { AiOutlineProduct } from "react-icons/ai";
 import { TbFileInvoice } from "react-icons/tb";
@@ -49,6 +51,18 @@ const setupChildren = [
   // { to: "/admin/company", label: "Company", icon: <FaBuilding /> },
   { to: "/admin/customers-list", label: "Customer", icon: <FaUsers /> },
   {
+    to: "/admin/supplier",
+    label: "Supplier",
+    icon: <FaTruck />,
+  },
+  {
+    to: "/admin/employee",
+    label: "Employee",
+    icon: <FaUser />,
+  },
+  { to: "/admin/vehicle", label: "Vehicle", icon: <FaCar /> },
+  { to: "/admin/bank", label: "Bank", icon: <FaUsersViewfinder /> },
+  {
     to: "/admin/category-item",
     label: "Item Category",
     icon: <FaThList />,
@@ -59,23 +73,11 @@ const setupChildren = [
     label: "Manufacture",
     icon: <FaIndustry />,
   },
-  // {
-  //   to: "/admin/supplier",
-  //   label: "Supplier",
-  //   icon: <FaTruck />,
-  // },
   {
     to: "/admin/shelve-location",
     label: "Shelve Location",
     icon: <FaWarehouse />,
   },
-  { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
-  {
-    to: "/admin/tax",
-    label: "Tax",
-    icon: <FaMoneyCheckDollar />,
-  },
-  { to: "/admin/bank", label: "Bank", icon: <FaUsersViewfinder /> },
   { to: "/admin/fbr-products", label: "Products", icon: <FaBoxOpen /> },
 ];
 
