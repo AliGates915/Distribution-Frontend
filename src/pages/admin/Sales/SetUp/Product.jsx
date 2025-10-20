@@ -147,8 +147,7 @@ const FbrProduct = () => {
     const fetchItemTypes = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${
-            itemCategory.name
+          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${itemCategory.name
           }`
         );
         setItemTypeList(res.data);
@@ -544,7 +543,7 @@ const FbrProduct = () => {
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
           onClick={handleAddItem}
         >
-          + Add Item
+          + Add Product
         </button>
       </div>
 
@@ -661,11 +660,10 @@ const FbrProduct = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === 1
+                className={`px-3 py-1 rounded-md ${currentPage === 1
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
+                  }`}
               >
                 Previous
               </button>
@@ -673,11 +671,10 @@ const FbrProduct = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === totalPages
+                className={`px-3 py-1 rounded-md ${currentPage === totalPages
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
+                  }`}
               >
                 Next
               </button>
@@ -917,12 +914,15 @@ const FbrProduct = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                        {itemUnitList.map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.unitName}
-                          </option>
-                        ))}
+
+                        {/* ✅ Static options for common distribution units */}
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="carton">Carton</option>
+                        <option value="piece">Piece</option>
+                        <option value="bag">Bag</option>
+                        <option value="others">Others</option>
                       </select>
+
                     </div>
 
                     {/* Per Unit */}
@@ -1149,14 +1149,12 @@ const FbrProduct = () => {
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    enabled ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      enabled ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
