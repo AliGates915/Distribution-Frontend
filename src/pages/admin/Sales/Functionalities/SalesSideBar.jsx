@@ -1,11 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaListAlt,
-  FaShoppingCart,
   FaUndoAlt,
-  FaAddressBook,
   FaMoneyBillWave,
-  FaReceipt,
   FaThList,
   FaUsers,
   FaBox,
@@ -19,31 +15,36 @@ import {
   FaCar,
   FaUser,
 } from "react-icons/fa";
-import { AiOutlineProduct } from "react-icons/ai";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
 
 import { FaTruck } from "react-icons/fa";
 import CommanHeader from "../../Components/CommanHeader";
+import { BadgeEuro, CalendarArrowDown, DollarSign, Banknote, FileChartColumnIncreasing, FileSpreadsheet, Undo2, Scale, Tickets } from "lucide-react";
 
 // salesChildren
 const salesChildren = [
   {
-    to: "/admin/fbr-booking-orders",
-    label: "Booking Order",
-    icon: <FaShoppingCart />,
+    to: "/admin/sales/grn",
+    label: "Grn",
+    icon:   <BadgeEuro />,
   },
   {
-    to: "/admin/fbr-delivery-challan",
-    label: "Delivery Challan",
-    icon: <FaTruck />,
+    to: "/admin/sales/payment-to-supplier",
+    label: "Payment To Supplier",
+    icon:  <DollarSign />,
   },
   {
-    to: "/admin/fbr-sale-invoice",
-    label: "Sale Invoice",
-    icon: <TbFileInvoice />,
+    to: "/admin/sales/order-taking",
+    label: "Order Taking",
+    icon:  <CalendarArrowDown /> ,
   },
-  { to: "/admin/fbr-sales-return", label: "Sales Return", icon: <FaUndoAlt /> },
+  { to: "/admin/sales/load-sheet", label: "Load Sheet", icon: <FileSpreadsheet /> },
+  { to: "/admin/sales/sales-invoice", label: "Sales Invoice", icon:  <FileChartColumnIncreasing /> },
+{ to: "/admin/sales/cash-deposite", label: "Cash Deposite", icon: <Banknote /> },
+{ to: "/admin/sales/load-return", label: "Load Return", icon:  <Undo2 />},
+{ to: "/admin/sales/opening-balance", label: "Opening Balance", icon:   <Scale />},
+{ to: "/admin/sales/expense-voucher", label: "Expense Voucher", icon:    <Tickets />},
 ];
 
 // setupChildren
@@ -100,7 +101,7 @@ const reportsChildren = [
   },
 ];
 
-const FbrPage = () => {
+const SalesSidebar = () => {
   return (
     <div>
       <CommanHeader />
@@ -186,4 +187,4 @@ const FbrPage = () => {
   );
 };
 
-export default FbrPage;
+export default SalesSidebar;

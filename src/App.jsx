@@ -12,9 +12,17 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import Manufacture from "./pages/admin/Sales/SetUp/Manufacture.jsx";
 
-import ItemType from "./pages/admin/Sales/Functionalities/ItemType.jsx";
+
 import ScrollToTop from "./helper/ScrollToTop.jsx";
 
+
+
+
+import Profile from "./components/Profile.jsx";
+import CustomerList from "./pages/admin/Sales/SetUp/Customer.jsx";
+import Tax from "./pages/admin/Sales/SetUp/Tax.jsx";
+import FbrCustomers from "./pages/admin/Sales/Functionalities/LoadReturn.jsx";
+import FbrProduct from "./pages/admin/Sales/SetUp/FbrProduct.jsx";
 import DeliveryChallan from "./pages/admin/Sales/Functionalities/DeliveryChallan.jsx";
 import SalesInvoices from "./pages/admin/Sales/Functionalities/SalesInvoices.jsx";
 import SalesReturn from "./pages/admin/Sales/Functionalities/SalesReturn.jsx";
@@ -29,8 +37,19 @@ import FbrSalesReturn from "./pages/admin/Sales/Functionalities/FbrSalesReturn.j
 import FbrPaymentReceipt from "./pages/admin/Sales/Reports/FbrPaymentReceipt.jsx";
 import FbrLedger from "./pages/admin/Sales/Reports/FbrLedger.jsx";
 import FbrReceivable from "./pages/admin/Sales/Reports/FbrReceivable.jsx";
-import FbrPage from "./pages/admin/Sales/Functionalities/FbrPage.jsx";
 import Bank from "./pages/admin/Sales/SetUp/Bank.jsx";
+import SalesSidebar from "./pages/admin/Sales/Functionalities/SalesSideBar.jsx";
+import GRN from "./pages/admin/Sales/Functionalities/GRN.jsx";
+import PaymentToSupplier from "./pages/admin/Sales/Functionalities/PaymentToSupplier.jsx";
+import OrderTaking from "./pages/admin/Sales/Functionalities/OrderTaking.jsx";
+import LoadSheet from "./pages/admin/Sales/Functionalities/LoadSheet.jsx";
+import SalesInvoice from "./pages/admin/Sales/Functionalities/SalesInvoice.jsx";
+import CashDeposite from "./pages/admin/Sales/Functionalities/CashDeposite.jsx";
+import LoadReturn from "./pages/admin/Sales/Functionalities/LoadReturn.jsx";
+import OpeningBalance from "./pages/admin/Sales/Functionalities/OpeningBalance.jsx";
+import ExpenseVoucher from "./pages/admin/Sales/Functionalities/ExpenseVoucher.jsx";
+
+
 import Employee from "./pages/admin/Sales/SetUp/Employee.jsx";
 import Vehicle from "./pages/admin/Sales/SetUp/Vehicle.jsx";
 function AppContent() {
@@ -55,15 +74,23 @@ function AppContent() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="profile" element={<Profile />} /
             <Route path="shelve-location" element={<ShelveLocation />} />
             <Route path="item-category" element={<ItemCategory />} />
             <Route path="supplier" element={<SupplierList />} />
-            <Route path="fbr-integration" element={<FbrPage />} />
+            <Route path="sales" element={<SalesSidebar />} />
 
             <Route path="manufacture" element={<Manufacture />} />
 
             <Route path="bank" element={<Bank />} />
+        
+         
+            
+      
+            {/* fbr */}
+            <Route path="fbr-customers" element={<FbrCustomers />} />
+            <Route path="fbr-products" element={<FbrProduct />} />
+            <Route path="sales/grn" element={<GRN />} />
             <Route path="delivery-challan" element={<DeliveryChallan />} />
 
             <Route path="sales-invoices" element={<SalesInvoices />} />
@@ -74,14 +101,21 @@ function AppContent() {
             <Route path="product" element={<Product />} />
             <Route path="fbr-booking-orders" element={<FbrBookingOrders />} />
             <Route
-              path="fbr-delivery-challan"
-              element={<FbrDeliveryChallan />}
+              path="sales/payment-to-supplier"
+              element={<PaymentToSupplier />}
             />
-            <Route path="fbr-sale-invoice" element={<FbrSalesInvoices />} />
-            <Route path="fbr-sales-return" element={<FbrSalesReturn />} />
+            <Route path="sales/order-taking" element={<OrderTaking />} />
+            <Route path="sales/load-sheet" element={<LoadSheet />} />
+            <Route path="sales/sales-invoice" element={<SalesInvoice />} />
+            <Route path="sales/cash-deposite" element={<CashDeposite />} />
+            <Route path="sales/load-return" element={<LoadReturn />} />
+            <Route path="sales/opening-balance" element={<OpeningBalance />} />
+            <Route path="sales/expense-voucher" element={<ExpenseVoucher />} />
             <Route path="fbr-payment-receipt" element={<FbrPaymentReceipt />} />
             <Route path="fbr-ledger" element={<FbrLedger />} />
             <Route path="fbr-receivable" element={<FbrReceivable />} />
+           
+            <Route path="tax" element={<Tax />} />
             <Route path="item-type" element={<ItemType />} />
             <Route path="customers-list" element={<CustomerList />} />
             <Route path="employee" element={<Employee />} />

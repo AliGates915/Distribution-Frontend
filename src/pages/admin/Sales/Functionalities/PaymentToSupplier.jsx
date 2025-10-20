@@ -5,7 +5,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const FbrDeliveryChallan = () => {
+const PaymentToSupplier = () => {
   const [deliveryChallans, setDeliveryChallans] = useState([]);
 
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -1105,4 +1105,4 @@ const FbrDeliveryChallan = () => {
   );
 };
 
-export default FbrDeliveryChallan;
+export default PaymentToSupplier;
