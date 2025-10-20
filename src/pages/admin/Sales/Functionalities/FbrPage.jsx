@@ -63,7 +63,7 @@ const setupChildren = [
   { to: "/admin/vehicle", label: "Vehicle", icon: <FaCar /> },
   { to: "/admin/bank", label: "Bank", icon: <FaUsersViewfinder /> },
   {
-    to: "/admin/category-item",
+    to: "/admin/item-category",
     label: "Item Category",
     icon: <FaThList />,
   },
@@ -78,7 +78,7 @@ const setupChildren = [
     label: "Shelve Location",
     icon: <FaWarehouse />,
   },
-  { to: "/admin/fbr-products", label: "Products", icon: <FaBoxOpen /> },
+  { to: "/admin/product", label: "Products", icon: <FaBoxOpen /> },
 ];
 
 // reportsChildren
