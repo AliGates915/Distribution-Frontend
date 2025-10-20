@@ -14,10 +14,8 @@ import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import Manufacture from "./pages/admin/Sales/SetUp/Manufacture.jsx";
 import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 
-
 import ItemType from "./pages/admin/Sales/Functionalities/ItemType.jsx";
 import ScrollToTop from "./helper/ScrollToTop.jsx";
-
 
 import DeliveryChallan from "./pages/admin/Sales/Functionalities/DeliveryChallan.jsx";
 import SalesInvoices from "./pages/admin/Sales/Functionalities/SalesInvoices.jsx";
@@ -36,6 +34,8 @@ import FbrLedger from "./pages/admin/Sales/Reports/FbrLedger.jsx";
 import FbrReceivable from "./pages/admin/Sales/Reports/FbrReceivable.jsx";
 import FbrPage from "./pages/admin/Sales/Functionalities/FbrPage.jsx";
 import Bank from "./pages/admin/Sales/SetUp/Bank.jsx";
+import Employee from "./pages/admin/Sales/SetUp/Employee.jsx";
+import Vehicle from "./pages/admin/Sales/SetUp/Vehicle.jsx";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -65,15 +65,14 @@ function AppContent() {
             <Route path="supplier" element={<SupplierList />} />
             <Route path="fbr-integration" element={<FbrPage />} />
 
-
             <Route path="manufacture" element={<Manufacture />} />
             <Route path="item-unit" element={<ItemUnit />} />
-      
+
             <Route path="bank" element={<Bank />} />
             <Route path="delivery-challan" element={<DeliveryChallan />} />
-         
+
             <Route path="sales-invoices" element={<SalesInvoices />} />
-            
+
             <Route path="sales-return" element={<SalesReturn />} />
             {/* fbr */}
             <Route path="fbr-customers" element={<FbrCustomers />} />
@@ -91,6 +90,8 @@ function AppContent() {
             <Route path="item-type" element={<ItemType />} />
             <Route path="tax" element={<Tax />} />
             <Route path="customers-list" element={<CustomerList />} />
+            <Route path="employee" element={<Employee />} />
+            <Route path="vehicle" element={<Vehicle />} />
           </Route>
         </Routes>
       </main>
