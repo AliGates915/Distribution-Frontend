@@ -12,22 +12,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import Manufacture from "./pages/admin/Sales/SetUp/Manufacture.jsx";
 
-
 import ScrollToTop from "./helper/ScrollToTop.jsx";
-
-
-
-
-
-
-
-
-
 
 import Profile from "./components/Profile.jsx";
 import CustomerList from "./pages/admin/Sales/SetUp/Customer.jsx";
 import Product from "./pages/admin/Sales/SetUp/Product.jsx";
-
 import Bank from "./pages/admin/Sales/SetUp/Bank.jsx";
 import SalesSidebar from "./pages/admin/Sales/Functionalities/SalesSideBar.jsx";
 import GRN from "./pages/admin/Sales/Functionalities/GRN.jsx";
@@ -39,11 +28,16 @@ import CashDeposite from "./pages/admin/Sales/Functionalities/CashDeposite.jsx";
 import LoadReturn from "./pages/admin/Sales/Functionalities/LoadReturn.jsx";
 import OpeningBalance from "./pages/admin/Sales/Functionalities/OpeningBalance.jsx";
 import ExpenseVoucher from "./pages/admin/Sales/Functionalities/ExpenseVoucher.jsx";
-
-
+import BankLedger from "./pages/admin/Sales/Reports/BankLedger.jsx";
+import CustomerwiseOrders from "./pages/admin/Sales/Reports/CustomerwiseOrders.jsx";
 import Employee from "./pages/admin/Sales/SetUp/Employee.jsx";
 import Vehicle from "./pages/admin/Sales/SetUp/Vehicle.jsx";
 import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
+import DatewiseCashReceived from "./pages/admin/Sales/Reports/DatewiseCashReceived.jsx";
+import DatewiseRecovery from "./pages/admin/Sales/Reports/DatewiseRecovery.jsx";
+import ItemwiseRecovery from "./pages/admin/Sales/Reports/ItemwiseRecovery.jsx";
+import SalesmanwiseOrders from "./pages/admin/Sales/Reports/SalesmanwiseOrders.jsx";
+import SalesmanwiseRecoveries from "./pages/admin/Sales/Reports/SalesmanwiseRecoveries.jsx";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -75,20 +69,13 @@ function AppContent() {
             <Route path="manufacture" element={<Manufacture />} />
 
             <Route path="bank" element={<Bank />} />
-        
-         
-            
-      
+
             {/* fbr */}
-         
-          
+
             <Route path="sales/grn" element={<GRN />} />
-           
 
-
-           
             <Route path="product" element={<Product />} />
-         
+
             <Route
               path="sales/payment-to-supplier"
               element={<PaymentToSupplier />}
@@ -100,10 +87,32 @@ function AppContent() {
             <Route path="sales/load-return" element={<LoadReturn />} />
             <Route path="sales/opening-balance" element={<OpeningBalance />} />
             <Route path="sales/expense-voucher" element={<ExpenseVoucher />} />
-          
-           
-           
-           
+            <Route path="report/bank-ledger" element={<BankLedger />} />
+            <Route
+              path="report/datewise-recovery"
+              element={<DatewiseRecovery />}
+            />
+            <Route
+              path="report/datewise-cash-received"
+              element={<DatewiseCashReceived />}
+            />
+            <Route
+              path="report/customerwise-orders"
+              element={<CustomerwiseOrders />}
+            />
+
+            <Route
+              path="report/itemwise-recovery"
+              element={<ItemwiseRecovery />}
+            />
+            <Route
+              path="report/salesmanwise-orders"
+              element={<SalesmanwiseOrders />}
+            />
+            <Route
+              path="report/salesmanwise-recovery"
+              element={<SalesmanwiseRecoveries />}
+            />
             <Route path="item-type" element={<ItemType />} />
             <Route path="customers-list" element={<CustomerList />} />
             <Route path="employee" element={<Employee />} />
