@@ -363,7 +363,7 @@ const ItemType = () => {
               {/* Item Category */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Item Category Id <span className="text-red-500">*</span>
+                  Item Category<span className="text-red-500">*</span>
                 </label>
                 <select
                   value={itemCategory}
@@ -383,7 +383,7 @@ const ItemType = () => {
               {/* Unit Name */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Item Type <span className="text-red-500">*</span>
+                  Item ID<span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"

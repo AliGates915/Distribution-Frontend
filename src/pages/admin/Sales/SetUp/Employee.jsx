@@ -9,7 +9,6 @@ import axios from "axios";
 
 const Employee = () => {
   const [employeeList, setEmployeeList] = useState([]);
-
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
   const [department, setDepartment] = useState("");
@@ -57,24 +56,6 @@ const Employee = () => {
       });
     }
   }, [isSliderOpen]);
-
-  // Fetch Department list
-  const fetchDepartmentList = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${DEPARTMENT_URL}`);
-      setDepartmentList(res?.data);
-    } catch (error) {
-      console.error("Failed to fetch Supplier", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-  useEffect(() => {
-    fetchDepartmentList();
-  }, [fetchDepartmentList]);
 
   // Fetch Department Table list
   const fetchDepartmentTableList = useCallback(async () => {
@@ -388,18 +369,12 @@ const Employee = () => {
                   <label className="block text-gray-700 font-medium">
                     Department <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     className="w-full p-2 border rounded"
-                  >
-                    <option value="">Select Department</option>
-                    {departmentList.map((dept) => (
-                      <option key={dept._id} value={dept.departmentName}>
-                        {dept.departmentName}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </div>
               <div className="flex gap-4">
@@ -462,10 +437,19 @@ const Employee = () => {
                   <input
                     type="text"
                     value={nic}
-                    onChange={(e) => setNic(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow only digits (0-9)
+                      if (/^\d*$/.test(value)) {
+                        setNic(value);
+                      }
+                    }}
                     className="w-full p-2 border rounded"
+                    placeholder="Enter NIC"
+                    inputMode="numeric" // shows number keypad on mobile
                   />
                 </div>
+
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Date of Birth <span className="text-red-500">*</span>
