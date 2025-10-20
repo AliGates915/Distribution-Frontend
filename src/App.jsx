@@ -4,56 +4,38 @@ import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ItemList from "./pages/admin/ItemList.jsx";
-import CustomerData from "./pages/admin/CustomerData";
+import ItemList from "./pages/admin/Sales/SetUp/ItemList.jsx";
 import { ToastContainer } from "react-toastify";
-import ShelveLocation from "./pages/admin/SetUp/ShelveLocation.jsx";
+import ShelveLocation from "./pages/admin/Sales/SetUp/ShelveLocation.jsx";
 import "react-toastify/dist/ReactToastify.css";
-import CategoryItem from "./pages/admin/SetUp/CategoryItem.jsx";
+import CategoryItem from "./pages/admin/Sales/SetUp/CategoryItem.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SupplierList from "./pages/admin/SetUp/Supplier.jsx";
-import Manufacture from "./pages/admin/SetUp/Manufacture.jsx";
-import ItemBarcode from "./pages/admin/ItemBarcode";
-import ExpiryTags from "./pages/admin/ExpiryTags";
-import BookingOrder from "./pages/admin/BookingOrder";
-import ItemUnit from "./pages/admin/SetUp/ItemUnit.jsx";
+import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
+import Manufacture from "./pages/admin/Sales/SetUp/Manufacture.jsx";
+import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 
-import Users from "./pages/admin/Security/Users.jsx";
-import GroupManagement from "./pages/admin/Security/GroupManagement.jsx";
-import Modules from "./pages/admin/Modules";
-import AccessControll from "./pages/admin/Security/AccessControll.jsx";
-import ExpenseHead from "./pages/admin/ExpenseHead.jsx";
-import ExpenseVoucher from "./pages/admin/ExpenseVoucher.jsx";
-import DayBook from "./pages/admin/DayBook.jsx";
-import ItemType from "./pages/admin/Functionalities/ItemType.jsx";
-import Promotion from "./pages/admin/SetUp/PromotionDetail.jsx";
-import PromotionItem from "./pages/admin/SetUp/PromotionItem.jsx";
-import OpeningBalance from "./pages/admin/OpeningBalance.jsx";
+
+import ItemType from "./pages/admin/Sales/Functionalities/ItemType.jsx";
 import ScrollToTop from "./helper/ScrollToTop.jsx";
-import Designation from "./pages/admin/Mangement/Designation.jsx";
 
-import Departments from "./pages/admin/Mangement/Departments.jsx";
-import Employee from "./pages/admin/Mangement/Employee.jsx";
 
-import DeliveryChallan from "./pages/admin/Functionalities/DeliveryChallan.jsx";
-import SalesInvoices from "./pages/admin/Functionalities/SalesInvoices.jsx";
-import SalesReturn from "./pages/admin/Functionalities/SalesReturn.jsx";
+import DeliveryChallan from "./pages/admin/Sales/Functionalities/DeliveryChallan.jsx";
+import SalesInvoices from "./pages/admin/Sales/Functionalities/SalesInvoices.jsx";
+import SalesReturn from "./pages/admin/Sales/Functionalities/SalesReturn.jsx";
 import Profile from "./components/Profile.jsx";
-import CustomerList from "./pages/admin/SetUp/Customer.jsx";
-import Tax from "./pages/admin/SetUp/Tax.jsx";
-import Group from "./pages/admin/SetUp/Group.jsx";
-import Company from "./pages/admin/SetUp/Company.jsx";
-import FbrCustomers from "./pages/admin/Functionalities/FbrCustomers.jsx";
-import FbrProduct from "./pages/admin/SetUp/FbrProduct.jsx";
-import FbrBookingOrders from "./pages/admin/Functionalities/FbrBookingOrders.jsx";
-import FbrDeliveryChallan from "./pages/admin/Functionalities/FbrDeliveryChallan.jsx";
-import FbrSalesInvoices from "./pages/admin/Functionalities/FbrSalesInvoices.jsx";
-import FbrSalesReturn from "./pages/admin/Functionalities/FbrSalesReturn.jsx";
-import FbrPaymentReceipt from "./pages/admin/Reports/FbrPaymentReceipt.jsx";
-import FbrLedger from "./pages/admin/Reports/FbrLedger.jsx";
-import FbrReceivable from "./pages/admin/Reports/FbrReceivable.jsx";
-import FbrPage from "./pages/admin/Functionalities/FbrPage.jsx";
-import Bank from "./pages/admin/SetUp/Bank.jsx";
+import CustomerList from "./pages/admin/Sales/SetUp/Customer.jsx";
+import Tax from "./pages/admin/Sales/SetUp/Tax.jsx";
+import FbrCustomers from "./pages/admin/Sales/Functionalities/FbrCustomers.jsx";
+import FbrProduct from "./pages/admin/Sales/SetUp/FbrProduct.jsx";
+import FbrBookingOrders from "./pages/admin/Sales/Functionalities/FbrBookingOrders.jsx";
+import FbrDeliveryChallan from "./pages/admin/Sales/Functionalities/FbrDeliveryChallan.jsx";
+import FbrSalesInvoices from "./pages/admin/Sales/Functionalities/FbrSalesInvoices.jsx";
+import FbrSalesReturn from "./pages/admin/Sales/Functionalities/FbrSalesReturn.jsx";
+import FbrPaymentReceipt from "./pages/admin/Sales/Reports/FbrPaymentReceipt.jsx";
+import FbrLedger from "./pages/admin/Sales/Reports/FbrLedger.jsx";
+import FbrReceivable from "./pages/admin/Sales/Reports/FbrReceivable.jsx";
+import FbrPage from "./pages/admin/Sales/Functionalities/FbrPage.jsx";
+import Bank from "./pages/admin/Sales/SetUp/Bank.jsx";
 function AppContent() {
   return (
     <div className="max-h-screen flex flex-col bg-gray-50">
@@ -78,25 +60,15 @@ function AppContent() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="item-details" element={<ItemList />} />
-            <Route path="customers" element={<CustomerData />} />
             <Route path="shelve-location" element={<ShelveLocation />} />
             <Route path="category-item" element={<CategoryItem />} />
             <Route path="supplier" element={<SupplierList />} />
             <Route path="fbr-integration" element={<FbrPage />} />
 
-            <Route path="group" element={<Group />} />
 
             <Route path="manufacture" element={<Manufacture />} />
-            <Route path="item-barcode" element={<ItemBarcode />} />
-            <Route path="expiry-tags" element={<ExpiryTags />} />
             <Route path="item-unit" element={<ItemUnit />} />
-            <Route path="promotion" element={<Promotion />} />
-            <Route path="customers-booking" element={<BookingOrder />} />
-            <Route path="company" element={<Company />} />
-            <Route path="users" element={<Users />} />
-            <Route path="groups" element={<GroupManagement />} />
-            <Route path="access-rights" element={<AccessControll />} />
-            <Route path="modules" element={<Modules />} />
+      
             <Route path="bank" element={<Bank />} />
             <Route path="delivery-challan" element={<DeliveryChallan />} />
          
@@ -116,14 +88,6 @@ function AppContent() {
             <Route path="fbr-payment-receipt" element={<FbrPaymentReceipt />} />
             <Route path="fbr-ledger" element={<FbrLedger />} />
             <Route path="fbr-receivable" element={<FbrReceivable />} />
-            <Route path="expense-head" element={<ExpenseHead />} />
-            <Route path="expense-voucher" element={<ExpenseVoucher />} />
-            <Route path="day-book" element={<DayBook />} />
-            <Route path="open-balance" element={<OpeningBalance />} />
-            <Route path="designation" element={<Designation />} />
-            <Route path="employee" element={<Employee />} />
-            <Route path="departments" element={<Departments />} />
-            <Route path="promotion-item" element={<PromotionItem />} />
             <Route path="item-type" element={<ItemType />} />
             <Route path="tax" element={<Tax />} />
             <Route path="customers-list" element={<CustomerList />} />
