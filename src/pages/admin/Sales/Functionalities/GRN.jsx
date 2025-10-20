@@ -7,7 +7,7 @@ import { api } from "../../../../context/ApiService";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
 
-const FbrBookingOrders = () => {
+const GRN = () => {
   const [bookingOrders, setBookingOrders] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isView, setIsView] = useState(false);
@@ -1149,4 +1149,4 @@ const FbrBookingOrders = () => {
   );
 };
 
-export default FbrBookingOrders;
+export default GRN;

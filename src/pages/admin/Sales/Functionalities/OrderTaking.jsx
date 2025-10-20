@@ -5,11 +5,11 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import toast from "react-hot-toast";
-import { InvoiceTemplate } from "./InvoiceTemplate";
+
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-const FbrSalesInvoices = () => {
+const OrderTaking = () => {
   const [invoices, setInvoices] = useState([]);
 
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -1254,12 +1254,9 @@ const FbrSalesInvoices = () => {
           }
         `}</style>
       </div>
-      {/* Hidden Invoice Template for Download */}
-      <div style={{ position: "absolute", left: "-9999px", top: "0" }}>
-        <InvoiceTemplate ref={invoiceRef} invoice={selectedInvoice} />
-      </div>
+     
     </div>
   );
 };
 
-export default FbrSalesInvoices;
+export default OrderTaking;

@@ -8,7 +8,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 
-const FbrCustomers = () => {
+const LoadReturn = () => {
   const [customerList, setCustomerList] = useState([
     // {
     //   _id: "cust1",
@@ -702,4 +702,4 @@ const FbrCustomers = () => {
   );
 };
 
-export default FbrCustomers;
+export default LoadReturn;

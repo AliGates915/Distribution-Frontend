@@ -5,9 +5,9 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const DeliveryChallan = () => {
+const CashDeposite = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [deliveryChallan, setDeliveryChallan] = useState([]);
+ const [deliveryChallans, setDeliveryChallans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dcNo, setDcNo] = useState("");
   const [date, setDate] = useState("");
@@ -53,6 +53,94 @@ const DeliveryChallan = () => {
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
 
+  // ✅ Static data fallback (mocked delivery challans)
+const fetchDeliveryChallan = useCallback(() => {
+  setLoading(true);
+
+  // Simulate async delay like API
+  setTimeout(() => {
+    const mockData = [
+      {
+        _id: "1",
+        dcNo: "DC-001",
+        date: "2025-10-18",
+        orderNo: "ORD-001",
+        orderDate: "2025-10-17",
+        orderDetails: {
+          customer: "Ali Enterprises",
+          person: "Ali Khan",
+          phone: "+923001234567",
+          address: "Lahore, Pakistan",
+          orderType: "Standard",
+          mode: "Truck",
+          deliveryAddress: "Gulberg, Lahore",
+          deliveryDate: "2025-10-19",
+          totalWeight: 1500,
+        },
+        vehicleDetails: {
+          truckNo: "TRK-567",
+          driverName: "Ahmed",
+          father: "Rashid",
+          cnic: "35201-1234567-9",
+          mobileNo: "03001234567",
+          containerNo1: "CN-111",
+          batchNo1: "B001",
+          forLocation1: "Karachi",
+          containerNo2: "CN-112",
+          batchNo2: "B002",
+          forLocation2: "Multan",
+          firstWeight: 1200,
+          weightBridgeName: "Lahore Weighbridge",
+          weightBridgeSlipNo: "SLIP-0023",
+        },
+        remarks: "Deliver ASAP",
+        approvalRemarks: "Checked and verified",
+        status: "Pending",
+      },
+      {
+        _id: "2",
+        dcNo: "DC-002",
+        date: "2025-10-19",
+        orderNo: "ORD-002",
+        orderDate: "2025-10-18",
+        orderDetails: {
+          customer: "Galaxy Distributors",
+          person: "Umer Shah",
+          phone: "+923334567890",
+          address: "Karachi, Pakistan",
+          orderType: "Express",
+          mode: "Van",
+          deliveryAddress: "Clifton, Karachi",
+          deliveryDate: "2025-10-20",
+          totalWeight: 850,
+        },
+        vehicleDetails: {
+          truckNo: "VAN-890",
+          driverName: "Naveed",
+          father: "Hassan",
+          cnic: "42201-9876543-2",
+          mobileNo: "03211234567",
+          containerNo1: "CN-210",
+          batchNo1: "B010",
+          forLocation1: "Hyderabad",
+          containerNo2: "",
+          batchNo2: "",
+          forLocation2: "",
+          firstWeight: 900,
+          weightBridgeName: "Karachi Weighbridge",
+          weightBridgeSlipNo: "SLIP-0045",
+        },
+        remarks: "Urgent Delivery",
+        approvalRemarks: "",
+        status: "Approved",
+      },
+    ];
+
+    setDeliveryChallans(mockData);
+    setLoading(false);
+  }, 1000);
+}, []);
+
   // Delivery challan search
   useEffect(() => {
     if (!searchTerm || !searchTerm.startsWith("DC-")) {
@@ -76,22 +164,10 @@ const DeliveryChallan = () => {
     }, 1000);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm, fetchDeliveryChallans, deliveryChallans]);
+  }, [searchTerm, fetchDeliveryChallan, ]);
 
   // Generate next DC No
-  useEffect(() => {
-    if (deliveryChallans.length > 0) {
-      const maxNo = Math.max(
-        ...deliveryChallans.map((c) => {
-          const match = c.dcNo?.match(/DC-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-      );
-      setNextDcNo((maxNo + 1).toString().padStart(3, "0"));
-    } else {
-      setNextDcNo("001");
-    }
-  }, [deliveryChallans]);
+
 
   // Reset form fields
   const resetForm = () => {
@@ -1370,4 +1446,4 @@ const DeliveryChallan = () => {
   );
 };
 
-export default DeliveryChallan;
+export default CashDeposite;

@@ -8,7 +8,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 
-const ItemType = () => {
+const ExpenseVoucher = () => {
   const [itemTypeList, setItemTypeList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [manufacturerName, setManufacturerName] = useState("");
@@ -411,4 +411,4 @@ const ItemType = () => {
   );
 };
 
-export default ItemType;
+export default ExpenseVoucher;

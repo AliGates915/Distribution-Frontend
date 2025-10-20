@@ -46,7 +46,7 @@ const links = [
   //   icon: <FcSalesPerformance color="#1d4ed8"/>,
   // },
   {
-    to: "/admin/fbr-integration",
+    to: "/admin/sales",
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
