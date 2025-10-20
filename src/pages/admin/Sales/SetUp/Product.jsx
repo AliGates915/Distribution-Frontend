@@ -538,7 +538,7 @@ const FbrProduct = () => {
       <CommanHeader />
       <div className="flex justify-between items-center mt-6 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Product</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">Products</h1>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
