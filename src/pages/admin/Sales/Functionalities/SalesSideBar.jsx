@@ -41,24 +41,24 @@ const salesChildren = [
   {
     to: "/admin/sales/grn",
     label: "Grn",
-    icon: <BadgeEuro />,
+    icon: <BadgeEuro strokeWidth={3} size={40} />,
   },
   {
     to: "/admin/sales/payment-to-supplier",
     label: "Payment To Supplier",
-    icon: <DollarSign />,
+    icon: <DollarSign strokeWidth={3} size={40} />,
   },
   {
     to: "/admin/sales/order-taking",
     label: "Order Taking",
-    icon: <CalendarArrowDown />,
+    icon: <CalendarArrowDown strokeWidth={3} size={40}/>,
   },
-  { to: "/admin/sales/load-sheet", label: "Load Sheet", icon: <FileSpreadsheet /> },
-  { to: "/admin/sales/sales-invoice", label: "Sales Invoice", icon: <FileChartColumnIncreasing /> },
-  { to: "/admin/sales/cash-deposite", label: "Cash Deposite", icon: <Banknote /> },
-  { to: "/admin/sales/load-return", label: "Load Return", icon: <Undo2 /> },
-  { to: "/admin/sales/opening-balance", label: "Opening Balance", icon: <Scale /> },
-  { to: "/admin/sales/expense-voucher", label: "Expense Voucher", icon: <Tickets /> },
+  { to: "/admin/sales/load-sheet", label: "Load Sheet", icon: <FileSpreadsheet strokeWidth={3} size={40}/> },
+  { to: "/admin/sales/sales-invoice", label: "Sales Invoice", icon: <FileChartColumnIncreasing strokeWidth={3} size={40}/> },
+  { to: "/admin/sales/cash-deposite", label: "Cash Deposite", icon: <Banknote strokeWidth={3} size={40}/> },
+  { to: "/admin/sales/load-return", label: "Load Return", icon: <Undo2 strokeWidth={3} size={40}/> },
+  { to: "/admin/sales/opening-balance", label: "Opening Balance", icon: <Scale strokeWidth={3} size={40}/> },
+  { to: "/admin/sales/expense-voucher", label: "Expense Voucher", icon: <Tickets strokeWidth={3} size={40}/> },
 ];
 
 // setupChildren
