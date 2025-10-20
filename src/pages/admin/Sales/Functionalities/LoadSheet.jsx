@@ -1,306 +1,391 @@
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { SquarePen, Trash2 } from "lucide-react";
+import { Eye, SquarePen, Trash2 } from "lucide-react";
+import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+import ViewModel from "../../../../helper/ViewModel";
 
-const LoadSheet = () => {
-  const [salesReturns, setSalesReturns] = useState([
-    {
-      _id: "1",
-      returnId: "RET-001",
-      customerName: "John Doe",
-      invoiceNumber: "INV-001",
-      returnDate: "2025-09-05",
-      itemName: "Laptop",
-      quantity: 1,
-      refundAmount: 900,
-      reason: "Defective product",
-      status: "Processed",
-    },
-    {
-      _id: "2",
-      returnId: "RET-002",
-      customerName: "Jane Smith",
-      invoiceNumber: "INV-002",
-      returnDate: "2025-09-20",
-      itemName: "Mouse",
-      quantity: 2,
-      refundAmount: 38,
-      reason: "Wrong item shipped",
-      status: "Pending",
-    },
-  ]);
+// Static data for fallback
+const staticLoads = [
+  {
+    _id: "1",
+    loadNo: "LOAD-001",
+    loadDate: "2025-10-01",
+    salesmanName: "Ali Khan",
+    vehicleNo: "ABC-123",
+    products: [
+      { sr: 1, category: "Beverages", item: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
+      { sr: 2, category: "Snacks", item: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
+      { sr: 3, category: "Biscuits", item: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
+    ],
+    prevBalance: 10000,
+    totalQty: 100,
+    totalAmount: 8400,
+    isEnable: true,
+  },
+  {
+    _id: "2",
+    loadNo: "LOAD-002",
+    loadDate: "2025-10-05",
+    salesmanName: "Hamza Raza",
+    vehicleNo: "XYZ-456",
+    products: [
+      { sr: 1, category: "Dairy", item: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
+      { sr: 2, category: "Bakery", item: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
+      { sr: 3, category: "Beverages", item: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
+      { sr: 4, category: "Snacks", item: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
+    ],
+    prevBalance: 5000,
+    totalQty: 110,
+    totalAmount: 9600,
+    isEnable: true,
+  },
+];
+
+const staticSalesmen = [
+  {
+    _id: "s1",
+    salesmanName: "Ali Khan",
+    vehicleNo: "ABC-123",
+    prevBalance: 10000,
+    products: [
+      { _id: "p1", category: "Beverages", itemName: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
+      { _id: "p2", category: "Snacks", itemName: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
+      { _id: "p3", category: "Biscuits", itemName: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
+    ],
+  },
+  {
+    _id: "s2",
+    salesmanName: "Hamza Raza",
+    vehicleNo: "XYZ-456",
+    prevBalance: 5000,
+    products: [
+      { _id: "p4", category: "Dairy", itemName: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
+      { _id: "p5", category: "Bakery", itemName: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
+      { _id: "p6", category: "Beverages", itemName: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
+      { _id: "p7", category: "Snacks", itemName: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
+    ],
+  },
+];
+
+const staticItems = [
+  { _id: "p1", category: "Beverages", itemName: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
+  { _id: "p2", category: "Snacks", itemName: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
+  { _id: "p3", category: "Biscuits", itemName: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
+  { _id: "p4", category: "Dairy", itemName: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
+  { _id: "p5", category: "Bakery", itemName: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
+  { _id: "p6", category: "Beverages", itemName: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
+  { _id: "p7", category: "Snacks", itemName: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
+];
+
+const Loadsheet = () => {
+  const [loads, setLoads] = useState([]);
+  const [salesmenOptions, setSalesmenOptions] = useState([]);
+  const [itemOptions, setItemOptions] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [returnId, setReturnId] = useState("");
-  // New Top Section fields
-  const [dcId, setDcId] = useState("");
-  const [driverName, setDriverName] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-
-  // Item entry fields
-  const [price, setPrice] = useState("");
-  const [total, setTotal] = useState("");
-
-  // Items list (array of added items)
-  const [items, setItems] = useState([]);
-
-  const [customerName, setCustomerName] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [returnDate, setReturnDate] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [refundAmount, setRefundAmount] = useState("");
-  const [reason, setReason] = useState("");
-  const [status, setStatus] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingSalesReturn, setEditingSalesReturn] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [customerList, setCustomerList] = useState([
-    { _id: "cust1", customerName: "John Doe" },
-    { _id: "cust2", customerName: "Jane Smith" },
-    { _id: "cust3", customerName: "Alice Johnson" },
-  ]);
-  const [itemList, setItemList] = useState([
-    { _id: "item1", itemName: "Laptop" },
-    { _id: "item2", itemName: "Mouse" },
-    { _id: "item3", itemName: "Keyboard" },
-  ]);
-  const [nextReturnId, setNextReturnId] = useState("003");
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 10;
+  const [loading, setLoading] = useState(false);
+  const [loadNo, setLoadNo] = useState("");
+  const [loadDate, setLoadDate] = useState("");
+  const [salesman, setSalesman] = useState("");
+  const [vehicleNo, setVehicleNo] = useState("");
+  const [itemsList, setItemsList] = useState([]);
+  const [category, setCategory] = useState("");
+  const [item, setItem] = useState("");
+  const [pack, setPack] = useState("");
+  const [issues, setIssues] = useState("");
+  const [totalQty, setTotalQty] = useState(0);
+  const [prevBalance, setPrevBalance] = useState(0);
+  const [amount, setAmount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [isEnable, setIsEnable] = useState(true);
+  const [isView, setIsView] = useState(false);
+  const [editingLoad, setEditingLoad] = useState(null);
+  const [selectedLoad, setSelectedLoad] = useState(null);
   const sliderRef = useRef(null);
-  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const [nextLoadNo, setNextLoadNo] = useState("001");
 
-  // Simulate fetching sales returns
-  const fetchSalesReturns = useCallback(async () => {
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
+  // Handle adding items to the table in the form
+  const handleAddItem = () => {
+    if (!category || !item || !pack || !issues) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "⚠️ Please fill in Category, Item, Pack, and Issues.",
+        confirmButtonColor: "#d33",
+      });
+      return;
+    }
+
+    const selectedOption = itemOptions.find((opt) => opt._id === item);
+    const newItem = {
+      sr: itemsList.length + 1,
+      category,
+      item: selectedOption?.itemName || "",
+      pack,
+      issues: parseInt(issues, 10),
+      price: selectedOption?.price || 0,
+      amount: selectedOption?.price * parseInt(issues, 10) || 0,
+    };
+
+    const updatedItemsList = [...itemsList, newItem];
+    setItemsList(updatedItemsList);
+
+    // Update totalQty and totalAmount
+    const newTotalQty = updatedItemsList.reduce((sum, it) => sum + it.issues, 0);
+    const newTotalAmount = updatedItemsList.reduce((sum, it) => sum + it.amount, 0);
+    setTotalQty(newTotalQty);
+    setTotalAmount(newTotalAmount);
+
+    // Clear form
+    setCategory("");
+    setItem("");
+    setPack("");
+    setIssues("");
+  };
+
+  // Fetch salesmen options
+  const fetchSalesmenOptions = useCallback(async () => {
     try {
       setLoading(true);
-      // Static data already set in state
+      const { token } = userInfo || {};
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/salesmen`, { headers });
+      setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
     } catch (error) {
-      console.error("Failed to fetch sales returns", error);
+      console.error("Failed to fetch salesmen:", error);
+      toast.error("Failed to fetch salesmen. Using static data.");
+      setSalesmenOptions(staticSalesmen);
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchSalesReturns();
-  }, [fetchSalesReturns]);
+    fetchSalesmenOptions();
+  }, [fetchSalesmenOptions]);
 
-  // Sales return search
-  useEffect(() => {
-    if (!searchTerm || !searchTerm.startsWith("RET-")) {
-      fetchSalesReturns();
-      return;
+  // Fetch item options
+  const fetchItemOptions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { token } = userInfo || {};
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/items`, { headers });
+      setItemOptions(res.data.length ? res.data : staticItems);
+    } catch (error) {
+      console.error("Failed to fetch items:", error);
+      toast.error("Failed to fetch items. Using static data.");
+      setItemOptions(staticItems);
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    const delayDebounce = setTimeout(() => {
-      try {
-        setLoading(true);
-        const filtered = salesReturns.filter((returnItem) =>
-          returnItem.returnId.toUpperCase().includes(searchTerm.toUpperCase())
-        );
-        setSalesReturns(filtered);
-      } catch (error) {
-        console.error("Search sales returns failed:", error);
-        setSalesReturns([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 1000);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm, fetchSalesReturns, salesReturns]);
-
-  // Generate next return ID
   useEffect(() => {
-    if (salesReturns.length > 0) {
+    fetchItemOptions();
+  }, [fetchItemOptions]);
+
+  // Fetch loads
+  const fetchLoads = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { token } = userInfo || {};
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/loadsheets`, { headers });
+      console.log("Loadsheet API Response:", res.data); // Debug API response
+      const transformedLoads = (res.data.length ? res.data : staticLoads).map((load) => ({
+        _id: load._id,
+        loadNo: load.loadNo || "N/A",
+        loadDate: load.loadDate || null,
+        salesmanName: load.salesmanName || "N/A",
+        vehicleNo: load.vehicleNo || "N/A",
+        products: load.products || [],
+        prevBalance: load.prevBalance || 0,
+        totalQty: load.totalQty || 0,
+        totalAmount: load.totalAmount || 0,
+        isEnable: load.isEnable !== undefined ? load.isEnable : true,
+      }));
+      setLoads(transformedLoads);
+    } catch (error) {
+      console.error("Failed to fetch loadsheets:", error);
+      toast.error("Failed to fetch loadsheets. Using static data.");
+      const transformedLoads = staticLoads.map((load) => ({
+        _id: load._id,
+        loadNo: load.loadNo || "N/A",
+        loadDate: load.loadDate || null,
+        salesmanName: load.salesmanName || "N/A",
+        vehicleNo: load.vehicleNo || "N/A",
+        products: load.products || [],
+        prevBalance: load.prevBalance || 0,
+        totalQty: load.totalQty || 0,
+        totalAmount: load.totalAmount || 0,
+        isEnable: load.isEnable !== undefined ? load.isEnable : true,
+      }));
+      setLoads(transformedLoads);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLoads();
+  }, [fetchLoads]);
+
+  // Debug loads state
+  useEffect(() => {
+    console.log("Current loads state:", loads);
+  }, [loads]);
+
+  // Next Load No
+  useEffect(() => {
+    if (loads.length > 0) {
       const maxNo = Math.max(
-        ...salesReturns.map((r) => {
-          const match = r.returnId?.match(/RET-(\d+)/);
+        ...loads.map((l) => {
+          const match = l.loadNo?.match(/LOAD-(\d+)/);
           return match ? parseInt(match[1], 10) : 0;
         })
       );
-      setNextReturnId((maxNo + 1).toString().padStart(3, "0"));
+      setNextLoadNo((maxNo + 1).toString().padStart(3, "0"));
     } else {
-      setNextReturnId("001");
+      setNextLoadNo("001");
     }
-  }, [salesReturns]);
-
-  // Reset form fields
-  const resetForm = () => {
-    setReturnId("");
-    setCustomerName("");
-    setInvoiceNumber("");
-    setReturnDate("");
-    setItemName("");
-    setQuantity("");
-    setRefundAmount("");
-    setReason("");
-    setStatus("");
-    setEditingSalesReturn(null);
-    setErrors({});
-    setIsSliderOpen(false);
-  };
-
-  // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
-    const trimmedReturnId = returnId.trim();
-    const trimmedCustomerName = customerName.trim();
-    const trimmedInvoiceNumber = invoiceNumber.trim();
-    const trimmedReturnDate = returnDate.trim();
-    const trimmedItemName = itemName.trim();
-    const trimmedQuantity = quantity.trim();
-    const trimmedRefundAmount = refundAmount.trim();
-    const trimmedStatus = status.trim();
-    const parsedQuantity = parseInt(quantity);
-    const parsedRefundAmount = parseFloat(refundAmount);
-
-    if (!trimmedReturnId) newErrors.returnId = "Return ID is required";
-    if (!trimmedCustomerName)
-      newErrors.customerName = "Customer Name is required";
-    if (!trimmedInvoiceNumber)
-      newErrors.invoiceNumber = "Invoice Number is required";
-    if (!trimmedReturnDate) newErrors.returnDate = "Return Date is required";
-    if (!trimmedItemName) newErrors.itemName = "Item Name is required";
-    if (!trimmedQuantity || isNaN(parsedQuantity) || parsedQuantity <= 0) {
-      newErrors.quantity = "Quantity must be a positive number";
-    }
-    if (
-      !trimmedRefundAmount ||
-      isNaN(parsedRefundAmount) ||
-      parsedRefundAmount <= 0
-    ) {
-      newErrors.refundAmount = "Refund Amount must be a positive number";
-    }
-    if (!trimmedStatus) newErrors.status = "Status is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  }, [loads]);
 
   // Handlers for form and table actions
-  const handleAddSalesReturn = () => {
-    resetForm();
+  const handleAddClick = () => {
+    setEditingLoad(null);
+    setLoadNo("");
+    setLoadDate("");
+    setSalesman("");
+    setVehicleNo("");
+    setItemsList([]);
+    setCategory("");
+    setItem("");
+    setPack("");
+    setIssues("");
+    setTotalQty(0);
+    setPrevBalance(0);
+    setAmount(0);
+    setTotalAmount(0);
+    setIsEnable(true);
     setIsSliderOpen(true);
   };
 
-  const handleEditClick = (salesReturn) => {
-    setEditingSalesReturn(salesReturn);
-    setReturnId(salesReturn.returnId || "");
-    setCustomerName(salesReturn.customerName || "");
-    setInvoiceNumber(salesReturn.invoiceNumber || "");
-    setReturnDate(salesReturn.returnDate || "");
-    setItemName(salesReturn.itemName || "");
-    setQuantity(salesReturn.quantity || "");
-    setRefundAmount(salesReturn.refundAmount || "");
-    setReason(salesReturn.reason || "");
-    setStatus(salesReturn.status || "");
-    setErrors({});
+  const handleEditClick = (load) => {
+    setEditingLoad(load);
+    setLoadNo(load.loadNo);
+    setLoadDate(formatDate(load.loadDate));
+    const selectedSalesman = salesmenOptions.find((sm) => sm.salesmanName === load.salesmanName);
+    setSalesman(selectedSalesman?._id || "");
+    setVehicleNo(load.vehicleNo || "");
+    setItemsList(
+      (load.products || []).map((it) => ({
+        sr: it.sr,
+        category: it.category,
+        item: it.item,
+        pack: it.pack,
+        issues: it.issues,
+        price: it.price,
+        amount: it.amount,
+      }))
+    );
+    setTotalQty(load.totalQty || 0);
+    setPrevBalance(load.prevBalance || 0);
+    setAmount(load.products?.reduce((sum, it) => sum + it.amount, 0) || 0);
+    setTotalAmount(load.totalAmount || 0);
+    setIsEnable(load.isEnable);
     setIsSliderOpen(true);
-  };
-  // Calculate total whenever qty or price changes
-  useEffect(() => {
-    if (quantity && price) {
-      setTotal((parseFloat(quantity) * parseFloat(price)).toFixed(2));
-    } else {
-      setTotal("");
-    }
-  }, [quantity, price]);
-
-  // Add new item to list
-  const handleAddItem = () => {
-    if (!itemName || !quantity || !price) {
-      Swal.fire("Error", "Please fill item, quantity and price", "error");
-      return;
-    }
-
-    const newItem = {
-      itemName,
-      quantity: parseInt(quantity),
-      price: parseFloat(price),
-      total: parseFloat(total),
-    };
-
-    setItems((prev) => [...prev, newItem]);
-
-    // reset item input fields
-    setItemName("");
-    setQuantity("");
-    setPrice("");
-    setTotal("");
-  };
-
-  // Remove item from list
-  const handleRemoveItem = (index) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!loadDate || !salesman) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "⚠️ Please fill in Load Date and Salesman.",
+        confirmButtonColor: "#d33",
+      });
       return;
     }
 
-    const newSalesReturn = {
-      returnId: editingSalesReturn ? returnId : `RET-${nextReturnId}`,
-      customerName: customerName.trim(),
-      invoiceNumber: invoiceNumber.trim(),
-      returnDate: returnDate.trim(),
-      itemName: itemName.trim(),
-      quantity: parseInt(quantity),
-      refundAmount: parseFloat(refundAmount),
-      reason: reason.trim(),
-      status: status.trim(),
+    const { token } = userInfo || {};
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const newLoad = {
+      loadNo: editingLoad ? loadNo : `LOAD-${nextLoadNo}`,
+      loadDate,
+      salesmanName: salesmenOptions.find((sm) => sm._id === salesman)?.salesmanName || "",
+      vehicleNo,
+      products: itemsList.map((item, idx) => ({
+        sr: idx + 1,
+        category: item.category,
+        item: item.item,
+        pack: item.pack,
+        issues: item.issues,
+        price: item.price,
+        amount: item.amount,
+      })),
+      prevBalance,
+      totalQty,
+      totalAmount,
     };
 
     try {
-      if (editingSalesReturn) {
-        setSalesReturns((prev) =>
-          prev.map((r) =>
-            r._id === editingSalesReturn._id
-              ? { ...r, ...newSalesReturn, _id: r._id }
-              : r
-          )
+      if (editingLoad) {
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/loadsheets/${editingLoad._id}`,
+          newLoad,
+          { headers }
         );
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Sales Return updated successfully.",
-          confirmButtonColor: "#3085d6",
-        });
+        Swal.fire("Updated!", "Loadsheet updated successfully.", "success");
       } else {
-        setSalesReturns((prev) => [
-          ...prev,
-          { ...newSalesReturn, _id: `temp-${Date.now()}` },
-        ]);
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Sales Return added successfully.",
-          confirmButtonColor: "#3085d6",
-        });
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/loadsheets`,
+          newLoad,
+          { headers }
+        );
+        Swal.fire("Added!", "Loadsheet added successfully.", "success");
       }
-      fetchSalesReturns();
-      resetForm();
+
+      fetchLoads();
+      setIsSliderOpen(false);
+      setItemsList([]);
     } catch (error) {
-      console.error("Error saving sales return:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to save sales return.",
-        confirmButtonColor: "#d33",
-      });
+      console.error("Error saving loadsheet:", error);
+      Swal.fire("Error!", "Something went wrong while saving.", "error");
     }
   };
 
-  const handleDelete = (id) => {
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) return "Invalid Date";
+    const day = String(parsed.getDate()).padStart(2, "0");
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const year = parsed.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
         actions: "space-x-2",
@@ -325,41 +410,68 @@ const LoadSheet = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            setSalesReturns((prev) => prev.filter((r) => r._id !== id));
+            const { token } = userInfo || {};
+            const headers = {
+              Authorization: `Bearer ${token}`,
+            };
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/loadsheets/${id}`,
+              { headers }
+            );
+            setLoads(loads.filter((l) => l._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Sales Return deleted successfully.",
+              "Loadsheet deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete sales return.",
+              "Failed to delete loadsheet.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Sales Return is safe 🙂",
-            "error"
-          );
+          swalWithTailwindButtons.fire("Cancelled", "Loadsheet is safe 🙂", "error");
         }
       });
   };
 
-  // Pagination logic
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = salesReturns.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-  const totalPages = Math.ceil(salesReturns.length / recordsPerPage);
+  const handleView = (load) => {
+    setSelectedLoad(load);
+    setIsView(true);
+  };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handleSalesmanChange = (e) => {
+    const selectedId = e.target.value;
+    setSalesman(selectedId);
+    setItemsList([]);
+    const selectedSalesman = salesmenOptions.find((sm) => sm._id === selectedId);
+    if (selectedSalesman) {
+      setVehicleNo(selectedSalesman.vehicleNo || "");
+      setPrevBalance(selectedSalesman.prevBalance || 0);
+      const salesmanItems = selectedSalesman.products?.map((it, idx) => ({
+        _id: it._id,
+        category: it.category,
+        itemName: it.itemName,
+        pack: it.pack,
+        issues: it.issues,
+        price: it.price,
+        amount: it.amount,
+      })) || [];
+      setItemOptions(salesmanItems);
+      const newTotalQty = salesmanItems.reduce((sum, it) => sum + it.issues, 0);
+      const newTotalAmount = salesmanItems.reduce((sum, it) => sum + it.amount, 0);
+      setTotalQty(newTotalQty);
+      setTotalAmount(newTotalAmount);
+    } else {
+      setVehicleNo("");
+      setPrevBalance(0);
+      setTotalQty(0);
+      setTotalAmount(0);
+      setItemOptions(staticItems);
+    }
   };
 
   return (
@@ -369,137 +481,79 @@ const LoadSheet = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">
-              Sales Return Details
+              Loadsheet Details
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Enter Return ID eg: RET-001"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 w-[250px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            />
-            <button
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-              onClick={handleAddSalesReturn}
-            >
-              + Add Sales Return
-            </button>
-          </div>
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+            onClick={handleAddClick}
+          >
+            + Add Loadsheet
+          </button>
         </div>
 
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
-            <div className="min-w-[1200px]">
-              <div className="hidden lg:grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                <div>Return ID</div>
-                <div>Customer Name</div>
-                <div>Invoice Number</div>
-                <div>Return Date</div>
-                <div>Item Name</div>
-                <div>Quantity</div>
-                <div>Refund Amount</div>
-                <div>Reason</div>
-                <div>Actions</div>
-              </div>
+          <div className="overflow-x-auto">
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div className="inline-block min-w-[1200px] w-full align-middle">
+                <div className="hidden lg:grid grid-cols-6 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                  <div>SR#</div>
+                  <div>Category</div>
+                  <div>Item</div>
+                  <div>Pack</div>
+                  <div>Issues</div>
+                  <div className="text-right">Actions</div>
+                </div>
 
-              <div className="flex flex-col divide-y divide-gray-100">
-                {loading ? (
-                  <TableSkeleton
-                    rows={recordsPerPage}
-                    cols={9}
-                    className="lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                  />
-                ) : currentRecords.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 bg-white">
-                    No sales returns found.
-                  </div>
-                ) : (
-                  currentRecords.map((salesReturn) => (
-                    <div
-                      key={salesReturn._id}
-                      className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                    >
-                      <div className="text-gray-600">
-                        {salesReturn.returnId}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.customerName}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.invoiceNumber}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.returnDate}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.itemName}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.quantity}
-                      </div>
-                      <div className="text-gray-600">
-                        {salesReturn.refundAmount}
-                      </div>
-                      <div className="text-gray-600">{salesReturn.reason}</div>
-                      <div className="flex gap-3 justify-start">
-                        <button
-                          onClick={() => handleEditClick(salesReturn)}
-                          className="py-1 text-sm rounded text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Edit"
-                        >
-                          <SquarePen size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(salesReturn._id)}
-                          className="py-1 text-sm rounded text-red-600 hover:bg-red-50 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {loading ? (
+                    <TableSkeleton rows={5} cols={6} className="lg:grid-cols-6" />
+                  ) : loads.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500 bg-white">
+                      No loadsheets found.
                     </div>
-                  ))
-                )}
+                  ) : (
+                    loads.flatMap((load) =>
+                      load.products.map((product, idx) => (
+                        <div
+                          key={`${load._id}-${product.sr}`}
+                          className="grid grid-cols-1 lg:grid-cols-6 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                        >
+                          <div className="font-medium text-gray-900">{product.sr}</div>
+                          <div className="text-gray-600">{product.category || "N/A"}</div>
+                          <div className="text-gray-600">{product.item || "N/A"}</div>
+                          <div className="text-gray-600">{product.pack || "N/A"}</div>
+                          <div className="text-gray-600">{product.issues || "N/A"}</div>
+                          <div className="flex justify-end gap-3">
+                            <button
+                              onClick={() => handleEditClick(load)}
+                              className="py-1 text-sm rounded text-blue-600"
+                              title="Edit"
+                            >
+                              <SquarePen size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(load._id)}
+                              className="py-1 text-sm text-red-600"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => handleView(load)}
+                              className="text-amber-600 hover:underline"
+                            >
+                              <Eye size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )
+                  )}
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between my-4 px-10">
-              <div className="text-sm text-gray-600">
-                Showing {indexOfFirstRecord + 1} to{" "}
-                {Math.min(indexOfLastRecord, salesReturns.length)} of{" "}
-                {salesReturns.length} records
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === 1
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === totalPages
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {isSliderOpen && (
@@ -510,279 +564,281 @@ const LoadSheet = () => {
             >
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
-                  {editingSalesReturn
-                    ? "Update Sales Return"
-                    : "Add a New Sales Return"}
+                  {editingLoad ? "Update Loadsheet" : "Add a New Loadsheet"}
                 </h2>
                 <button
-                  className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={resetForm}
+                  className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
+                  onClick={() => {
+                    setIsSliderOpen(false);
+                    setLoadNo("");
+                    setLoadDate("");
+                    setSalesman("");
+                    setVehicleNo("");
+                    setItemsList([]);
+                    setCategory("");
+                    setItem("");
+                    setPack("");
+                    setIssues("");
+                    setTotalQty(0);
+                    setPrevBalance(0);
+                    setAmount(0);
+                    setTotalAmount(0);
+                    setIsEnable(true);
+                    setEditingLoad(null);
+                  }}
                 >
                   ×
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                {/* Top Section */}
-                <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Return ID
-                      </label>
-                      <input
-                        type="text"
-                        value={
-                          editingSalesReturn ? returnId : `RET-${nextReturnId}`
-                        }
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Return Date
-                      </label>
-                      <input
-                        type="date"
-                        value={returnDate}
-                        onChange={(e) => setReturnDate(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        DC ID
-                      </label>
-                      <select
-                        value={dcId}
-                        onChange={(e) => setDcId(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      >
-                        <option value="">Select DC</option>
-                        <option value="DC-001">DC-001</option>
-                        <option value="DC-002">DC-002</option>
-                      </select>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Invoice No
-                      </label>
-                      <input
-                        type="text"
-                        value={invoiceNumber}
-                        readOnly
-                        onChange={(e) => setInvoiceNumber(e.target.value)}
-                        className="w-full p-3 border bg-gray-50 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Customer Name
-                      </label>
-                      <input
-                        type="text"
-                        value={customerName}
-                        readOnly
-                        disabled
-                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Driver Name
-                      </label>
-                      <input
-                        type="text"
-                        value={driverName}
-                        readOnly
-                        onChange={(e) => setDriverName(e.target.value)}
-                        className="w-full p-3 border border-gray-300 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Delivery Address
+                      Load No. <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      rows={2}
-                      value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                    <input
+                      type="text"
+                      value={editingLoad ? loadNo : `LOAD-${nextLoadNo}`}
+                      onChange={(e) => setLoadNo(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      placeholder="Enter Load No."
+                      readOnly={!!editingLoad}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Load Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={loadDate}
+                      onChange={(e) => setLoadDate(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Salesman <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={salesman}
+                      onChange={handleSalesmanChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      required
+                    >
+                      <option value="">Select Salesman</option>
+                      {salesmenOptions.map((sm) => (
+                        <option key={sm._id} value={sm._id}>
+                          {sm.salesmanName || "N/A"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Vehicle No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={vehicleNo}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Vehicle No."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Total Qty
+                    </label>
+                    <input
+                      type="number"
+                      value={totalQty}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Total Qty"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Prev Balance
+                    </label>
+                    <input
+                      type="number"
+                      value={prevBalance}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Prev Balance"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Amount
+                    </label>
+                    <input
+                      type="number"
+                      value={amount}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Amount"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Total Amount
+                    </label>
+                    <input
+                      type="number"
+                      value={totalAmount}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Total Amount"
                     />
                   </div>
                 </div>
 
-                {/* Items Section */}
-              <div className="mt-6">
-  <h3 className="text-lg font-medium text-gray-700 mb-4">Items</h3>
-
-  <div className="border p-4 rounded-lg bg-formBgGray space-y-4">
-    {/* Add Row */}
-    <div className="flex flex-wrap gap-4 items-end">
-      <div className="flex-1 min-w-[180px]">
-        <label className="block text-gray-700 font-medium mb-2">
-          Item
-        </label>
-        <select
-          value={itemName}
-          onChange={(e) => setItemName(e.target.value)}
-          className="w-full p-3 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-        >
-          <option value="">Select Item</option>
-          {itemList.map((item) => (
-            <option key={item._id} value={item.itemName}>
-              {item.itemName}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex-1 min-w-[120px]">
-        <label className="block text-gray-700 font-medium mb-2">
-          Quantity
-        </label>
-        <input
-          type="number"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-          placeholder="Enter quantity"
-        />
-      </div>
-
-      <div className="flex-1 min-w-[120px]">
-        <label className="block text-gray-700 font-medium mb-2">
-          Price
-        </label>
-        <input
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-          placeholder="Enter price"
-        />
-      </div>
-
-      <div className="flex-1 min-w-[120px]">
-        <label className="block text-gray-700 font-medium mb-2">
-          Total
-        </label>
-        <input
-          type="number"
-          value={total}
-          readOnly
-          className="w-full p-3 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
-        />
-      </div>
-
-      <div className="flex-shrink-0">
-        <button
-          type="button"
-          onClick={handleAddItem}
-          className="px-6 py-3 bg-lime-500 text-white font-medium rounded-lg hover:bg-lime-600 transition flex items-center gap-2"
-        >
-          <span className="text-lg font-bold">+</span> Add
-        </button>
-      </div>
-    </div>
-
-    {/* Items Table */}
-    {items.length > 0 ? (
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead className="bg-gray-200 text-gray-600 text-sm border border-gray-300">
-            <tr>
-              <th className="px-4 py-2 border border-gray-300">Sr #</th>
-              <th className="px-4 py-2 border border-gray-300">Item Name</th>
-              <th className="px-4 py-2 border border-gray-300">Quantity</th>
-              <th className="px-4 py-2 border border-gray-300">Price</th>
-              <th className="px-4 py-2 border border-gray-300">Total</th>
-              <th className="px-4 py-2 border border-gray-300">Action</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-700 text-sm">
-            {items.map((item, idx) => (
-              <tr key={idx} className="bg-gray-50 even:bg-white text-center border border-gray-300">
-                <td className="px-4 py-2 border border-gray-300">{idx + 1}</td>
-                <td className="px-4 py-2 border border-gray-300">{item.itemName}</td>
-                <td className="px-4 py-2 border border-gray-300">{item.quantity}</td>
-                <td className="px-4 py-2 border border-gray-300">{item.price}</td>
-                <td className="px-4 py-2 border border-gray-300">{item.total}</td>
-                <td className="px-4 py-2 border border-gray-300">
-                  <button
-                    onClick={() => handleRemoveItem(idx)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    ) : (
-      <div className="text-center py-4 text-gray-500 bg-white rounded-lg border border-gray-200">
-        No items added
-      </div>
-    )}
-  </div>
-</div>
-
-
-                {/* Bottom Section */}
-                <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
+                <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
                   <div className="flex gap-4">
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Reason
+                        Category
+                      </label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      >
+                        <option value="">Select Category</option>
+                        {[...new Set(itemOptions.map((opt) => opt.category))].map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Item
+                      </label>
+                      <select
+                        value={item}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          setItem(selectedId);
+                          const selectedOption = itemOptions.find((opt) => opt._id === selectedId);
+                          if (selectedOption) {
+                            setPack(selectedOption.pack || "");
+                            setIssues(selectedOption.issues || "");
+                            setAmount(selectedOption.amount || 0);
+                          }
+                        }}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      >
+                        <option value="">Select Item</option>
+                        {itemOptions
+                          .filter((opt) => !category || opt.category === category)
+                          .map((opt) => (
+                            <option key={opt._id} value={opt._id}>
+                              {opt.itemName}
+                            </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Pack
                       </label>
                       <input
                         type="text"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                        value={pack}
+                        onChange={(e) => setPack(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        placeholder="Enter Pack"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Status
+                        Issues
                       </label>
-                      <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                      <input
+                        type="number"
+                        value={issues}
+                        onChange={(e) => setIssues(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        placeholder="Enter Issues"
+                        min="1"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={handleAddItem}
+                        className="w-40 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
                       >
-                        <option value="">Select Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Processed">Processed</option>
-                        <option value="Rejected">Rejected</option>
-                      </select>
+                        + Add
+                      </button>
                     </div>
                   </div>
+                  {itemsList.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full border-collapse">
+                          <thead className="bg-gray-100 text-gray-600 text-sm">
+                            <tr>
+                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
+                              <th className="px-4 py-2 border border-gray-300">Category</th>
+                              <th className="px-4 py-2 border border-gray-300">Item</th>
+                              <th className="px-4 py-2 border border-gray-300">Pack</th>
+                              <th className="px-4 py-2 border border-gray-300">Issues</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-gray-700 text-sm">
+                            {itemsList.map((item, idx) => (
+                              <tr key={idx} className="hover:bg-gray-50 text-center">
+                                <td className="px-4 py-2 border border-gray-300 text-center">{item.sr}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.category}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.item}</td>
+                                <td className="px-4 py-2 border border-gray-300">{item.pack}</td>
+                                <td className="px-4 py-2 border border-gray-300 text-center">{item.issues}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors"
+                  disabled={loading}
+                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
                 >
-                  {editingSalesReturn
-                    ? "Update Sales Return"
-                    : "Save Sales Return"}
+                  {loading ? "Saving..." : editingLoad ? "Update Loadsheet" : "Save Loadsheet"}
                 </button>
               </form>
             </div>
           </div>
+        )}
+
+        {isView && selectedLoad && (
+          <ViewModel
+            data={selectedLoad}
+            type="loadsheet"
+            onClose={() => setIsView(false)}
+          />
         )}
 
         <style jsx>{`
@@ -806,4 +862,4 @@ const LoadSheet = () => {
   );
 };
 
-export default LoadSheet;
+export default Loadsheet;
