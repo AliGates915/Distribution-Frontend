@@ -8,7 +8,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 
-const FbrPaymentReceipt = () => {
+const SupplierLedger = () => {
   const [vouchers, setVouchers] = useState([]);
   const [filteredVouchers, setFilteredVouchers] = useState([]); // NEW: Separate state for filtered data
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -1004,4 +1004,4 @@ const FbrPaymentReceipt = () => {
   );
 };
 
-export default FbrPaymentReceipt;
+export default SupplierLedger;

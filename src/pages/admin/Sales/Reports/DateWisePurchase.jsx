@@ -4,7 +4,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
-const FbrReceivable = () => {
+const DateWisePurchase = () => {
   const [receivables, setReceivables] = useState([]);
 
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -457,4 +457,4 @@ const FbrReceivable = () => {
   );
 };
 
-export default FbrReceivable;
+export default DateWisePurchase;
