@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Eye, SquarePen, Trash2, X } from "lucide-react";
-import CommanHeader from "../../Components/CommanHeader";
+
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
+import CommanHeader from "../../components/CommanHeader";
 
-const ItemPurchases = () => {
+const ItemWiseRecovery = () => {
   const [bookingOrders, setBookingOrders] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isView, setIsView] = useState(false);
@@ -1149,4 +1150,4 @@ const ItemPurchases = () => {
   );
 };
 
-export default ItemPurchases;
+export default ItemWiseRecovery;

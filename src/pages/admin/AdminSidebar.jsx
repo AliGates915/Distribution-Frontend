@@ -19,11 +19,11 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
-import { MdOutlineIntegrationInstructions } from "react-icons/md";
+import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { BiPurchaseTagAlt } from "react-icons/bi";
+import { BiPurchaseTag, BiPurchaseTagAlt } from "react-icons/bi";
 
 // 🔹 Link definitions with permission keys
 const links = [
@@ -46,9 +46,19 @@ const links = [
   //   icon: <FcSalesPerformance color="#1d4ed8"/>,
   // },
   {
+    to: "/admin/purchase",
+    label: "Purchase ",
+    icon: <BiPurchaseTag />,
+  },
+  {
     to: "/admin/sales",
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
+  },
+  {
+    to: "/admin/accounts",
+    label: "Accounts ",
+    icon: <MdOutlineAccountBalanceWallet />,
   },
   // {
   //   to: "/admin/sales-invoice",

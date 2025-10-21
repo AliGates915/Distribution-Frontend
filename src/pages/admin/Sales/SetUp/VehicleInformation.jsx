@@ -8,7 +8,7 @@ import CommanHeader from "../../../../../src/components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Skeleton";
 
-const Vehicle = () => {
+const VehicleInformation = () => {
   const [vehicles, setVehicles] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -406,4 +406,4 @@ const Vehicle = () => {
   );
 };
 
-export default Vehicle;
+export default VehicleInformation;
