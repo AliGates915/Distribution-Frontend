@@ -22,7 +22,7 @@ import {
   CreditCard,
   PieChart as PieChartIcon,
 } from "lucide-react";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../admin/Components/CommanHeader";
 
 import HeaderSkeleton from "./HeaderSkeleton";
 import SummaryCardSkeleton from "./SummaryCardSkeleton";

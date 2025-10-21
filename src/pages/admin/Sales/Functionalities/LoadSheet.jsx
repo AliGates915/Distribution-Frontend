@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen, Trash2 } from "lucide-react";
+import { Eye, Loader, SquarePen, Trash2 } from "lucide-react";
 import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
@@ -7,193 +7,20 @@ import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
 
-// Static data for fallback
-const staticLoads = [
-  {
-    _id: "1",
-    loadNo: "LOAD-001",
-    loadDate: "2025-10-01",
-    salesmanName: "Ali Khan",
-    vehicleNo: "ABC-123",
-    products: [
-      {
-        sr: 1,
-        category: "Beverages",
-        item: "Pepsi 1.5L",
-        pack: "carton",
-        issues: 20,
-        price: 150,
-        amount: 3000,
-      },
-      {
-        sr: 2,
-        category: "Snacks",
-        item: "Lays Chips 50g",
-        pack: "bag",
-        issues: 50,
-        price: 60,
-        amount: 3000,
-      },
-      {
-        sr: 3,
-        category: "Biscuits",
-        item: "Oreo 100g",
-        pack: "piece",
-        issues: 30,
-        price: 80,
-        amount: 2400,
-      },
-    ],
-    prevBalance: 10000,
-    totalQty: 100,
-    totalAmount: 18400,
-    isEnable: true,
-  },
-  {
-    _id: "2",
-    loadNo: "LOAD-002",
-    loadDate: "2025-10-05",
-    salesmanName: "Hamza Raza",
-    vehicleNo: "XYZ-456",
-    products: [
-      {
-        sr: 1,
-        category: "Dairy",
-        item: "Milk Pack 1L",
-        pack: "carton",
-        issues: 15,
-        price: 220,
-        amount: 3300,
-      },
-      {
-        sr: 2,
-        category: "Bakery",
-        item: "Bread Large",
-        pack: "piece",
-        issues: 25,
-        price: 100,
-        amount: 2500,
-      },
-      {
-        sr: 3,
-        category: "Beverages",
-        item: "7up 500ml",
-        pack: "carton",
-        issues: 10,
-        price: 140,
-        amount: 1400,
-      },
-      {
-        sr: 4,
-        category: "Snacks",
-        item: "Kurkure 25g",
-        pack: "bag",
-        issues: 60,
-        price: 40,
-        amount: 2400,
-      },
-    ],
-    prevBalance: 5000,
-    totalQty: 110,
-    totalAmount: 14600,
-    isEnable: true,
-  },
-];
-
-const staticSalesmen = [
-  {
-    _id: "s1",
-    salesmanName: "Ali Khan",
-    vehicleNo: "ABC-123",
-    prevBalance: 10000,
-    products: [
-      {
-        _id: "p1",
-        category: "Beverages",
-        itemName: "Pepsi 1.5L",
-        pack: "carton",
-        issues: 20,
-        price: 150,
-        amount: 3000,
-      },
-      {
-        _id: "p2",
-        category: "Snacks",
-        itemName: "Lays Chips 50g",
-        pack: "bag",
-        issues: 50,
-        price: 60,
-        amount: 3000,
-      },
-      {
-        _id: "p3",
-        category: "Biscuits",
-        itemName: "Oreo 100g",
-        pack: "piece",
-        issues: 30,
-        price: 80,
-        amount: 2400,
-      },
-    ],
-  },
-  {
-    _id: "s2",
-    salesmanName: "Hamza Raza",
-    vehicleNo: "XYZ-456",
-    prevBalance: 5000,
-    products: [
-      {
-        _id: "p4",
-        category: "Dairy",
-        itemName: "Milk Pack 1L",
-        pack: "carton",
-        issues: 15,
-        price: 220,
-        amount: 3300,
-      },
-      {
-        _id: "p5",
-        category: "Bakery",
-        itemName: "Bread Large",
-        pack: "piece",
-        issues: 25,
-        price: 100,
-        amount: 2500,
-      },
-      {
-        _id: "p6",
-        category: "Beverages",
-        itemName: "7up 500ml",
-        pack: "carton",
-        issues: 10,
-        price: 140,
-        amount: 1400,
-      },
-      {
-        _id: "p7",
-        category: "Snacks",
-        itemName: "Kurkure 25g",
-        pack: "bag",
-        issues: 60,
-        price: 40,
-        amount: 2400,
-      },
-    ],
-  },
-];
-
 const Loadsheet = () => {
   const [loads, setLoads] = useState([]);
   const [salesmenOptions, setSalesmenOptions] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadNo, setLoadNo] = useState("");
   const [loadDate, setLoadDate] = useState("");
   const [salesman, setSalesman] = useState("");
   const [vehicleNo, setVehicleNo] = useState("");
+  const [vehicleNoList, setVehicleNoList] = useState([]);
   const [itemsList, setItemsList] = useState([]);
   const [totalQty, setTotalQty] = useState(0);
-  const [prevBalance, setPrevBalance] = useState(0);
+  const [prevBalance, setPrevBalance] = useState();
   const [amount, setAmount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isEnable, setIsEnable] = useState(true);
@@ -204,27 +31,27 @@ const Loadsheet = () => {
   const [nextLoadNo, setNextLoadNo] = useState("001");
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
+  const { token } = userInfo || {};
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
   // Fetch salesmen options
   const fetchSalesmenOptions = useCallback(async () => {
     try {
       setLoading(true);
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
+
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/salesmen`,
-        { headers }
+        `${import.meta.env.VITE_API_BASE_URL}/employees/orders`
       );
       setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
     } catch (error) {
       console.error("Failed to fetch salesmen:", error);
       toast.error("Failed to fetch salesmen. Using static data.");
-      setSalesmenOptions(staticSalesmen);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   }, []);
 
@@ -236,48 +63,21 @@ const Loadsheet = () => {
   const fetchLoads = useCallback(async () => {
     try {
       setLoading(true);
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/loadsheets`,
-        { headers }
+        `${import.meta.env.VITE_API_BASE_URL}/load-sheets`
       );
-      const transformedLoads = (res.data.length ? res.data : staticLoads).map(
-        (load) => ({
-          _id: load._id,
-          loadNo: load.loadNo || "N/A",
-          loadDate: load.loadDate || null,
-          salesmanName: load.salesmanName || "N/A",
-          vehicleNo: load.vehicleNo || "N/A",
-          products: load.products || [],
-          prevBalance: load.prevBalance || 0,
-          totalQty: load.totalQty || 0,
-          totalAmount: load.totalAmount || 0,
-          isEnable: load.isEnable !== undefined ? load.isEnable : true,
-        })
-      );
-      setLoads(transformedLoads);
+
+      // ✅ Extract array properly
+      const loadsData = res.data?.data || [];
+      setLoads(loadsData);
     } catch (error) {
       console.error("Failed to fetch loadsheets:", error);
-      toast.error("Failed to fetch loadsheets. Using static data.");
-      const transformedLoads = staticLoads.map((load) => ({
-        _id: load._id,
-        loadNo: load.loadNo || "N/A",
-        loadDate: load.loadDate || null,
-        salesmanName: load.salesmanName || "N/A",
-        vehicleNo: load.vehicleNo || "N/A",
-        products: load.products || [],
-        prevBalance: load.prevBalance || 0,
-        totalQty: load.totalQty || 0,
-        totalAmount: load.totalAmount || 0,
-        isEnable: load.isEnable !== undefined ? load.isEnable : true,
-      }));
-      setLoads(transformedLoads);
+      toast.error("Failed to fetch loadsheets.");
+      // fallback if API fails
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   }, []);
 
@@ -285,10 +85,31 @@ const Loadsheet = () => {
     fetchLoads();
   }, [fetchLoads]);
 
-  // Debug loads state
+  //  fetchVechiles
+  const fetchVechiles = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/vehicles/load`
+      );
+
+      // ✅ Extract array properly
+      const loadsData = res.data.data || [];
+      setVehicleNoList(loadsData);
+    } catch (error) {
+      console.error("Failed to fetch loadsheets:", error);
+      toast.error("Failed to fetch Vehicles.");
+      // fallback if API fails
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+  }, []);
+
   useEffect(() => {
-    console.log("Current loads state:", loads);
-  }, [loads]);
+    fetchVechiles();
+  }, [fetchVechiles]);
 
   // Next Load No
   useEffect(() => {
@@ -314,7 +135,7 @@ const Loadsheet = () => {
     setVehicleNo("");
     setItemsList([]);
     setTotalQty(0);
-    setPrevBalance(0);
+    setPrevBalance();
     setAmount(0);
     setTotalAmount(0);
     setIsEnable(true);
@@ -485,45 +306,53 @@ const Loadsheet = () => {
       });
   };
 
-  const handleView = (load) => {
-    setSelectedLoad(load);
-    setIsView(true);
-  };
 
-  const handleSalesmanChange = (e) => {
+  const handleSalesmanChange = async (e) => {
     const selectedId = e.target.value;
     setSalesman(selectedId);
-    setItemsList([]);
+
     const selectedSalesman = salesmenOptions.find(
       (sm) => sm._id === selectedId
     );
-    if (selectedSalesman) {
-      setVehicleNo(selectedSalesman.vehicleNo || "");
-      const newPrevBalance = selectedSalesman.prevBalance || 0;
-      setPrevBalance(newPrevBalance);
-      const salesmanItems =
-        selectedSalesman.products?.map((it, idx) => ({
+    setPrevBalance(selectedSalesman?.preBalance || 0);
+
+    if (!selectedId) return;
+
+    try {
+      setItemsLoading(true);
+      const res = await axios.get(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/order-taker/products/${selectedId}`
+      );
+      const products = res.data?.data || [];
+
+      setItemsList(
+        products.map((p, idx) => ({
           sr: idx + 1,
-          category: it.category,
-          item: it.itemName,
-          pack: it.pack,
-          issues: it.issues,
-          price: it.price,
-          amount: it.amount,
-        })) || [];
-      setItemsList(salesmanItems);
-      const newTotalQty = salesmanItems.reduce((sum, it) => sum + it.issues, 0);
-      const newAmount = salesmanItems.reduce((sum, it) => sum + it.amount, 0);
+          category: p.categoryName,
+          item: p.itemName,
+          pack: p.itemUnit,
+          issues: p.qty,
+          price: p.rate,
+          amount: p.totalAmount,
+        }))
+      );
+
+      // ✅ Add these lines
+      const newTotalQty = products.reduce((sum, p) => sum + (p.qty || 0), 0);
+      const newAmount = products.reduce(
+        (sum, p) => sum + (p.totalAmount || 0),
+        0
+      );
       setTotalQty(newTotalQty);
       setAmount(newAmount);
-      setTotalAmount(newPrevBalance + newAmount);
-    } else {
-      setVehicleNo("");
-      setPrevBalance(0);
-      setTotalQty(0);
-      setAmount(0);
-      setTotalAmount(0);
-      setItemsList([]);
+      setTotalAmount((selectedSalesman?.preBalance || 0) + newAmount);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load items.");
+    } finally {
+      setItemsLoading(false);
     }
   };
 
@@ -549,73 +378,76 @@ const Loadsheet = () => {
           <div className="overflow-x-auto">
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1200px] w-full align-middle">
-                <div className="hidden lg:grid grid-cols-6 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>SR#</div>
-                  <div>Category</div>
-                  <div>Item</div>
-                  <div>Pack</div>
-                  <div>Issues</div>
-                  <div className="text-right">Actions</div>
+                  <div>Load No</div>
+                  <div>Salesman</div>
+                  <div>Pre-Balance</div>
+                  <div>Load Date</div>
+                  <div>Vehicle No</div>
+                  <div className={`${loading ? "" : "text-right"}`}>
+                    Actions
+                  </div>
                 </div>
 
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
                     <TableSkeleton
-                      rows={5}
-                      cols={6}
-                      className="lg:grid-cols-6"
+                      rows={loads.length > 0 ? loads.length : 5}
+                      cols={7}
+                      className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr]"
                     />
                   ) : loads.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No loadsheets found.
                     </div>
                   ) : (
-                    loads.flatMap((load) =>
-                      load.products.map((product, idx) => (
-                        <div
-                          key={`${load._id}-${product.sr}`}
-                          className="grid grid-cols-1 lg:grid-cols-6 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                        >
-                          <div className="font-medium text-gray-900">
-                            {product.sr}
-                          </div>
-                          <div className="text-gray-600">
-                            {product.category || "N/A"}
-                          </div>
-                          <div className="text-gray-600">
-                            {product.item || "N/A"}
-                          </div>
-                          <div className="text-gray-600">
-                            {product.pack || "N/A"}
-                          </div>
-                          <div className="text-gray-600">
-                            {product.issues || "N/A"}
-                          </div>
-                          <div className="flex justify-end gap-3">
-                            <button
-                              onClick={() => handleEditClick(load)}
-                              className="py-1 text-sm rounded text-blue-600"
-                              title="Edit"
-                            >
-                              <SquarePen size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(load._id)}
-                              className="py-1 text-sm text-red-600"
-                              title="Delete"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                            <button
-                              onClick={() => handleView(load)}
-                              className="text-amber-600 hover:underline"
-                            >
-                              <Eye size={18} />
-                            </button>
-                          </div>
+                    loads.map((load, idx) => (
+                      <div
+                        key={load._id}
+                        className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      >
+                        <div className="text-gray-600">{idx + 1}</div>
+                        <div className="text-gray-600 ">{load.loadNo}</div>
+                        <div className="text-gray-600">
+                          {load.salesmanId?.employeeName || "N/A"}
                         </div>
-                      ))
-                    )
+                        <div className="text-gray-600">
+                          {load.salesmanId?.preBalance ?? 0}
+                        </div>
+                        <div className="text-gray-600">
+                          {new Date(load.loadDate).toLocaleDateString("en-GB")}
+                        </div>
+                        <div className="text-gray-600">
+                          {load.vehicleNo || "N/A"}
+                        </div>
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => handleEditClick(load)}
+                            className="py-1 text-sm rounded text-blue-600"
+                            title="Edit"
+                          >
+                            <SquarePen size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(load._id)}
+                            className="py-1 text-sm text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedLoad(load);
+                              setIsView(true);
+                            }}
+                            className="text-amber-600 hover:bg-amber-50 rounded"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -696,7 +528,7 @@ const Loadsheet = () => {
                       <option value="">Select Salesman</option>
                       {salesmenOptions.map((sm) => (
                         <option key={sm._id} value={sm._id}>
-                          {sm.salesmanName || "N/A"}
+                          {sm.employeeName || "N/A"}
                         </option>
                       ))}
                     </select>
@@ -712,65 +544,76 @@ const Loadsheet = () => {
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-white"
                     >
                       <option value="">Select Vehicle No.</option>
-                      <option value="ABC-123">ABC-123</option>
-                      <option value="XYZ-456">XYZ-456</option>
-                      <option value="LMN-789">LMN-789</option>
+                      {vehicleNoList.map((vec) => (
+                        <option value={vec._id}>{vec.vehicleNo}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
-                {itemsList.length > 0 && (
-                  <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
-                    <div className="overflow-x-auto">
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full border-collapse">
-                          <thead className="bg-gray-100 text-gray-600 text-sm">
-                            <tr>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Sr #
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Category
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Item
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Pack
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Issues
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="text-gray-700 text-sm">
-                            {itemsList.map((item, idx) => (
-                              <tr
-                                key={idx}
-                                className="hover:bg-gray-50 text-center"
-                              >
-                                <td className="px-4 py-2 border border-gray-300 text-center">
-                                  {item.sr}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.category}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.item}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.pack}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.issues}
-                                </td>
+                {itemsLoading ? (
+                  <div className="flex justify-center items-center py-6 text-gray-500">
+                    <span className="animate-spin">
+                      <Loader size={22} />
+                    </span>
+                    <span className="ml-2 text-newPrimary">
+                      Loading items...
+                    </span>
+                  </div>
+                ) : (
+                  itemsList.length > 0 && (
+                    <div className="space-y-4 ">
+                      <div className="overflow-x-auto">
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full border-collapse">
+                            <thead className="bg-gray-100 text-gray-600 text-sm">
+                              <tr>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Sr #
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Category
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Item
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Pack
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Issues
+                                </th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody className="text-gray-700 text-sm">
+                              {itemsList.map((item, idx) => (
+                                <tr
+                                  key={idx}
+                                  className="hover:bg-gray-50 text-center"
+                                >
+                                  <td className="px-4 py-2 border border-gray-300 text-center">
+                                    {item.sr}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.category}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.item}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.pack}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.issues}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )
                 )}
 
                 <div className="grid grid-cols-2 gap-80 items-start">
