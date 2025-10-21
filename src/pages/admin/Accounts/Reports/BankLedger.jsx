@@ -4,7 +4,7 @@ import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 
 const BankLedger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);

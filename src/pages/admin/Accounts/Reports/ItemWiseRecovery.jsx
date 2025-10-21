@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 
 const ItemWiseRecovery = () => {
   const [bookingOrders, setBookingOrders] = useState([]);

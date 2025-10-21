@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 
 const SalesmanWiseRecovery = () => {
   const [vouchers, setVouchers] = useState([]);

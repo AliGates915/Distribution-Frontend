@@ -1,7 +1,7 @@
 import { SaveIcon, Search } from "lucide-react";
 import React, { useState, useCallback, useEffect } from "react";
 
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 import axios from "axios";
 import TableSkeleton from "../../Skeleton";
 

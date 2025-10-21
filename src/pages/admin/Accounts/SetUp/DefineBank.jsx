@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 import { set } from "date-fns";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 
 const DefineBank = () => {
   const [supplierList, setSupplierList] = useState([]);

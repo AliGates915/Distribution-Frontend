@@ -10,36 +10,6 @@ import TableSkeleton from "../../Components/Skeleton";
 
 const LoadReturn = () => {
   const [customerList, setCustomerList] = useState([
-    // {
-    //   _id: "cust1",
-    //   customerName: "Prime Retail",
-    //   contactPerson: "Alice Johnson",
-    //   email: "alice@primeretail.com",
-    //   address: "789 Market St, Los Angeles, CA",
-    //   phoneNumber: "+1-213-555-9876",
-    //   mobileNumber: "03005678901",
-    //   designation: "Purchasing Manager",
-    //   ntn: "NTN456789123",
-    //   gst: "27DEFGH5678J2K4",
-    //   paymentTerms: "Credit",
-    //   creditLimit: "150000",
-    //   creditTime: "45",
-    //   status: true,
-    // },
-    // {
-    //   _id: "cust2",
-    //   customerName: "Urban Buyers",
-    //   contactPerson: "Bob Wilson",
-    //   email: "bob@urbanbuyers.com",
-    //   address: "321 Oak Ave, Miami, FL",
-    //   phoneNumber: "+1-305-555-4321",
-    //   mobileNumber: "03008765432",
-    //   designation: "Store Manager",
-    //   ntn: "NTN654321987",
-    //   gst: "27KLMNO9876P3Q2",
-    //   paymentTerms: "Cash",
-    //   status: false,
-    // },
   ]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [customerName, setCustomerName] = useState("");
