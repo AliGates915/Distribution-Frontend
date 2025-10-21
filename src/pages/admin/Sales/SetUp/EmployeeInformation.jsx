@@ -6,8 +6,10 @@ import CommanHeader from "../../../../../src/components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Skeleton";
 import axios from "axios";
+import { ScaleLoader } from "react-spinners";
 
-const Employee = () => {
+const EmployeeInformation = () => {
+    const [isSaving, setIsSaving] = useState(false);
   const [employeeList, setEmployeeList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
@@ -103,11 +105,9 @@ const Employee = () => {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
-
+ setIsSaving(true);
     const newEmployee = {
-      departmentId: departmentList.find(
-        (dept) => dept.departmentName === department
-      )?._id,
+      departmentName: department,
       employeeName,
       address,
       city,
@@ -120,6 +120,7 @@ const Employee = () => {
       isEnable: enable,
     };
 
+
     if (isEdit && editId) {
       const res = await axios.put(`${API_URL}/${editId}`, newEmployee, {
         headers,
@@ -131,6 +132,7 @@ const Employee = () => {
       });
       toast.success(" Employee added successfully");
     }
+    setIsSaving(false);
     fetchDepartmentTableList();
     setIsSliderOpen(false);
   };
@@ -139,7 +141,7 @@ const Employee = () => {
     setIsEdit(true);
     setEditId(emp._id);
     setEmployeeName(emp.employeeName);
-    setDepartment(emp.departmentId?.departmentName || "");
+    setDepartment(emp.departmentName || "");
     setAddress(emp.address);
     setCity(emp.city);
     setGender(emp.gender);
@@ -220,6 +222,7 @@ const Employee = () => {
         }
       });
   };
+console.log({employeeList});
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -243,7 +246,8 @@ const Employee = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* ✅ Table Header */}
-            <div className="hidden lg:grid grid-cols-9 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div>Sr</div>
               <div>ID</div>
               <div>Name</div>
               <div>Department</div>
@@ -260,58 +264,55 @@ const Employee = () => {
               {loading ? (
                 <TableSkeleton
                   rows={employeeList.length > 0 ? employeeList.length : 5}
-                  cols={9}
-                  className="lg:grid-cols-9"
+                  cols={10}
+                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : employeeList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
                   No employee found.
                 </div>
               ) : (
-                employeeList.map((emp) => (
-                  <div
-                    key={emp._id}
-                    className="hidden lg:grid grid-cols-9 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                  >
-                    <div className="font-medium text-gray-900">
-                      {emp._id?.slice(0, 6)}
-                    </div>
-                    <div className="text-gray-700">{emp?.employeeName}</div>
-                    <div className="text-gray-600">
-                      {emp?.departmentId?.departmentName}
-                    </div>
-                    <div className="text-gray-600">{emp?.mobile}</div>
-                    <div className="text-gray-600">{emp?.nicNo}</div>
-                    <div className="text-gray-600">{formatDate(emp.dob)}</div>
-                    <div className="text-gray-600">{emp?.qualification}</div>
-                    <div className=" font-semibold">
-                      {emp?.isEnable ? (
-                        <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
-                          Enabled
-                        </span>
-                      ) : (
-                        <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
-                          Disabled
-                        </span>
-                      )}
-                    </div>
+              employeeList.map((emp, index) => (
+  <div
+    key={emp._id}
+    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+  >
+    <div className="text-gray-900">{index + 1}</div>
+    <div className="font-medium text-gray-900">{emp._id?.slice(0, 6)}</div>
+    <div className="text-gray-700">{emp?.employeeName}</div>
+    <div className="text-gray-600">{emp?.departmentName || "-"}</div>
+    <div className="text-gray-600">{emp?.mobile}</div>
+    <div className="text-gray-600">{emp?.nicNo}</div>
+    <div className="text-gray-600">{formatDate(emp.dob)}</div>
+    <div className="text-gray-600">{emp?.qualification}</div>
+    <div className="font-semibold">
+      {emp?.isEnable ? (
+        <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
+          Enabled
+        </span>
+      ) : (
+        <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
+          Disabled
+        </span>
+      )}
+    </div>
+    <div className="flex justify-end gap-3">
+      <button
+        onClick={() => handleEdit(emp)}
+        className="text-blue-600 hover:underline"
+      >
+        <SquarePen size={18} />
+      </button>
+      <button
+        onClick={() => handleDelete(emp._id)}
+        className="text-red-600 hover:underline"
+      >
+        <Trash2 size={18} />
+      </button>
+    </div>
+  </div>
+))
 
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => handleEdit(emp)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        <SquarePen size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(emp._id)}
-                        className="text-red-600 hover:underline"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))
               )}
             </div>
           </div>
@@ -323,8 +324,13 @@ const Employee = () => {
         <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
           <div
             ref={sliderRef}
-            className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+            className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
+               {isSaving && (
+              <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <ScaleLoader color="#1E93AB" size={60} />
+              </div>
+            )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Employee" : "Add a New Employee"}
@@ -519,4 +525,4 @@ const Employee = () => {
   );
 };
 
-export default Employee;
+export default EmployeeInformation;

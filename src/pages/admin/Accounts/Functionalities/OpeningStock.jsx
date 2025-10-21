@@ -1,12 +1,11 @@
 import { SaveIcon, Search } from "lucide-react";
 import React, { useState, useCallback, useEffect } from "react";
 
-
+import CommanHeader from "../../components/CommanHeader";
 import axios from "axios";
-import CommanHeader from "../../../../components/CommanHeader";
-import TableSkeleton from "../../Components/Skeleton";
+import TableSkeleton from "../../Skeleton";
 
-const OpeningBalance = () => {
+const OpeningStock = () => {
 
   const [itemCategory, setItemCategory] = useState("");
   const [itemType, setItemType] = useState("");
@@ -400,4 +399,4 @@ const OpeningBalance = () => {
   );
 };
 
-export default OpeningBalance;
+export default OpeningStock;

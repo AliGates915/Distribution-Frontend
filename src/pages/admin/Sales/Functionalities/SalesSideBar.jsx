@@ -22,8 +22,9 @@ import {
 } from "react-icons/fa";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
+import { AiOutlineProduct } from "react-icons/ai";
 import { FaTruck } from "react-icons/fa";
-import CommanHeader from "../../Components/CommanHeader";
+
 import {
   BadgeEuro,
   CalendarArrowDown,
@@ -35,19 +36,11 @@ import {
   Scale,
   Tickets,
 } from "lucide-react";
+import CommanHeader from "../../components/CommanHeader";
 
 // salesChildren
 const salesChildren = [
-  {
-    to: "/admin/sales/grn",
-    label: "Grn",
-    icon: <BadgeEuro strokeWidth={3} size={40} />,
-  },
-  {
-    to: "/admin/sales/payment-to-supplier",
-    label: "Payment To Supplier",
-    icon: <DollarSign strokeWidth={3} size={40} />,
-  },
+ 
   {
     to: "/admin/sales/order-taking",
     label: "Order Taking",
@@ -57,41 +50,26 @@ const salesChildren = [
   { to: "/admin/sales/sales-invoice", label: "Sales Invoice", icon: <FileChartColumnIncreasing strokeWidth={3} size={40}/> },
   { to: "/admin/sales/cash-deposite", label: "Cash Deposite", icon: <Banknote strokeWidth={3} size={40}/> },
   { to: "/admin/sales/load-return", label: "Load Return", icon: <Undo2 strokeWidth={3} size={40}/> },
-  { to: "/admin/sales/opening-balance", label: "Opening Balance", icon: <Scale strokeWidth={3} size={40}/> },
-  { to: "/admin/sales/expense-voucher", label: "Expense Voucher", icon: <Tickets strokeWidth={3} size={40}/> },
+ 
 ];
 
 // setupChildren
 const setupChildren = [
-  { to: "/admin/customers-list", label: "Customer", icon: <FaUsers /> },
-  { to: "/admin/supplier", label: "Supplier", icon: <FaTruck /> },
-  { to: "/admin/employee", label: "Employee", icon: <FaUser /> },
-  { to: "/admin/vehicle", label: "Vehicle", icon: <FaCar /> },
-  { to: "/admin/bank", label: "Bank", icon: <FaUsersViewfinder /> },
-  { to: "/admin/item-category", label: "Item Category", icon: <FaThList /> },
-  { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
-  { to: "/admin/manufacture", label: "Manufacture", icon: <FaIndustry /> },
-  { to: "/admin/shelve-location", label: "Shelve Location", icon: <FaWarehouse /> },
-  { to: "/admin/product", label: "Products", icon: <FaBoxOpen /> },
+  { to: "/admin/list-of-items", label: "List Of Items", icon: <AiOutlineProduct /> },
+  { to: "/admin/define-customers", label: "Define Customers", icon: <FaUsers /> },
+  { to: "/admin/employee-information", label: "Employee Information", icon: <FaUser /> },
+  { to: "/admin/vehicle-information", label: "Vehicle Information", icon: <FaCar /> },
 ];
 
 // reportsChildren
 const reportsChildren = [
-  { to: "/admin/report/amount-payable", label: "Amount Payable", icon: <FaMoneyBillWave /> },
-  { to: "/admin/report/supplier-ledger", label: "Supplier Ledger", icon: <FaBook /> },
-  { to: "/admin/report/datewise-purchase", label: "Datewise Purchase", icon: <FaCalendarAlt /> },
-  { to: "/admin/report/supplierwise-purchase", label: "Supplierwise Purchase", icon: <FaUserTie /> },
-  { to: "/admin/report/item-purchases", label: "Item Purchases", icon: <FaBoxOpen /> },
+  { to: "/admin/report/amount-receivable", label: "Amount Receivable", icon: <FaMoneyBillWave /> },
   { to: "/admin/report/customer-ledger", label: "Customer Ledger", icon: <FaUser /> },
   { to: "/admin/report/datewise-orders", label: "Datewise Orders", icon: <FaCalendarAlt /> },
   { to: "/admin/report/productwise-orders", label: "Productwise Orders", icon: <FaShoppingCart /> },
   { to: "/admin/report/salesmanwise-orders", label: "Salesmanwise Orders", icon: <FaUserTie /> },
   { to: "/admin/report/customerwise-orders", label: "Customerwise Orders", icon: <FaUsers /> },
-  { to: "/admin/report/bank-ledger", label: "Bank Ledger", icon: <FaUniversity /> },
-  { to: "/admin/report/datewise-cash-received", label: "Datewise Cash Received", icon: <FaCashRegister /> },
-  { to: "/admin/report/datewise-recovery", label: "Datewise Recovery", icon: <FaCalendarAlt /> },
-  { to: "/admin/report/salesmanwise-recovery", label: "Salesmanwise Recoveries", icon: <FaUserTie /> },
-  { to: "/admin/report/itemwise-recovery", label: "Itemwise Recovery", icon: <FaBoxOpen /> },
+  
 ];
 
 const SalesSidebar = () => {

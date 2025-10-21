@@ -5,49 +5,58 @@ import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { ToastContainer } from "react-toastify";
-import ShelveLocation from "./pages/admin/Sales/SetUp/ShelveLocation.jsx";
+
 import "react-toastify/dist/ReactToastify.css";
-import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
-import Manufacture from "./pages/admin/Sales/SetUp/Manufacture.jsx";
-
 import ScrollToTop from "./helper/ScrollToTop.jsx";
-
 import Profile from "./components/Profile.jsx";
-import CustomerList from "./pages/admin/Sales/SetUp/Customer.jsx";
-import Product from "./pages/admin/Sales/SetUp/Product.jsx";
-import Bank from "./pages/admin/Sales/SetUp/Bank.jsx";
 import SalesSidebar from "./pages/admin/Sales/Functionalities/SalesSideBar.jsx";
-import GRN from "./pages/admin/Sales/Functionalities/GRN.jsx";
-import PaymentToSupplier from "./pages/admin/Sales/Functionalities/PaymentToSupplier.jsx";
+
 import OrderTaking from "./pages/admin/Sales/Functionalities/OrderTaking.jsx";
 import LoadSheet from "./pages/admin/Sales/Functionalities/LoadSheet.jsx";
 import SalesInvoice from "./pages/admin/Sales/Functionalities/SalesInvoice.jsx";
 import CashDeposite from "./pages/admin/Sales/Functionalities/CashDeposite.jsx";
 import LoadReturn from "./pages/admin/Sales/Functionalities/LoadReturn.jsx";
-import OpeningBalance from "./pages/admin/Sales/Functionalities/OpeningBalance.jsx";
-import ExpenseVoucher from "./pages/admin/Sales/Functionalities/ExpenseVoucher.jsx";
-import BankLedger from "./pages/admin/Sales/Reports/BankLedger.jsx";
-import CustomerwiseOrders from "./pages/admin/Sales/Reports/CustomerwiseOrders.jsx";
-import Employee from "./pages/admin/Sales/SetUp/Employee.jsx";
-import Vehicle from "./pages/admin/Sales/SetUp/Vehicle.jsx";
-import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
 
-import AmountPayable from "./pages/admin/Sales/Reports/AmountPayable.jsx";
-import SupplierLedger from "./pages/admin/Sales/Reports/SupplierLedger.jsx";
-import DateWisePurchase from "./pages/admin/Sales/Reports/DateWisePurchase.jsx";
-import SupplierWisePurchase from "./pages/admin/Sales/Reports/SupplierWisePurchase.jsx";
-import ItemPurchases from "./pages/admin/Sales/Reports/ItemPurchases.jsx";
+import CustomerwiseOrders from "./pages/admin/Sales/Reports/CustomerwiseOrders.jsx";
 import CustomerLedger from "./pages/admin/Sales/Reports/CustomerLedger.jsx";
 import DateWiseOrder from "./pages/admin/Sales/Reports/DateWiseOrder.jsx";
 import ProductWiseOrder from "./pages/admin/Sales/Reports/ProductWiseOrder.jsx";
 
-import DatewiseCashReceived from "./pages/admin/Sales/Reports/DatewiseCashReceived.jsx";
-import DatewiseRecovery from "./pages/admin/Sales/Reports/DatewiseRecovery.jsx";
-import ItemwiseRecovery from "./pages/admin/Sales/Reports/ItemwiseRecovery.jsx";
 import SalesmanwiseOrders from "./pages/admin/Sales/Reports/SalesmanwiseOrders.jsx";
-import SalesmanwiseRecoveries from "./pages/admin/Sales/Reports/SalesmanwiseRecoveries.jsx";
+
+// =================== PURCHASE SECTION IMPORTS ===================
+
+import PurchaseSideBar from "./pages/admin/Purchase/Functionalities/PurchaseSideBar.jsx";
+import PurchaseGRN from "./pages/admin/Purchase/Functionalities/GRN.jsx";
+import PurchasePaymentToSupplier from "./pages/admin/Purchase/Functionalities/PaymentToSupplier.jsx";
+
+import PurchaseAmountPayable from "./pages/admin/Purchase/Reports/AmountPayable.jsx";
+import PurchaseDateWisePurchase from "./pages/admin/Purchase/Reports/DateWisePurchase.jsx";
+import PurchaseItemWisePurchases from "./pages/admin/Purchase/Reports/ItemWisePurchases.jsx";
+import PurchaseSupplierLedger from "./pages/admin/Purchase/Reports/SupplierLedger.jsx";
+import PurchaseSupplierWisePurchase from "./pages/admin/Purchase/Reports/SupplierWisePurchase.jsx";
+
+import DefineSupplier from "./pages/admin/Purchase/SetUp/DefineSupplier.jsx";
+import AmountReceivales from "./pages/admin/Sales/Reports/AmountReceivales.jsx";
+import ListOfItems from "./pages/admin/Sales/SetUp/ListOfItems.jsx";
+import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
+import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
+import EmployeeInformation from "./pages/admin/Sales/SetUp/EmployeeInformation.jsx";
+
+// =================== ACCOUNTS SECTION IMPORTS ===================
+
+import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
+import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
+import OpeningStock from "./pages/admin/Accounts/Functionalities/OpeningStock.jsx";
+
+import BankLedger from "./pages/admin/Accounts/Reports/BankLedger.jsx";
+import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
+import DateWiseRecovery from "./pages/admin/Accounts/Reports/DateWiseRecovery.jsx";
+import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.jsx";
+import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
+
+import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
 
 function AppContent() {
   return (
@@ -72,77 +81,120 @@ function AppContent() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="shelve-location" element={<ShelveLocation />} />
-            <Route path="item-category" element={<ItemCategory />} />
-            <Route path="supplier" element={<SupplierList />} />
             <Route path="sales" element={<SalesSidebar />} />
 
-            <Route path="manufacture" element={<Manufacture />} />
-
-            <Route path="bank" element={<Bank />} />
-
-
-            <Route path="sales/grn" element={<GRN />} />
-
-            <Route path="product" element={<Product />} />
-
-            <Route
-              path="sales/payment-to-supplier"
-              element={<PaymentToSupplier />}
-            />
+            {/* Sales */}
             <Route path="sales/order-taking" element={<OrderTaking />} />
             <Route path="sales/load-sheet" element={<LoadSheet />} />
             <Route path="sales/sales-invoice" element={<SalesInvoice />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />
-            <Route path="sales/opening-balance" element={<OpeningBalance />} />
-            <Route path="sales/expense-voucher" element={<ExpenseVoucher />} />
 
-          
-           {/* Reports */}
-              <Route path="report/amount-payable" element={<AmountPayable />} />
-              <Route path="report/supplier-ledger" element={<SupplierLedger />} />
-              <Route path="report/datewise-purchase" element={<DateWisePurchase />} />
-              <Route path="report/supplierwise-purchase" element={<SupplierWisePurchase />} />
-              <Route path="report/item-purchases" element={<ItemPurchases />} />
-              <Route path="report/customer-ledger" element={<CustomerLedger />} />
-              <Route path="report/datewise-Orders" element={<DateWiseOrder />} />
-              <Route path="report/productwise-orders" element={<ProductWiseOrder />} />
-           
-           
-           
+            {/* Reports */}
+            <Route
+              path="report/amount-receivable"
+              element={<AmountReceivales />}
+            />
 
-            <Route path="report/bank-ledger" element={<BankLedger />} />
+            <Route path="report/customer-ledger" element={<CustomerLedger />} />
+            <Route path="report/datewise-Orders" element={<DateWiseOrder />} />
             <Route
-              path="report/datewise-recovery"
-              element={<DatewiseRecovery />}
+              path="report/productwise-orders"
+              element={<ProductWiseOrder />}
             />
-            <Route
-              path="report/datewise-cash-received"
-              element={<DatewiseCashReceived />}
-            />
+
             <Route
               path="report/customerwise-orders"
               element={<CustomerwiseOrders />}
             />
 
             <Route
-              path="report/itemwise-recovery"
-              element={<ItemwiseRecovery />}
-            />
-            <Route
               path="report/salesmanwise-orders"
               element={<SalesmanwiseOrders />}
             />
+            {/* setup */}
+            <Route path="define-customers" element={<DefineCustomers />} />
+            <Route path="list-of-items" element={<ListOfItems />} />
             <Route
-              path="report/salesmanwise-recovery"
-              element={<SalesmanwiseRecoveries />}
+              path="employee-information"
+              element={<EmployeeInformation />}
+            />
+            <Route
+              path="vehicle-information"
+              element={<VehicleInformation />}
             />
 
-            <Route path="item-type" element={<ItemType />} />
-            <Route path="customers-list" element={<CustomerList />} />
-            <Route path="employee" element={<Employee />} />
-            <Route path="vehicle" element={<Vehicle />} />
+            {/* =================== PURCHASE SECTION =================== */}
+
+            <Route path="purchase" element={<PurchaseSideBar />} />
+
+            {/* Functionalities */}
+            <Route path="purchase/grn" element={<PurchaseGRN />} />
+            <Route
+              path="purchase/payment-to-supplier"
+              element={<PurchasePaymentToSupplier />}
+            />
+
+            {/* Reports */}
+            <Route
+              path="purchase/amount-payable"
+              element={<PurchaseAmountPayable />}
+            />
+            <Route
+              path="purchase/datewise-purchase"
+              element={<PurchaseDateWisePurchase />}
+            />
+            <Route
+              path="purchase/itemwise-purchases"
+              element={<PurchaseItemWisePurchases />}
+            />
+            <Route
+              path="purchase/supplier-ledger"
+              element={<PurchaseSupplierLedger />}
+            />
+            <Route
+              path="purchase/supplierwise-purchase"
+              element={<PurchaseSupplierWisePurchase />}
+            />
+
+            {/* Setup */}
+            <Route
+              path="purchase/define-supplier"
+              element={<DefineSupplier />}
+            />
+
+            {/* =================== ACCOUNTS SECTION =================== */}
+
+            <Route path="accounts" element={<AccountSideBar />} />
+
+            {/* Functionalities */}
+            <Route
+              path="accounts/expense-voucher"
+              element={<ExpenseVoucher />}
+            />
+            <Route path="accounts/opening-stock" element={<OpeningStock />} />
+
+            {/* Reports */}
+            <Route path="accounts/bank-ledger" element={<BankLedger />} />
+            <Route
+              path="accounts/datewise-cashrecived"
+              element={<DateWiseCashRecived />}
+            />
+            <Route
+              path="accounts/datewise-recovery"
+              element={<DateWiseRecovery />}
+            />
+            <Route
+              path="accounts/itemwise-recovery"
+              element={<ItemWiseRecovery />}
+            />
+            <Route
+              path="accounts/salesmanwise-recovery"
+              element={<SalesmanWiseRecovery />}
+            />
+
+            {/* Setup */}
+            <Route path="accounts/define-bank" element={<DefineBank />} />
           </Route>
         </Routes>
       </main>
