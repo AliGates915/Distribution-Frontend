@@ -24,31 +24,17 @@ import { FcSalesPerformance } from "react-icons/fc";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BiPurchaseTag, BiPurchaseTagAlt } from "react-icons/bi";
+import { IoBagCheckSharp } from "react-icons/io5";
+
 
 // 🔹 Link definitions with permission keys
 const links = [
   { to: "/admin", label: "Dashboard", icon: <RiDashboardFill /> },
-  // {
-  //   to: "/admin/item-details",
-  //   label: "Item Details",
-  //   icon: <FaBox />,
-  //   key: "isItemDetails",
-  // },
-  // {
-  //   to: "/admin/purchase",
-  //   label: "Purchase",
-  //   icon: <FaShoppingCart />,
-  // },
 
-  // {
-  //   to: "/admin/sales",
-  //   label: "Sales ",
-  //   icon: <FcSalesPerformance color="#1d4ed8"/>,
-  // },
   {
     to: "/admin/purchase",
     label: "Purchase ",
-    icon: <BiPurchaseTag />,
+    icon: <IoBagCheckSharp />,
   },
   {
     to: "/admin/sales",
@@ -60,98 +46,7 @@ const links = [
     label: "Accounts ",
     icon: <MdOutlineAccountBalanceWallet />,
   },
-  // {
-  //   to: "/admin/sales-invoice",
-  //   label: "Sales Invoice",
-  //   icon: <FaReceipt />,
-  //   key: "isSales",
-  // },
-  // {
-  //   to: "/admin/customers",
-  //   label: "Customers",
-  //   icon: <FaUsers />,
-  //   key: "isCustomer",
-  // },
-  // {
-  //   to: "/admin/customers-booking",
-  //   label: "Booking Customer",
-  //   icon: <FaUsers />,
-  //   key: "isBookingCustomer",
-  // },
-  // {
-  //   to: "/admin/item-barcode",
-  //   label: "Item Barcode",
-  //   icon: <FaBarcode />,
-  //   key: "isInventory",
-  // },
-  // { to: "/admin/open-balance", label: "Opening Balance", icon: <FaBarcode /> },
-  // {
-  //   to: "/admin/expiry-tags",
-  //   label: "Expiry Tags",
-  //   icon: <FaTags />,
-  //   key: "isSettings",
-  // },
-  // { to: "/admin/report", label: "Report", icon: <FaChartBar />, key: "isReports" },
-  // {
-  //   label: "Setup",
-  //   icon: <FaCogs />,
-  //   children: [
-  //     { to: "/admin/customers-list", label: "Customers", icon: <FaTags /> },
-  //     { to: "/admin/group", label: "Group", icon: <FaUserGroup /> },
-  //     { to: "/admin/company", label: "Company", icon: <FaTags /> },
-  //     {
-  //       to: "/admin/category-item",
-  //       label: "Item Categories",
-  //       icon: <FaTags />,
-  //       key: "isItemCategory",
-  //     },
-  //     { to: "/admin/item-type", label: "Item Type", icon: <FaTags /> },
-  //     {
-  //       to: "/admin/manufacture",
-  //       label: "Manufacturer",
-  //       icon: <FaIndustry />,
-  //       key: "isItemManufacturer",
-  //     },
-  //     {
-  //       to: "/admin/supplier",
-  //       label: "Supplier",
-  //       icon: <FaTruck />,
-  //       key: "isItemSupplier",
-  //     },
-  //     {
-  //       to: "/admin/shelve-location",
-  //       label: "Shelve Location",
-  //       icon: <FaWarehouse />,
-  //       key: "isItemLocation",
-  //     },
-  //     {
-  //       to: "/admin/item-unit",
-  //       label: "Item Unit",
-  //       icon: <FaBalanceScale />,
-  //       key: "isItemUnit",
-  //     },
-  //     { to: "/admin/promotion", label: "Promotion", icon: <FaBalanceScale /> },
-  //     {
-  //       to: "/admin/promotion-item",
-  //       label: "Promotion Item",
-  //       icon: <FaBalanceScale />,
-  //     },
-  //     { to: "/admin/tax", label: "Tax", icon: <FaBalanceScale /> },
-  //   ],
-  // },
-  // {
-  //   label: "Management",
-  //   icon: <FaUserShield />,
-  //   children: [
-  //     { to: "/admin/designation", label: "Designation", icon: <FaUsersCog /> },
-  //     { to: "/admin/employee", label: "Employee", icon: <FaUserCog /> },
-  //     {
-  //       to: "/admin/departments",
-  //       label: "Departments",
-  //       icon: <FaUserShield />,
-  //     },
-  //   ],
-  // },
+  
   {
     label: "Security",
     key: "isSecurity",
