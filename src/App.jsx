@@ -4,7 +4,7 @@ import Login from "./pages/admin/Login";
 import Signup from "./pages/admin/Signup";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -198,7 +198,7 @@ function AppContent() {
           </Route>
         </Routes>
       </main>
-      <ToastContainer position="top-right" autoClose={2000} />
+      <Toaster position="top-right" autoClose={2000} />
     </div>
   );
 }
