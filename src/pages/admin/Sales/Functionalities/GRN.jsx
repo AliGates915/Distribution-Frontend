@@ -288,6 +288,7 @@ const GRN = () => {
     setQty("");
     setDescription("");
     setIsEnable(true);
+    setDate(new Date().toISOString().split("T")[0]);
     setIsSliderOpen(true);
   };
 
@@ -615,7 +616,14 @@ const GRN = () => {
                       value={supplier}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                       placeholder="Enter supplier name"
-                    />
+                    >
+                      <option value="">Select Supplier</option>
+                      {/* {suppliers.map((supplier) => (
+                        <option key={supplier._id} value={supplier._id}>
+                          {supplier.name}
+                        </option>
+                      ))} */}
+                      </select>
                   </div>
                    <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">

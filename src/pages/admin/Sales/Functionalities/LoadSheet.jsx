@@ -16,9 +16,33 @@ const staticLoads = [
     salesmanName: "Ali Khan",
     vehicleNo: "ABC-123",
     products: [
-      { sr: 1, category: "Beverages", item: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
-      { sr: 2, category: "Snacks", item: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
-      { sr: 3, category: "Biscuits", item: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
+      {
+        sr: 1,
+        category: "Beverages",
+        item: "Pepsi 1.5L",
+        pack: "carton",
+        issues: 20,
+        price: 150,
+        amount: 3000,
+      },
+      {
+        sr: 2,
+        category: "Snacks",
+        item: "Lays Chips 50g",
+        pack: "bag",
+        issues: 50,
+        price: 60,
+        amount: 3000,
+      },
+      {
+        sr: 3,
+        category: "Biscuits",
+        item: "Oreo 100g",
+        pack: "piece",
+        issues: 30,
+        price: 80,
+        amount: 2400,
+      },
     ],
     prevBalance: 10000,
     totalQty: 100,
@@ -32,10 +56,42 @@ const staticLoads = [
     salesmanName: "Hamza Raza",
     vehicleNo: "XYZ-456",
     products: [
-      { sr: 1, category: "Dairy", item: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
-      { sr: 2, category: "Bakery", item: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
-      { sr: 3, category: "Beverages", item: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
-      { sr: 4, category: "Snacks", item: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
+      {
+        sr: 1,
+        category: "Dairy",
+        item: "Milk Pack 1L",
+        pack: "carton",
+        issues: 15,
+        price: 220,
+        amount: 3300,
+      },
+      {
+        sr: 2,
+        category: "Bakery",
+        item: "Bread Large",
+        pack: "piece",
+        issues: 25,
+        price: 100,
+        amount: 2500,
+      },
+      {
+        sr: 3,
+        category: "Beverages",
+        item: "7up 500ml",
+        pack: "carton",
+        issues: 10,
+        price: 140,
+        amount: 1400,
+      },
+      {
+        sr: 4,
+        category: "Snacks",
+        item: "Kurkure 25g",
+        pack: "bag",
+        issues: 60,
+        price: 40,
+        amount: 2400,
+      },
     ],
     prevBalance: 5000,
     totalQty: 110,
@@ -51,9 +107,33 @@ const staticSalesmen = [
     vehicleNo: "ABC-123",
     prevBalance: 10000,
     products: [
-      { _id: "p1", category: "Beverages", itemName: "Pepsi 1.5L", pack: "carton", issues: 20, price: 150, amount: 3000 },
-      { _id: "p2", category: "Snacks", itemName: "Lays Chips 50g", pack: "bag", issues: 50, price: 60, amount: 3000 },
-      { _id: "p3", category: "Biscuits", itemName: "Oreo 100g", pack: "piece", issues: 30, price: 80, amount: 2400 },
+      {
+        _id: "p1",
+        category: "Beverages",
+        itemName: "Pepsi 1.5L",
+        pack: "carton",
+        issues: 20,
+        price: 150,
+        amount: 3000,
+      },
+      {
+        _id: "p2",
+        category: "Snacks",
+        itemName: "Lays Chips 50g",
+        pack: "bag",
+        issues: 50,
+        price: 60,
+        amount: 3000,
+      },
+      {
+        _id: "p3",
+        category: "Biscuits",
+        itemName: "Oreo 100g",
+        pack: "piece",
+        issues: 30,
+        price: 80,
+        amount: 2400,
+      },
     ],
   },
   {
@@ -62,10 +142,42 @@ const staticSalesmen = [
     vehicleNo: "XYZ-456",
     prevBalance: 5000,
     products: [
-      { _id: "p4", category: "Dairy", itemName: "Milk Pack 1L", pack: "carton", issues: 15, price: 220, amount: 3300 },
-      { _id: "p5", category: "Bakery", itemName: "Bread Large", pack: "piece", issues: 25, price: 100, amount: 2500 },
-      { _id: "p6", category: "Beverages", itemName: "7up 500ml", pack: "carton", issues: 10, price: 140, amount: 1400 },
-      { _id: "p7", category: "Snacks", itemName: "Kurkure 25g", pack: "bag", issues: 60, price: 40, amount: 2400 },
+      {
+        _id: "p4",
+        category: "Dairy",
+        itemName: "Milk Pack 1L",
+        pack: "carton",
+        issues: 15,
+        price: 220,
+        amount: 3300,
+      },
+      {
+        _id: "p5",
+        category: "Bakery",
+        itemName: "Bread Large",
+        pack: "piece",
+        issues: 25,
+        price: 100,
+        amount: 2500,
+      },
+      {
+        _id: "p6",
+        category: "Beverages",
+        itemName: "7up 500ml",
+        pack: "carton",
+        issues: 10,
+        price: 140,
+        amount: 1400,
+      },
+      {
+        _id: "p7",
+        category: "Snacks",
+        itemName: "Kurkure 25g",
+        pack: "bag",
+        issues: 60,
+        price: 40,
+        amount: 2400,
+      },
     ],
   },
 ];
@@ -102,7 +214,10 @@ const Loadsheet = () => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/salesmen`, { headers });
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/salesmen`,
+        { headers }
+      );
       setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
     } catch (error) {
       console.error("Failed to fetch salesmen:", error);
@@ -126,19 +241,24 @@ const Loadsheet = () => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/loadsheets`, { headers });
-      const transformedLoads = (res.data.length ? res.data : staticLoads).map((load) => ({
-        _id: load._id,
-        loadNo: load.loadNo || "N/A",
-        loadDate: load.loadDate || null,
-        salesmanName: load.salesmanName || "N/A",
-        vehicleNo: load.vehicleNo || "N/A",
-        products: load.products || [],
-        prevBalance: load.prevBalance || 0,
-        totalQty: load.totalQty || 0,
-        totalAmount: load.totalAmount || 0,
-        isEnable: load.isEnable !== undefined ? load.isEnable : true,
-      }));
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/loadsheets`,
+        { headers }
+      );
+      const transformedLoads = (res.data.length ? res.data : staticLoads).map(
+        (load) => ({
+          _id: load._id,
+          loadNo: load.loadNo || "N/A",
+          loadDate: load.loadDate || null,
+          salesmanName: load.salesmanName || "N/A",
+          vehicleNo: load.vehicleNo || "N/A",
+          products: load.products || [],
+          prevBalance: load.prevBalance || 0,
+          totalQty: load.totalQty || 0,
+          totalAmount: load.totalAmount || 0,
+          isEnable: load.isEnable !== undefined ? load.isEnable : true,
+        })
+      );
       setLoads(transformedLoads);
     } catch (error) {
       console.error("Failed to fetch loadsheets:", error);
@@ -198,6 +318,7 @@ const Loadsheet = () => {
     setAmount(0);
     setTotalAmount(0);
     setIsEnable(true);
+    setLoadDate(new Date().toISOString().split("T")[0]);
     setIsSliderOpen(true);
   };
 
@@ -205,7 +326,9 @@ const Loadsheet = () => {
     setEditingLoad(load);
     setLoadNo(load.loadNo);
     setLoadDate(formatDate(load.loadDate));
-    const selectedSalesman = salesmenOptions.find((sm) => sm.salesmanName === load.salesmanName);
+    const selectedSalesman = salesmenOptions.find(
+      (sm) => sm.salesmanName === load.salesmanName
+    );
     setSalesman(selectedSalesman?._id || "");
     setVehicleNo(load.vehicleNo || "");
     setItemsList(
@@ -221,7 +344,8 @@ const Loadsheet = () => {
     );
     setTotalQty(load.totalQty || 0);
     const newPrevBalance = load.prevBalance || 0;
-    const newAmount = load.products?.reduce((sum, it) => sum + it.amount, 0) || 0;
+    const newAmount =
+      load.products?.reduce((sum, it) => sum + it.amount, 0) || 0;
     setPrevBalance(newPrevBalance);
     setAmount(newAmount);
     setTotalAmount(newPrevBalance + newAmount);
@@ -251,7 +375,8 @@ const Loadsheet = () => {
     const newLoad = {
       loadNo: editingLoad ? loadNo : `LOAD-${nextLoadNo}`,
       loadDate,
-      salesmanName: salesmenOptions.find((sm) => sm._id === salesman)?.salesmanName || "",
+      salesmanName:
+        salesmenOptions.find((sm) => sm._id === salesman)?.salesmanName || "",
       vehicleNo,
       products: itemsList.map((item, idx) => ({
         sr: idx + 1,
@@ -351,7 +476,11 @@ const Loadsheet = () => {
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire("Cancelled", "Loadsheet is safe 🙂", "error");
+          swalWithTailwindButtons.fire(
+            "Cancelled",
+            "Loadsheet is safe 🙂",
+            "error"
+          );
         }
       });
   };
@@ -365,20 +494,23 @@ const Loadsheet = () => {
     const selectedId = e.target.value;
     setSalesman(selectedId);
     setItemsList([]);
-    const selectedSalesman = salesmenOptions.find((sm) => sm._id === selectedId);
+    const selectedSalesman = salesmenOptions.find(
+      (sm) => sm._id === selectedId
+    );
     if (selectedSalesman) {
       setVehicleNo(selectedSalesman.vehicleNo || "");
       const newPrevBalance = selectedSalesman.prevBalance || 0;
       setPrevBalance(newPrevBalance);
-      const salesmanItems = selectedSalesman.products?.map((it, idx) => ({
-        sr: idx + 1,
-        category: it.category,
-        item: it.itemName,
-        pack: it.pack,
-        issues: it.issues,
-        price: it.price,
-        amount: it.amount,
-      })) || [];
+      const salesmanItems =
+        selectedSalesman.products?.map((it, idx) => ({
+          sr: idx + 1,
+          category: it.category,
+          item: it.itemName,
+          pack: it.pack,
+          issues: it.issues,
+          price: it.price,
+          amount: it.amount,
+        })) || [];
       setItemsList(salesmanItems);
       const newTotalQty = salesmanItems.reduce((sum, it) => sum + it.issues, 0);
       const newAmount = salesmanItems.reduce((sum, it) => sum + it.amount, 0);
@@ -428,7 +560,11 @@ const Loadsheet = () => {
 
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={5} cols={6} className="lg:grid-cols-6" />
+                    <TableSkeleton
+                      rows={5}
+                      cols={6}
+                      className="lg:grid-cols-6"
+                    />
                   ) : loads.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No loadsheets found.
@@ -440,11 +576,21 @@ const Loadsheet = () => {
                           key={`${load._id}-${product.sr}`}
                           className="grid grid-cols-1 lg:grid-cols-6 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                         >
-                          <div className="font-medium text-gray-900">{product.sr}</div>
-                          <div className="text-gray-600">{product.category || "N/A"}</div>
-                          <div className="text-gray-600">{product.item || "N/A"}</div>
-                          <div className="text-gray-600">{product.pack || "N/A"}</div>
-                          <div className="text-gray-600">{product.issues || "N/A"}</div>
+                          <div className="font-medium text-gray-900">
+                            {product.sr}
+                          </div>
+                          <div className="text-gray-600">
+                            {product.category || "N/A"}
+                          </div>
+                          <div className="text-gray-600">
+                            {product.item || "N/A"}
+                          </div>
+                          <div className="text-gray-600">
+                            {product.pack || "N/A"}
+                          </div>
+                          <div className="text-gray-600">
+                            {product.issues || "N/A"}
+                          </div>
                           <div className="flex justify-end gap-3">
                             <button
                               onClick={() => handleEditClick(load)}
@@ -560,8 +706,7 @@ const Loadsheet = () => {
                       Vehicle No. <span className="text-red-500">*</span>
                     </label>
                     <select
-                    readOnly
-                    
+                      readOnly
                       value={vehicleNo}
                       onChange={(e) => setVehicleNo(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-white"
@@ -581,21 +726,44 @@ const Loadsheet = () => {
                         <table className="w-full border-collapse">
                           <thead className="bg-gray-100 text-gray-600 text-sm">
                             <tr>
-                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
-                              <th className="px-4 py-2 border border-gray-300">Category</th>
-                              <th className="px-4 py-2 border border-gray-300">Item</th>
-                              <th className="px-4 py-2 border border-gray-300">Pack</th>
-                              <th className="px-4 py-2 border border-gray-300">Issues</th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Sr #
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Category
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Item
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Pack
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Issues
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="text-gray-700 text-sm">
                             {itemsList.map((item, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50 text-center">
-                                <td className="px-4 py-2 border border-gray-300 text-center">{item.sr}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.category}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.item}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.pack}</td>
-                                <td className="px-4 py-2 border border-gray-300">{item.issues}</td>
+                              <tr
+                                key={idx}
+                                className="hover:bg-gray-50 text-center"
+                              >
+                                <td className="px-4 py-2 border border-gray-300 text-center">
+                                  {item.sr}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {item.category}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {item.item}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {item.pack}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {item.issues}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -605,21 +773,9 @@ const Loadsheet = () => {
                   </div>
                 )}
 
-                <div className="flex gap-4">
-                  <div className="flex-1 min-w-0">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Total Qty
-                    </label>
-                    <input
-                      type="number"
-                      value={totalQty}
-                      readOnly
-                      disabled
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
-                      placeholder="Total Qty"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-2 gap-80 items-start">
+                  {/* Left side — Prev Balance box */}
+                  <div>
                     <label className="block text-gray-700 font-medium mb-2">
                       Prev Balance
                     </label>
@@ -632,41 +788,34 @@ const Loadsheet = () => {
                       placeholder="Prev Balance"
                     />
                   </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1 min-w-0">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Amount
-                    </label>
-                    <input
-                      type="number"
-                      value={amount}
-                      readOnly
-                      disabled
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
-                      placeholder="Amount"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Total Amount
-                    </label>
-                    <input
-                      type="number"
-                      value={totalAmount}
-                      readOnly
-                      disabled
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
-                      placeholder="Total Amount"
-                    />
+
+                  {/* Right side — Text labels only */}
+                  <div className="flex flex-col text-gray-800 font-medium text-lg w-44 ml-auto">
+                    <div className="flex justify-between">
+                      <p>Total Qty:</p>
+                      <span className="font-semibold">{totalQty}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Amount:</p>
+                      <span className="font-semibold">{amount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Total Amount:</p>
+                      <span className="font-semibold">{totalAmount}</span>
+                    </div>
                   </div>
                 </div>
+
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
                 >
-                  {loading ? "Saving..." : editingLoad ? "Update Loadsheet" : "Save Loadsheet"}
+                  {loading
+                    ? "Saving..."
+                    : editingLoad
+                    ? "Update Loadsheet"
+                    : "Save Loadsheet"}
                 </button>
               </form>
             </div>
