@@ -13,7 +13,7 @@ import {
   FileSpreadsheet,
   ReceiptText,
 } from "lucide-react";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 
 
 // 🔹 Functionalities
