@@ -66,63 +66,8 @@ const Login = () => {
   
 
   return (
-    // <div className="min-h-screen flex flex-col lg:flex-row">
-    //   {/* Left: Login Form */}
-    //   <div className="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white px-6 py-12">
-    //     {/* Logo */}
-    //     <div className="flex flex-col items-center mb-6">
-    //       <div className="w-20 h-20 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xl font-bold mb-2">
-    //         Logo
-    //       </div>
-    //       <h2 className="text-2xl font-semibold mb-2">Login</h2>
-    //     </div>
-    //     <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
-    //       <div>
-    //         <label className="block text-gray-700 mb-1 font-medium">Email Address</label>
-    //         <input
-    //           type="email"
-    //           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    //           value={email}
-    //           onChange={(e) => setEmail(e.target.value)}
-    //           placeholder="example@gmail.com"
-    //           required
-    //         />
-    //       </div>
-    //       <div>
-    //         <label className="block text-gray-700 mb-1 font-medium">Password</label>
-    //         <input
-    //           type="password"
-    //           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    //           value={password}
-    //           onChange={(e) => setPassword(e.target.value)}
-    //           placeholder="Password"
-    //           required
-    //         />
-    //       </div>
-    //       <button
-    //         type="submit"
-    //         className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-md font-semibold transition-all"
-    //       >
-    //         Login
-    //       </button>
-    //     </form>
-    //     <div className="mt-4 text-center text-sm text-gray-700">
-    //       Don't have an account?{" "}
-    //       <Link to="/signup" className="text-indigo-600 hover:text-indigo-800 font-medium">
-    //         Sign up
-    //       </Link>
-    //     </div>
-    //   </div>
-    //   {/* Right: Illustration */}
-    //   <div className="hidden lg:flex w-1/2 bg-gray-50 items-center justify-center">
-    //     <img
-    //       src="/images/login.avif"
-    //       alt="Login Illustration"
-    //       className="max-w-[80%] h-auto"
-    //     />
-    //   </div>
-    // </div>
-<div className="min-h-screen relative bg-[url('/images/erpImage.jfif')] bg-cover bg-center py-6 flex flex-col justify-center sm:py-12">
+   
+<div className="min-h-screen relative  py-6 flex flex-col justify-center sm:py-12">
   {/* Overlay for opacity */}
   <div className="absolute inset-0 bg-black/70"></div> 
 

@@ -124,9 +124,7 @@ const navigate=useNavigate()
           {formatDate(currentTime)} • {formatTime(currentTime)}
         </p>
       </div>
-    <div className="mr-28">
-      <img src="/images/fbr.png" alt="" className="w-[6rem] h-24 " />
-     </div>
+
       {/* Quick Stats + Notifications */}
       <div className="flex flex-col sm:flex-row gap-4 items-center bg-gradient-to-r  p-4 rounded-xl">
      
