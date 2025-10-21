@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { SquarePen, Trash2 } from "lucide-react";
+import { Eye, SquarePen, Trash2, X } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import axios from "axios";
+import TableSkeleton from "../../Components/Skeleton";
+import FuncatiolityViewModalFile from "./FuncatiolityViewModalFile";
+import { ScaleLoader } from "react-spinners";
 
 const OrderTaking = () => {
+  const [isSaving, setIsSaving] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [isView, setIsView] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [customersList, setCustomersList] = useState([]);
   const [productsList, setProductsList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
+  const [balance, setBalance] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
 
@@ -30,9 +38,12 @@ const OrderTaking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-
-  const unitList = ["Box", "Bottle", "Pack"];
-
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const headers = {
+    headers: {
+      Authorization: `Bearer ${userInfo?.token}`,
+    },
+  };
   // Fetch Employe List
   async function fetchEmployees() {
     try {
@@ -90,6 +101,26 @@ const OrderTaking = () => {
     fetchFinshedGoods();
   }, []);
 
+  // fetch order Taking
+
+  async function fetchOrderTaking() {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/order-taker`
+      );
+      setOrders(res.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch Employees", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
+    }
+  }
+
+  useEffect(() => {
+    fetchOrderTaking();
+  }, []);
+
   // Auto-generate Order ID and Date
   useEffect(() => {
     if (!editingOrder) {
@@ -106,11 +137,23 @@ const OrderTaking = () => {
   }, [qty, rate]);
 
   const handleAddItem = () => {
-    if (!product || !qty || !unit || !rate) {
-      toast.error("Please fill all product fields");
-      return;
-    }
-
+   if (!product) {
+    toast.error("Please select a Product");
+    return;
+  }
+  if (!qty || qty <= 0) {
+    toast.error("Please enter a valid Quantity");
+    return;
+  }
+  if (!unit) {
+    toast.error("Please select a Unit");
+    return;
+  }
+  if (!rate || rate <= 0) {
+    toast.error("Rate is missing or invalid");
+    return;
+  }
+  
     const newItem = {
       id: items.length + 1,
       product,
@@ -128,57 +171,103 @@ const OrderTaking = () => {
     setTotal("");
   };
 
-  const handleSaveOrder = (e) => {
+  const handleSaveOrder = async (e) => {
     e.preventDefault();
+
     if (!salesman || !customer || items.length === 0) {
       toast.error("Please fill all required fields");
       return;
     }
-
-    const newOrder = {
-      id: orderId,
-      date: orderDate,
-      salesman,
-      customer,
-      address,
-      phone,
-      items,
+setIsSaving(true)
+    const payload = {
+      orderId,
+      salesmanId: salesman,
+      customerId: customer,
+      products: items.map((it) => ({
+        itemName: it.product,
+        qty: Number(it.qty),
+        itemUnit: it.unit,
+        rate: Number(it.rate),
+        totalAmount: Number(it.total),
+      })),
     };
 
-    if (editingOrder) {
-      // update existing order
-      setOrders((prev) =>
-        prev.map((o) => (o.id === editingOrder.id ? newOrder : o))
-      );
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Order updated successfully.",
-        confirmButtonColor: "#3085d6",
-      });
-    } else {
-      // new order
-      setOrders([...orders, newOrder]);
-      Swal.fire({
-        icon: "success",
-        title: "Saved!",
-        text: "Order saved successfully.",
-        confirmButtonColor: "#3085d6",
-      });
-    }
+    try {
+      if (editingOrder) {
+        // ✅ UPDATE EXISTING ORDER (PUT)
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/order-taker/${
+            editingOrder._id
+          }`,
+          payload,
+          headers // ✅ include token here
+        );
 
-    resetForm();
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: "Order updated successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        // ✅ CREATE NEW ORDER (POST)
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/order-taker`,
+          payload,
+          headers // ✅ include token here
+        );
+
+        Swal.fire({
+          icon: "success",
+          title: "Saved!",
+          text: "Order saved successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      }
+
+      fetchOrderTaking(); // reload after success
+      resetForm();
+    } catch (error) {
+      console.error("Error saving order:", error);
+      toast.error(error.response?.data?.message || "Failed to save order");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEdit = (order) => {
+    console.log(order);
+    
     setEditingOrder(order);
-    setOrderId(order.id);
-    setOrderDate(order.date);
-    setSalesman(order.salesman);
-    setCustomer(order.customer);
-    setAddress(order.address);
-    setPhone(order.phone);
-    setItems(order.items);
+
+    // match your backend fields
+    setOrderId(order.orderId || "");
+    setOrderDate(
+      order.date ? new Date(order.date).toISOString().split("T")[0] : ""
+    );
+
+    // set salesman and customer by ID
+    setSalesman(order.salesmanId?._id || "");
+    setCustomer(order.customerId?._id || "");
+
+    // set address and phone
+    setAddress(order.customerId?.address || "");
+    setPhone(order.customerId?.phoneNumber || "");
+    setBalance(order.customerId?.balance || 0);
+
+    // transform products to frontend-friendly items
+    const formattedItems =
+      order.products?.map((p, i) => ({
+        id: i + 1,
+        product: p.itemName,
+        qty: p.qty,
+        unit: p.itemUnit,
+        rate: p.rate,
+        total: p.totalAmount,
+      })) || [];
+
+    setItems(formattedItems);
+
     setIsSliderOpen(true);
   };
 
@@ -196,29 +285,56 @@ const OrderTaking = () => {
     setRate("");
     setTotal("");
     setItems([]);
+    setBalance("")
     setIsSliderOpen(false);
   };
 
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This will delete the order.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setOrders((prev) => prev.filter((o) => o.id !== id));
-        Swal.fire("Deleted!", "Order deleted successfully.", "success");
-      }
-    });
-  };
+  const handleDelete = async (id) => {
+  const confirm = await Swal.fire({
+    title: "Are you sure?",
+    text: "This will permanently delete the order.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  });
+
+  if (confirm.isConfirmed) {
+    try {
+      // 🔥 Delete from backend
+      await axios.delete(
+        `${import.meta.env.VITE_API_BASE_URL}/order-taker/${id}`,
+        headers
+      );
+
+      // ✅ Remove from local state
+      setOrders((prev) => prev.filter((o) => o._id !== id));
+
+      // ✅ Success alert
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Order deleted successfully.",
+        confirmButtonColor: "#3085d6",
+      });
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast.error(error.response?.data?.message || "Failed to delete order");
+    }
+  }
+};
+
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = orders.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(orders.length / recordsPerPage);
-  console.log({ productsList });
+  console.log({ orders });
+const handleRemoveItem = (index) => {
+  const updatedItems = items.filter((_, i) => i !== index);
+  setItems(updatedItems);
+};
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -238,7 +354,7 @@ const OrderTaking = () => {
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
           <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
             <div className="min-w-[1000px]">
-              <div className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>SR</div>
                 <div>Order ID</div>
                 <div>Date</div>
@@ -248,35 +364,50 @@ const OrderTaking = () => {
                 <div>Actions</div>
               </div>
 
-              <div className="flex flex-col divide-y divide-gray-100">
-                {currentRecords.length === 0 ? (
+              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+                {loading ? (
+                  <TableSkeleton
+                    rows={orders.length > 0 ? orders.length : 5}
+                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
+                    className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  />
+                ) : currentRecords.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No Orders Found
                   </div>
                 ) : (
                   currentRecords.map((order, i) => (
                     <div
-                      key={order.id}
-                      className="grid grid-cols-1 lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50"
+                      key={order._id}
+                      className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + i + 1}</div>
-                      <div>{order.id}</div>
-                      <div>{order.date}</div>
-                      <div>{order.salesman}</div>
-                      <div>{order.customer}</div>
-                      <div>{order.phone}</div>
+                      <div>{order.orderId}</div>
+                      <div>{new Date(order.date).toLocaleDateString()}</div>
+                      <div>{order.salesmanId?.employeeName}</div>
+                      <div>{order.customerId?.customerName}</div>
+                      <div>{order.customerId?.phoneNumber}</div>
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleEdit(order)}
-                          className="text-blue-600 hover:bg-blue-50 p-1 rounded"
+                          className="text-blue-600 hover:bg-blue-50  rounded"
                         >
                           <SquarePen size={18} />
                         </button>
                         <button
-                          onClick={() => handleDelete(order.id)}
-                          className="text-red-600 hover:bg-red-50 p-1 rounded"
+                          onClick={() => handleDelete(order._id)}
+                          className="text-red-600 hover:bg-red-50  rounded"
                         >
                           <Trash2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setIsView(true);
+                          }}
+                          className="text-amber-600 hover:bg-amber-50 rounded"
+                        >
+                          <Eye size={18} />
                         </button>
                       </div>
                     </div>
@@ -289,7 +420,12 @@ const OrderTaking = () => {
 
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+              {isSaving && (
+                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
               <div className="flex justify-between items-center p-4 border-b bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingOrder ? "Edit Order" : "Add New Order"}
@@ -335,12 +471,15 @@ const OrderTaking = () => {
                   >
                     <option value="">Select Salesman</option>
                     {salesmanList.map((sale) => (
-                      <option key={sale._id}>{sale?.employeeName}</option>
+                      <option key={sale._id} value={sale._id}>
+                        {sale?.employeeName}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Customer Info */}
+
                 <div className="border p-4 rounded-lg bg-gray-100 space-y-3">
                   <div className="flex gap-2">
                     <div className="flex-1">
@@ -356,6 +495,7 @@ const OrderTaking = () => {
                           setCustomer(e.target.value);
                           setAddress(selected?.address || "");
                           setPhone(selected?.phoneNumber || "");
+                          setBalance(selected?.balance || 0); // ✅ New field
                         }}
                         className="w-full p-3 border border-gray-300 rounded-md"
                       >
@@ -367,7 +507,8 @@ const OrderTaking = () => {
                         ))}
                       </select>
                     </div>
-                    {/* phone */}
+
+                    {/* Phone */}
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">Phone</label>
                       <input
@@ -378,7 +519,21 @@ const OrderTaking = () => {
                       />
                     </div>
                   </div>
+
+                  {/* ✅ Balance and Address side by side */}
                   <div className="flex gap-4">
+                    <div className="w-1/3">
+                      <label className="block text-gray-700 mb-2">
+                        Balance
+                      </label>
+                      <input
+                        type="number"
+                        value={balance}
+                        readOnly
+                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </div>
+
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">
                         Address
@@ -394,7 +549,7 @@ const OrderTaking = () => {
                 </div>
 
                 {/* Product Entry */}
-                <div className="border p-4 rounded-lg bg-gray-100 space-y-3">
+                <div className="border p-4 rounded-lg  space-y-3">
                   <div className="grid grid-cols-6 gap-3 items-end">
                     <div>
                       <label className="text-gray-700 text-sm">Product</label>
@@ -442,6 +597,7 @@ const OrderTaking = () => {
                       <input
                         type="number"
                         value={rate}
+                        disabled
                         onChange={(e) => setRate(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
@@ -468,13 +624,14 @@ const OrderTaking = () => {
 
                   {/* Items Table */}
                   <div className="mt-4 border border-gray-200 rounded-lg">
-                    <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
+                    <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
                       <div className="px-4 py-2">SR</div>
                       <div className="px-4 py-2">Product</div>
                       <div className="px-4 py-2">Qty</div>
                       <div className="px-4 py-2">Unit</div>
                       <div className="px-4 py-2">Rate</div>
                       <div className="px-4 py-2">Total</div>
+                      <div className="px-4 py-2">Remove</div>
                     </div>
                     {items.length === 0 ? (
                       <div className="text-center py-3 text-gray-500 bg-white">
@@ -484,7 +641,7 @@ const OrderTaking = () => {
                       items.map((it, i) => (
                         <div
                           key={i}
-                          className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
+                          className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
                         >
                           <div className="px-4 py-2">{i + 1}</div>
                           <div className="px-4 py-2">{it.product}</div>
@@ -492,6 +649,16 @@ const OrderTaking = () => {
                           <div className="px-4 py-2">{it.unit}</div>
                           <div className="px-4 py-2">{it.rate}</div>
                           <div className="px-4 py-2">{it.total}</div>
+                          <div className="flex justify-center py-2">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(i)}
+                              className="text-red-600 hover:bg-red-100 rounded-full  transition"
+                              title="Remove Item"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
                         </div>
                       ))
                     )}
@@ -509,6 +676,12 @@ const OrderTaking = () => {
           </div>
         )}
       </div>
+      {isView && selectedOrder && (
+        <FuncatiolityViewModalFile
+          data={selectedOrder}
+          onClose={() => setIsView(false)}
+        />
+      )}
     </div>
   );
 };
