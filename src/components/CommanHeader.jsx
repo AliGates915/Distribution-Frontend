@@ -195,10 +195,10 @@ const navigate=useNavigate()
                 {/* Profile Trigger */}
                 <div className="flex items-center space-x-2 cursor-pointer">
                   <div className="relative">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center text-white">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-r from-newPrimary to-newPrimary rounded-full flex items-center justify-center text-white">
                       <UserRoundPen size={16} />
                     </div>
-                    <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+                    <span className="absolute bottom-0 right-0 w-2 h-2 bg-newPrimary rounded-full border border-white"></span>
                   </div>
                   <div className="hidden sm:block text-right">
                     <div className="text-sm font-medium capitalize">

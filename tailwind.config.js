@@ -11,7 +11,7 @@ export default {
         primary: "#1d4ed8", // Blue-700
         primaryDark: "#1e40af", // Blue-800
         accent: "#e94560",
-        newPrimary: "#84CF16",
+        newPrimary: "#1E93AB",
         secondary: "#58C5A0",
         Green: "#2B9943",
       formBG: "#f5faf8",
