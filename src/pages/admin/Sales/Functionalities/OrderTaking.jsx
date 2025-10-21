@@ -3,9 +3,12 @@ import { SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const OrderTaking = () => {
   const [orders, setOrders] = useState([]);
+  const [customersList, setCustomersList] = useState([]);
+  const [productsList, setProductsList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -13,6 +16,7 @@ const OrderTaking = () => {
   const [orderId, setOrderId] = useState("");
   const [orderDate, setOrderDate] = useState("");
   const [salesman, setSalesman] = useState("");
+  const [salesmanList, setSalesmanList] = useState([]);
   const [customer, setCustomer] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
@@ -27,20 +31,64 @@ const OrderTaking = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
-  // Static dropdowns
-  const salesmanList = ["Ali", "Ahmed", "Sara"];
-  const customersList = [
-    { name: "ABC Pharmacy", address: "Lahore", phone: "0300-1234567" },
-    { name: "Health Plus", address: "Karachi", phone: "0311-9876543" },
-    { name: "MediCare", address: "Islamabad", phone: "0322-1122334" },
-  ];
-  const productsList = [
-    { name: "Panadol" },
-    { name: "Amoxil" },
-    { name: "Disprin" },
-    { name: "Brufen" },
-  ];
   const unitList = ["Box", "Bottle", "Pack"];
+
+  // Fetch Employe List
+  async function fetchEmployees() {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/employees`
+      );
+      setSalesmanList(res.data);
+    } catch (error) {
+      console.error("Failed to fetch Employees", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
+    }
+  }
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+  // Fetch customers
+  async function fetchCustomers() {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/customers`
+      );
+      setCustomersList(res.data);
+    } catch (error) {
+      console.error("Failed to fetch Employees", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
+    }
+  }
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  // fetch fished Goods
+
+  async function fetchFinshedGoods() {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
+      );
+      setProductsList(res.data);
+    } catch (error) {
+      console.error("Failed to fetch Employees", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
+    }
+  }
+
+  useEffect(() => {
+    fetchFinshedGoods();
+  }, []);
 
   // Auto-generate Order ID and Date
   useEffect(() => {
@@ -54,7 +102,7 @@ const OrderTaking = () => {
   // Auto calculate total
   useEffect(() => {
     const t = (parseFloat(qty) || 0) * (parseFloat(rate) || 0);
-    setTotal(t.toFixed(2));
+    setTotal(t);
   }, [qty, rate]);
 
   const handleAddItem = () => {
@@ -170,6 +218,7 @@ const OrderTaking = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = orders.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(orders.length / recordsPerPage);
+  console.log({ productsList });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -285,49 +334,58 @@ const OrderTaking = () => {
                     className="w-full p-3 border border-gray-300 rounded-md"
                   >
                     <option value="">Select Salesman</option>
-                    {salesmanList.map((s) => (
-                      <option key={s}>{s}</option>
+                    {salesmanList.map((sale) => (
+                      <option key={sale._id}>{sale?.employeeName}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Customer Info */}
                 <div className="border p-4 rounded-lg bg-gray-100 space-y-3">
-                  <div>
-                    <label className="block text-gray-700 mb-2">Customer</label>
-                    <select
-                      value={customer}
-                      onChange={(e) => {
-                        const selected = customersList.find(
-                          (c) => c.name === e.target.value
-                        );
-                        setCustomer(e.target.value);
-                        setAddress(selected?.address || "");
-                        setPhone(selected?.phone || "");
-                      }}
-                      className="w-full p-3 border border-gray-300 rounded-md"
-                    >
-                      <option value="">Select Customer</option>
-                      {customersList.map((c) => (
-                        <option key={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-gray-700 mb-2">Address</label>
-                      <input
-                        type="text"
-                        value={address}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
-                      />
+                      <label className="block text-gray-700 mb-2">
+                        Customer
+                      </label>
+                      <select
+                        value={customer}
+                        onChange={(e) => {
+                          const selected = customersList.find(
+                            (c) => c._id === e.target.value
+                          );
+                          setCustomer(e.target.value);
+                          setAddress(selected?.address || "");
+                          setPhone(selected?.phoneNumber || "");
+                        }}
+                        className="w-full p-3 border border-gray-300 rounded-md"
+                      >
+                        <option value="">Select Customer</option>
+                        {customersList.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.customerName}
+                          </option>
+                        ))}
+                      </select>
                     </div>
+                    {/* phone */}
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">Phone</label>
                       <input
                         type="text"
                         value={phone}
+                        readOnly
+                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-gray-700 mb-2">
+                        Address
+                      </label>
+                      <input
+                        type="text"
+                        value={address}
                         readOnly
                         className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
                       />
@@ -342,12 +400,18 @@ const OrderTaking = () => {
                       <label className="text-gray-700 text-sm">Product</label>
                       <select
                         value={product}
-                        onChange={(e) => setProduct(e.target.value)}
+                        onChange={(e) => {
+                          const selected = productsList.find(
+                            (p) => p.itemName === e.target.value
+                          );
+                          setProduct(e.target.value);
+                          setRate(selected?.price || "");
+                        }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
                         <option value="">Select</option>
                         {productsList.map((p) => (
-                          <option key={p.name}>{p.name}</option>
+                          <option key={p._id}>{p.itemName}</option>
                         ))}
                       </select>
                     </div>
@@ -368,9 +432,9 @@ const OrderTaking = () => {
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
                         <option value="">Select</option>
-                        {unitList.map((u) => (
-                          <option key={u}>{u}</option>
-                        ))}
+                        <option value="Kg">Kg</option>
+                        <option value="Pet">Pet</option>
+                        <option value="Mann">Mann</option>
                       </select>
                     </div>
                     <div>
