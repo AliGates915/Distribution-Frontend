@@ -5,7 +5,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const AmountReceivales = () => {
+const SalesmanwiseOrders = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
   const [ledgerId, setLedgerId] = useState("");
@@ -14,7 +14,7 @@ const AmountReceivales = () => {
   const [status, setStatus] = useState("");
 
   // Already present in your code:
-  const [customerName, setCustomerName] = useState("");
+  const [employeeName, setEmployeeName] = useState("");
   const [amount, setAmount] = useState("");
   const [transactionDate, setTransactionDate] = useState("");
   const [transactionType, setTransactionType] = useState("");
@@ -28,7 +28,7 @@ const AmountReceivales = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingLedgerEntry, setEditingLedgerEntry] = useState(null);
   const [errors, setErrors] = useState({});
-  const [customerList, setCustomerList] = useState([]);
+  const [salesman, setSalesman] = useState([]);
   const [nextCustomerId, setNextCustomerId] = useState("003");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -38,15 +38,15 @@ const AmountReceivales = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // fetch Customer List
-  const fetchCustomerList = useCallback(async () => {
+  // fetch Salesman List
+  const fetchSalesmanList = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/customers");
-      setCustomerList(response);
-      console.log("Customers:", response);
+      const response = await api.get("/employees/reports");
+      setSalesman(response);
+      console.log("Data", response);
     } catch (error) {
-      console.error("Failed to fetch customer list", error);
+      console.error("Failed to fetch salesman list", error);
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -55,23 +55,21 @@ const AmountReceivales = () => {
   }, []);
 
   useEffect(() => {
-    fetchCustomerList();
-  }, [fetchCustomerList]);
-
-  // fetch Customer ID
+    fetchSalesmanList();
+  }, [fetchSalesmanList]);
 
   // ✅ Fetch customer ledger by selectedCustomer
   const fetchCustomerId = useCallback(async (id) => {
     if (!id) {
-      console.log("⚠️ No customer selected yet");
+      console.log("No customer selected yet");
       return; // don’t run when nothing selected
     }
 
     try {
       setLoading(true);
-      console.log("Fetching ledger for:", id);
+      console.log("Fetching salesman for:", id);
 
-      const response = await api.get(`/customer-ledger?customer=${id}`);
+      const response = await api.get(`/sales-report/customerwise/${id}`);
       setLedgerEntries(response.data);
       console.log("Customer Ledger Data:", response.data);
     } catch (error) {
@@ -87,7 +85,6 @@ const AmountReceivales = () => {
     }
   }, [selectedCustomer, fetchCustomerId]);
 
-  // fetch Date
   // ✅ Dynamic fetch by date and customer
   const fetchDate = useCallback(async () => {
     if (!selectedCustomer) return; // no customer selected yet
@@ -382,7 +379,6 @@ const AmountReceivales = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
-  console.log({ ledgerEntries });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -427,9 +423,9 @@ const AmountReceivales = () => {
                     required
                   >
                     <option value="">Select Salesman</option>
-                    {customerList.map((cust) => (
+                    {salesman?.map((cust) => (
                       <option key={cust._id} value={cust._id}>
-                        {cust.customerName}
+                        {cust.employeeName}
                       </option>
                     ))}
                   </select>
@@ -470,68 +466,69 @@ const AmountReceivales = () => {
                         No ledger entries found.
                       </div>
                     ) : (
-                      <>
-                        {ledgerEntries.map((entry, index) => (
-                          <div
-                            key={entry.id || index}
-                            className="grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                          >
-                            <div className="text-gray-600">{index + 1}</div>
-                            <div className="text-gray-600">{entry.Date}</div>
-                            <div className="text-gray-600">{entry.ID}</div>
-                            <div className="text-gray-600">
-                              {entry.Description}
-                            </div>
-                            <div className="text-gray-600">{entry.Paid}</div>
-                            <div className="text-gray-600">
-                              {entry.Received}
-                            </div>
-                            <div className="text-gray-600">{entry.Balance}</div>
-                          </div>
-                        ))}
+                      // <>
+                      //   {ledgerEntries.map((entry, index) => (
+                      //     <div
+                      //       key={entry.id || index}
+                      //       className="grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      //     >
+                      //       <div className="text-gray-600">{index + 1}</div>
+                      //       <div className="text-gray-600">{entry.Date}</div>
+                      //       <div className="text-gray-600">{entry.ID}</div>
+                      //       <div className="text-gray-600">
+                      //         {entry.Description}
+                      //       </div>
+                      //       <div className="text-gray-600">{entry.Paid}</div>
+                      //       <div className="text-gray-600">
+                      //         {entry.Received}
+                      //       </div>
+                      //       <div className="text-gray-600">{entry.Balance}</div>
+                      //     </div>
+                      //   ))}
 
-                        {/* Totals Row */}
-                        <div className="hidden lg:grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] justify-items-start gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                          <div className="col-span-4"></div>
+                      //   {/* Totals Row */}
+                      //   <div className="hidden lg:grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] justify-items-start gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                      //     <div className="col-span-4"></div>
 
-                          {/* Calculate totals */}
-                          <div className="text-blue-700 text-center">
-                            Total Paid:{" "}
-                            <span className="font-bold">
-                              {Math.round(
-                                ledgerEntries.reduce(
-                                  (sum, e) => sum + (parseFloat(e.Paid) || 0),
-                                  0
-                                )
-                              )}
-                            </span>
-                          </div>
-                          <div className="text-green-700 text-center">
-                            Total Received:{" "}
-                            <span className="font-bold">
-                              {Math.round(
-                                ledgerEntries.reduce(
-                                  (sum, e) =>
-                                    sum + (parseFloat(e.Received) || 0),
-                                  0
-                                )
-                              )}
-                            </span>
-                          </div>
-                          <div className="text-red-700 text-center">
-                            Total Balance:{" "}
-                            <span className="font-bold">
-                              {Math.round(
-                                ledgerEntries.reduce(
-                                  (sum, e) =>
-                                    sum + (parseFloat(e.Balance) || 0),
-                                  0
-                                )
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      </>
+                      //     {/* Calculate totals */}
+                      //     <div className="text-blue-700 text-center">
+                      //       Total Paid:{" "}
+                      //       <span className="font-bold">
+                      //         {Math.round(
+                      //           ledgerEntries.reduce(
+                      //             (sum, e) => sum + (parseFloat(e.Paid) || 0),
+                      //             0
+                      //           )
+                      //         )}
+                      //       </span>
+                      //     </div>
+                      //     <div className="text-green-700 text-center">
+                      //       Total Received:{" "}
+                      //       <span className="font-bold">
+                      //         {Math.round(
+                      //           ledgerEntries.reduce(
+                      //             (sum, e) =>
+                      //               sum + (parseFloat(e.Received) || 0),
+                      //             0
+                      //           )
+                      //         )}
+                      //       </span>
+                      //     </div>
+                      //     <div className="text-red-700 text-center">
+                      //       Total Balance:{" "}
+                      //       <span className="font-bold">
+                      //         {Math.round(
+                      //           ledgerEntries.reduce(
+                      //             (sum, e) =>
+                      //               sum + (parseFloat(e.Balance) || 0),
+                      //             0
+                      //           )
+                      //         )}
+                      //       </span>
+                      //     </div>
+                      //   </div>
+                      // </>
+                      <></>
                     )}
                   </div>
                 </div>
@@ -640,4 +637,4 @@ const AmountReceivales = () => {
   );
 };
 
-export default AmountReceivales;
+export default SalesmanwiseOrders;
