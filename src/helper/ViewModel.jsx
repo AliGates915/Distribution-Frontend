@@ -28,10 +28,11 @@ const ViewModal = ({ type, data, onClose }) => {
     win.document.close();
     win.print();
   };
-  // ✅ PDF Placeholder
+
   const handlePDF = () => {
     alert("PDF export coming soon 🚀 (use html2pdf.js or jsPDF here)");
   };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white w-[750px] rounded-xl shadow-lg p-6 relative">
@@ -49,6 +50,8 @@ const ViewModal = ({ type, data, onClose }) => {
               ? "Loadsheet Details"
               : type === "order"
               ? "Order Details"
+              : type === "invoice"
+              ? "Date Wise Details"
               : "Details"}
           </h2>
 
@@ -75,6 +78,21 @@ const ViewModal = ({ type, data, onClose }) => {
                 <div><strong>Balance:</strong> {data.customerId?.balance}</div>
               </>
             )}
+
+            {/* 🧾 NEW INVOICE SECTION */}
+            {type === "invoice" && (
+              <>
+                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
+                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
+                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
+                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
+                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
+                <div><strong>Sales Balance:</strong> {data.orderTakingId?.customerId?.salesBalance}</div>
+                <div><strong>Total Qty:</strong> {data.totalQty}</div>
+                <div><strong>Total Amount:</strong> {data.totalAmount}</div>
+                <div><strong>Status:</strong> {data.status}</div>
+              </>
+            )}
           </div>
 
           {/* TABLE SECTION */}
@@ -82,22 +100,40 @@ const ViewModal = ({ type, data, onClose }) => {
             <thead className="bg-gray-100">
               <tr>
                 <th>Sr #</th>
-                <th>Category</th>
+                {type === "invoice" && <th>Category</th>}
                 <th>Item</th>
-                <th>Pack</th>
-                <th>Qty</th>
-                <th>Amount</th>
+                {type !== "invoice" && <th>Pack</th>}
+                {type === "invoice" ? (
+                  <>
+                    <th>Issue</th>
+                    <th>Sold</th>
+                    <th>Return</th>
+                  </>
+                ) : (
+                  <th>Qty</th>
+                )}
+              
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>
               {(data.products || []).map((item, idx) => (
                 <tr key={idx}>
                   <td className="text-center py-1">{idx + 1}</td>
-                  <td className="text-center py-1">{item.category || item.categoryName}</td>
-                  <td className="text-center py-1">{item.item || item.itemName}</td>
-                  <td className="text-center py-1">{item.pack || item.itemUnit}</td>
-                  <td className="text-center py-1">{item.issues || item.qty}</td>
-                  <td className="text-center py-1">{item.amount || item.totalAmount}</td>
+                  {type === "invoice" && <td className="text-center">{item.categoryName || "-"}</td>}
+                  <td className="text-center">{item.itemName || item.item}</td>
+                  {type !== "invoice" && <td className="text-center">{item.itemUnit || item.pack}</td>}
+                  {type === "invoice" ? (
+                    <>
+                      <td className="text-center">{item.issue}</td>
+                      <td className="text-center">{item.sold}</td>
+                      <td className="text-center">{item.return}</td>
+                    </>
+                  ) : (
+                    <td className="text-center">{item.qty || item.issues}</td>
+                  )}
+                 
+                  <td className="text-center">{item.totalAmount }</td>
                 </tr>
               ))}
             </tbody>
@@ -105,7 +141,6 @@ const ViewModal = ({ type, data, onClose }) => {
         </div>
 
         {/* ACTIONS */}
-        {/* Actions */}
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handlePDF}
