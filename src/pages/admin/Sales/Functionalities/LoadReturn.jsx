@@ -302,7 +302,7 @@ const handleSalesmanChange = async (e) => {
 
     // ✅ Correct API endpoint (removed hardcoded ID)
     const res = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}sales-invoice/salesman/${selectedId}`
+      `${import.meta.env.VITE_API_BASE_URL}/sales-invoice/salesman/${selectedId}`
     );
 
     const invoices = res.data?.data || [];

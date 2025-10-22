@@ -44,7 +44,7 @@ import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
 import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
 import EmployeeInformation from "./pages/admin/Sales/SetUp/EmployeeInformation.jsx";
 
-// =================== ACCOUNTS SECTION IMPORTS ===================
+// =================== ACCOUNTS SECTION IMPORTS 
 
 import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
 import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
