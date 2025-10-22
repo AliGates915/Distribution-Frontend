@@ -597,7 +597,7 @@ const AmountReceivales = () => {
               </div>
             ) : (
               <div className="text-center py-6 text-gray-500 bg-white rounded-lg mt-6">
-                Please select a customer to view ledger entries.
+                Please select a customer to view amount receivable entries.
               </div>
             )}
 
