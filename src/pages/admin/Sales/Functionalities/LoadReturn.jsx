@@ -45,7 +45,7 @@ const LoadReturn = () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/employees/orders`
       );
-      setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
+      setSalesmenOptions( res.data );
     } catch (error) {
       console.error("Failed to fetch salesmen:", error);
       setTimeout(() => {
@@ -307,10 +307,11 @@ const handleSalesmanChange = async (e) => {
 
     const invoices = res.data?.data || [];
 
+
     // ✅ Flatten and map invoice + product details
     const formattedItems = invoices.flatMap((inv, idx) =>
       inv.products.map((prod, pIdx) => ({
-        sr: `${idx + 1}.${pIdx + 1}`,
+        sr: `${idx + 1}`,
         invoiceNo: inv.invoiceNo,
         invoiceDate: new Date(inv.invoiceDate).toLocaleDateString(),
         orderId: inv.orderTakingId?.orderId || "N/A",
@@ -349,6 +350,7 @@ const handleSalesmanChange = async (e) => {
   }
 };
 
+console.log({itemsList});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -550,19 +552,25 @@ const handleSalesmanChange = async (e) => {
                                   Sr #
                                 </th>
                                 <th className="px-4 py-2 border border-gray-300">
-                                  Invoice No.
+                                  Category
                                 </th>
                                 <th className="px-4 py-2 border border-gray-300">
-                                  Invoice Date
+                                  Item Name
                                 </th>
                                 <th className="px-4 py-2 border border-gray-300">
-                                  Order ID
+                                  Pack
                                 </th>
                                 <th className="px-4 py-2 border border-gray-300">
-                                  Customer Name
+                                  Issue
                                 </th>
                                 <th className="px-4 py-2 border border-gray-300">
-                                  Qty
+                                  Sold
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Return
+                                </th>
+                                 <th className="px-4 py-2 border border-gray-300">
+                                  Amount
                                 </th>
                               </tr>
                             </thead>
@@ -576,19 +584,25 @@ const handleSalesmanChange = async (e) => {
                                     {item.sr}
                                   </td>
                                   <td className="px-4 py-2 border border-gray-300">
-                                    {item.invoiceNo}
+                                    {item.categoryName}
                                   </td>
                                   <td className="px-4 py-2 border border-gray-300">
-                                    {item.invoiceDate}
+                                    {item.itemName}
                                   </td>
                                   <td className="px-4 py-2 border border-gray-300">
-                                    {item.orderId}
+                                    {item.unit}
                                   </td>
                                   <td className="px-4 py-2 border border-gray-300">
-                                    {item.customerName}
+                                    {item.issue}
                                   </td>
                                   <td className="px-4 py-2 border border-gray-300">
-                                    {item.qty}
+                                    {item.sold}
+                                  </td>
+                                   <td className="px-4 py-2 border border-gray-300">
+                                    {item.returned}
+                                  </td>
+                                   <td className="px-4 py-2 border border-gray-300">
+                                    {item.totalAmount}
                                   </td>
                                 </tr>
                               ))}

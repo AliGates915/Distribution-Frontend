@@ -97,7 +97,7 @@ function AppContent() {
             />
 
             <Route path="report/customer-ledger" element={<CustomerLedger />} />
-            <Route path="report/datewise-Orders" element={<DateWiseOrder />} />
+            <Route path="report/datewise-orders" element={<DateWiseOrder />} />
             <Route
               path="report/productwise-orders"
               element={<ProductWiseOrder />}
