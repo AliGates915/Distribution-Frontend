@@ -40,36 +40,89 @@ import CommanHeader from "../../Components/CommanHeader";
 
 // salesChildren
 const salesChildren = [
- 
   {
     to: "/admin/sales/order-taking",
     label: "Order Taking",
-    icon: <CalendarArrowDown strokeWidth={3} size={40}/>,
+    icon: <CalendarArrowDown strokeWidth={3} size={40} />,
   },
-  { to: "/admin/sales/load-sheet", label: "Load Sheet", icon: <FileSpreadsheet strokeWidth={3} size={40}/> },
-  { to: "/admin/sales/sales-invoice", label: "Sales Invoice", icon: <FileChartColumnIncreasing strokeWidth={3} size={40}/> },
-  { to: "/admin/sales/cash-deposite", label: "Cash Deposite", icon: <Banknote strokeWidth={3} size={40}/> },
-  { to: "/admin/sales/load-return", label: "Load Return", icon: <Undo2 strokeWidth={3} size={40}/> },
- 
+  {
+    to: "/admin/sales/load-sheet",
+    label: "Load Sheet",
+    icon: <FileSpreadsheet strokeWidth={3} size={40} />,
+  },
+  {
+    to: "/admin/sales/sales-invoice",
+    label: "Sales Invoice",
+    icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
+  },
+  {
+    to: "/admin/sales/cash-deposite",
+    label: "Cash Deposit",
+    icon: <Banknote strokeWidth={3} size={40} />,
+  },
+  {
+    to: "/admin/sales/load-return",
+    label: "Load Return",
+    icon: <Undo2 strokeWidth={3} size={40} />,
+  },
 ];
 
 // setupChildren
 const setupChildren = [
-  { to: "/admin/list-of-items", label: "List Of Items", icon: <AiOutlineProduct /> },
-  { to: "/admin/define-customers", label: "Define Customers", icon: <FaUsers /> },
-  { to: "/admin/employee-information", label: "Employee Information", icon: <FaUser /> },
-  { to: "/admin/vehicle-information", label: "Vehicle Information", icon: <FaCar /> },
+  {
+    to: "/admin/list-of-items",
+    label: "List Of Items",
+    icon: <AiOutlineProduct />,
+  },
+  {
+    to: "/admin/define-customers",
+    label: "Define Customers",
+    icon: <FaUsers />,
+  },
+  {
+    to: "/admin/employee-information",
+    label: "Employee Information",
+    icon: <FaUser />,
+  },
+  {
+    to: "/admin/vehicle-information",
+    label: "Vehicle Information",
+    icon: <FaCar />,
+  },
 ];
 
 // reportsChildren
 const reportsChildren = [
-  { to: "/admin/report/amount-receivable", label: "Amount Receivable", icon: <FaMoneyBillWave /> },
-  { to: "/admin/report/customer-ledger", label: "Customer Ledger", icon: <FaUser /> },
-  { to: "/admin/report/datewise-orders", label: "Datewise Orders", icon: <FaCalendarAlt /> },
-  { to: "/admin/report/productwise-orders", label: "Productwise Orders", icon: <FaShoppingCart /> },
-  { to: "/admin/report/salesmanwise-orders", label: "Salesmanwise Orders", icon: <FaUserTie /> },
-  { to: "/admin/report/customerwise-orders", label: "Customerwise Orders", icon: <FaUsers /> },
-  
+  {
+    to: "/admin/report/amount-receivable",
+    label: "Amount Receivable",
+    icon: <FaMoneyBillWave />,
+  },
+  {
+    to: "/admin/report/customer-ledger",
+    label: "Customer Ledger",
+    icon: <FaUser />,
+  },
+  {
+    to: "/admin/report/datewise-orders",
+    label: "Datewise Orders",
+    icon: <FaCalendarAlt />,
+  },
+  {
+    to: "/admin/report/productwise-orders",
+    label: "Productwise Orders",
+    icon: <FaShoppingCart />,
+  },
+  {
+    to: "/admin/report/salesmanwise-orders",
+    label: "Salesmanwise Orders",
+    icon: <FaUserTie />,
+  },
+  {
+    to: "/admin/report/customerwise-orders",
+    label: "Customerwise Orders",
+    icon: <FaUsers />,
+  },
 ];
 
 const SalesSidebar = () => {
@@ -86,7 +139,9 @@ const SalesSidebar = () => {
 
         {/* Content Layer */}
         <div className="relative z-10">
-          <h1 className="text-2xl text-white font-bold mb-6">Functionalities</h1>
+          <h1 className="text-2xl text-white font-bold mb-6">
+            Functionalities
+          </h1>
 
           <div className="bg-gray-400 opacity-80 rounded-xl px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 ">
@@ -99,7 +154,9 @@ const SalesSidebar = () => {
                   <div className="text-4xl mb-2 text-white group-hover:text-green-700 transition-colors duration-300">
                     {item.icon}
                   </div>
-                  <h2 className="text-lg font-semibold text-center">{item.label}</h2>
+                  <h2 className="text-lg font-semibold text-center">
+                    {item.label}
+                  </h2>
                 </NavLink>
               ))}
             </div>
@@ -119,7 +176,9 @@ const SalesSidebar = () => {
                   <div className="text-4xl mb-2 text-white group-hover:text-green-700 transition-colors duration-300">
                     {item.icon}
                   </div>
-                  <h2 className="text-lg font-semibold text-center">{item.label}</h2>
+                  <h2 className="text-lg font-semibold text-center">
+                    {item.label}
+                  </h2>
                 </NavLink>
               ))}
             </div>
@@ -139,7 +198,9 @@ const SalesSidebar = () => {
                   <div className="text-4xl mb-2 text-white group-hover:text-green-700 transition-colors duration-300">
                     {item.icon}
                   </div>
-                  <h2 className="text-lg font-semibold text-center">{item.label}</h2>
+                  <h2 className="text-lg font-semibold text-center">
+                    {item.label}
+                  </h2>
                 </NavLink>
               ))}
             </div>
