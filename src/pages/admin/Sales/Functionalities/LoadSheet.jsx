@@ -6,8 +6,10 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
+import { ScaleLoader } from "react-spinners";
 
 const Loadsheet = () => {
+   const [isSaving, setIsSaving] = useState(false);
   const [loads, setLoads] = useState([]);
   const [salesmenOptions, setSalesmenOptions] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(false);
@@ -47,9 +49,12 @@ const Loadsheet = () => {
       setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
     } catch (error) {
       console.error("Failed to fetch salesmen:", error);
-      toast.error("Failed to fetch salesmen. Using static data.");
-    } finally {
       setTimeout(() => {
+        toast.error("Failed to fetch salesmen. Using static data.");
+      }, 2000);
+    } finally {
+     
+        setTimeout(() => {
         setLoading(false);
       }, 2000);
     }
@@ -72,7 +77,9 @@ const Loadsheet = () => {
       setLoads(loadsData);
     } catch (error) {
       console.error("Failed to fetch loadsheets:", error);
-      toast.error("Failed to fetch loadsheets.");
+      setTimeout(() => {
+        toast.error("Failed to fetch loadsheets.");
+      }, 2000);
       // fallback if API fails
     } finally {
       setTimeout(() => {
@@ -84,6 +91,8 @@ const Loadsheet = () => {
   useEffect(() => {
     fetchLoads();
   }, [fetchLoads]);
+
+ 
 
   //  fetchVechiles
   const fetchVechiles = useCallback(async () => {
@@ -97,13 +106,17 @@ const Loadsheet = () => {
       const loadsData = res.data.data || [];
       setVehicleNoList(loadsData);
     } catch (error) {
-      console.error("Failed to fetch loadsheets:", error);
-      toast.error("Failed to fetch Vehicles.");
+      console.error("Failed to fetch Vehicles:", error);
+      setTimeout(() => {
+        toast.error("Failed to fetch Vehicles.");
+      }, 2000);
+
       // fallback if API fails
     } finally {
-      setTimeout(() => {
+     setTimeout(() => {
         setLoading(false);
       }, 2000);
+    
     }
   }, []);
 
@@ -143,99 +156,106 @@ const Loadsheet = () => {
     setIsSliderOpen(true);
   };
 
-  const handleEditClick = (load) => {
-    setEditingLoad(load);
-    setLoadNo(load.loadNo);
-    setLoadDate(formatDate(load.loadDate));
-    const selectedSalesman = salesmenOptions.find(
-      (sm) => sm.salesmanName === load.salesmanName
-    );
-    setSalesman(selectedSalesman?._id || "");
-    setVehicleNo(load.vehicleNo || "");
-    setItemsList(
-      (load.products || []).map((it) => ({
-        sr: it.sr,
-        category: it.category,
-        item: it.item,
-        pack: it.pack,
-        issues: it.issues,
-        price: it.price,
-        amount: it.amount,
-      }))
-    );
-    setTotalQty(load.totalQty || 0);
-    const newPrevBalance = load.prevBalance || 0;
-    const newAmount =
-      load.products?.reduce((sum, it) => sum + it.amount, 0) || 0;
-    setPrevBalance(newPrevBalance);
-    setAmount(newAmount);
-    setTotalAmount(newPrevBalance + newAmount);
-    setIsEnable(load.isEnable);
-    setIsSliderOpen(true);
-  };
+ const handleEditClick = (load) => {
+   console.log({ load });
+  setEditingLoad(load);
+  setLoadNo(load.loadNo);
+  setLoadDate(formatDate(load.loadDate));
+
+  // ✅ Correctly match the salesman by _id
+  const selectedSalesman = salesmenOptions.find(
+    (sm) => sm._id === load.salesmanId?._id
+  );
+  setSalesman(selectedSalesman?._id || "");
+
+  // ✅ Set vehicle
+  setVehicleNo(load.vehicleNo || "");
+
+  // ✅ Map products correctly (qty instead of issues)
+  setItemsList(
+    (load.products || []).map((it, idx) => ({
+      sr: idx + 1,
+      category: it.category,
+      item: it.item,
+      pack: it.pack,
+      issues: it.qty, // frontend uses this field name
+      price: it.price || 0, // if your backend includes it
+      amount: it.amount,
+    }))
+  );
+
+  // ✅ Totals
+  setTotalQty(load.totalQty || 0);
+  const newPrevBalance = load.salesmanId.preBalance;
+  const newAmount =
+    load.products?.reduce((sum, it) => sum + (it.amount || 0), 0) || 0;
+
+  setPrevBalance(newPrevBalance);
+  setAmount(newAmount);
+  setTotalAmount(newPrevBalance + newAmount);
+  setIsEnable(load.isEnable ?? true);
+  setIsSliderOpen(true);
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!loadDate || !salesman) {
+    if (!loadDate || !salesman || !vehicleNo) {
       Swal.fire({
         icon: "warning",
         title: "Missing Fields",
-        text: "⚠️ Please fill in Load Date and Salesman.",
+        text: "⚠️ Please fill in Load Date, Salesman, and Vehicle No.",
         confirmButtonColor: "#d33",
       });
       return;
     }
-
-    const { token } = userInfo || {};
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
+  setIsSaving(true);
     const newLoad = {
       loadNo: editingLoad ? loadNo : `LOAD-${nextLoadNo}`,
       loadDate,
-      salesmanName:
-        salesmenOptions.find((sm) => sm._id === salesman)?.salesmanName || "",
+      salesmanId: salesman, // backend expects ID
       vehicleNo,
-      products: itemsList.map((item, idx) => ({
-        sr: idx + 1,
+      products: itemsList.map((item) => ({
         category: item.category,
         item: item.item,
         pack: item.pack,
-        issues: item.issues,
-        price: item.price,
-        amount: item.amount,
+        qty: item.issues || 0,
+        amount: item.amount || 0,
       })),
-      prevBalance,
       totalQty,
       totalAmount,
     };
 
     try {
+    
       if (editingLoad) {
+        // Update existing loadsheet
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/loadsheets/${editingLoad._id}`,
+          `${import.meta.env.VITE_API_BASE_URL}/load-sheets/${editingLoad._id}`,
           newLoad,
           { headers }
         );
         Swal.fire("Updated!", "Loadsheet updated successfully.", "success");
       } else {
+        // Create new loadsheet
         await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/loadsheets`,
+          `${import.meta.env.VITE_API_BASE_URL}/load-sheets`,
           newLoad,
           { headers }
         );
         Swal.fire("Added!", "Loadsheet added successfully.", "success");
       }
 
+      // Refresh list
       fetchLoads();
       setIsSliderOpen(false);
       setItemsList([]);
     } catch (error) {
       console.error("Error saving loadsheet:", error);
       Swal.fire("Error!", "Something went wrong while saving.", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -279,7 +299,7 @@ const Loadsheet = () => {
               Authorization: `Bearer ${token}`,
             };
             await axios.delete(
-              `${import.meta.env.VITE_API_BASE_URL}/loadsheets/${id}`,
+              `${import.meta.env.VITE_API_BASE_URL}/load-sheets/${id}`,
               { headers }
             );
             setLoads(loads.filter((l) => l._id !== id));
@@ -305,7 +325,6 @@ const Loadsheet = () => {
         }
       });
   };
-
 
   const handleSalesmanChange = async (e) => {
     const selectedId = e.target.value;
@@ -457,10 +476,16 @@ const Loadsheet = () => {
 
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
+            
             <div
               ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
+               {isSaving && (
+                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingLoad ? "Update Loadsheet" : "Add a New Loadsheet"}
@@ -487,7 +512,8 @@ const Loadsheet = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                <div className="flex gap-4">
+                <div className=" flex gap-4">
+                  
                   <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
                       Load No. <span className="text-red-500">*</span>
@@ -545,7 +571,7 @@ const Loadsheet = () => {
                     >
                       <option value="">Select Vehicle No.</option>
                       {vehicleNoList.map((vec) => (
-                        <option value={vec._id}>{vec.vehicleNo}</option>
+                        <option value={vec.vehicleNo}>{vec.vehicleNo}</option>
                       ))}
                     </select>
                   </div>
