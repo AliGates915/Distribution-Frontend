@@ -8,10 +8,12 @@ import toast from "react-hot-toast";
 
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { set } from "date-fns";
+import { ScaleLoader } from "react-spinners";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
-
+ const [isSaving, setIsSaving] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [invoiceId, setInvoiceId] = useState("");
@@ -36,7 +38,7 @@ const SalesInvoice = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const [errors, setErrors] = useState({});
-  const [bookingOrders, setBookingOrders] = useState([]);
+  const [orderTaking, setOrderTaking] = useState([]);
   const [items, setItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [discountPercentage, setDiscountPercentage] = useState("");
@@ -70,12 +72,14 @@ const SalesInvoice = () => {
     fetchInvoices();
   }, [fetchInvoices]);
 
+  console.log({ invoices });
+
   // fetch booking orders
-  const fetchBookingOrders = useCallback(async () => {
+  const fetchOrderTaking = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/booking-order/sales-order");
-      setBookingOrders(response.data);
+      const response = await api.get("/order-taker/invoice");
+      setOrderTaking(response.data);
     } catch (error) {
       console.error("Failed to fetch booking orders", error);
     } finally {
@@ -86,8 +90,8 @@ const SalesInvoice = () => {
   }, []);
 
   useEffect(() => {
-    fetchBookingOrders();
-  }, [fetchBookingOrders]);
+    fetchOrderTaking();
+  }, [fetchOrderTaking]);
 
   const fetchTaxes = useCallback(async () => {
     try {
@@ -108,37 +112,7 @@ const SalesInvoice = () => {
     fetchTaxes();
   }, [fetchTaxes]);
 
-  // fetch Dc Number
-  const fetchDcNO = useCallback(async (orderId) => {
-    if (!orderId) return;
-    try {
-      // 🧹 clear before fetching
-      setSelectedDcNos([]);
-      setVendor("");
-      setAddress("");
-      setPhoneNo("");
-      setBalance("");
-      setDeliveryDate("");
-      setItems([]);
-      setDcList([]);
-
-      setLoading(true);
-      const response = await api.get(`/delivery-challan/DC-Order/${orderId}`);
-      setDcList(response.data);
-    } catch (error) {
-      console.error("Failed to fetch DC numbers", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedOrderId) {
-      fetchDcNO(selectedOrderId);
-    }
-  }, [selectedOrderId, fetchDcNO, isSliderOpen]);
-
-  console.log({ dcList, selectedOrderId });
+  console.log({ orderTaking });
 
   // Invoice search
   // 🔍 Sales Invoice Search (same logic as Delivery Challan search)
@@ -222,18 +196,19 @@ const SalesInvoice = () => {
   };
 
   // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
+ const validateForm = () => {
+  const newErrors = {};
 
-    if (!invoiceDate.trim()) newErrors.invoiceDate = "Invoice Date is required";
-    if (!selectedOrderId) newErrors.bookingOrder = "Booking Order is required";
-    if (selectedDcNos.length === 0)
-      newErrors.dcNo = "At least one DC No is required";
-    if (items.length === 0) newErrors.items = "At least one item is required";
+  if (!invoiceDate?.trim()) newErrors.invoiceDate = "Invoice Date is required";
+  if (!selectedOrderId)
+    newErrors.orderTakingId = "Order Taking selection is required";
+  if (items.length === 0)
+    newErrors.items = "At least one product is required";
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
 
   // Handlers for form and table actions
   const handleAddInvoice = () => {
@@ -297,138 +272,141 @@ const SalesInvoice = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+  if (!validateForm()) return;
+ setIsSaving(true);
+  const newInvoice = {
+    invoiceNo: editingInvoice ? invoiceId : `INV-${nextInvoiceId}`,
+    invoiceDate: invoiceDate.trim(),
 
-    const newInvoice = {
-      invoiceNo: editingInvoice ? invoiceId : `INV-${nextInvoiceId}`,
-      invoiceDate: invoiceDate.trim(),
+    // ✅ Match backend exactly (orderTakingId instead of bookingOrder)
+    orderTakingId: selectedOrderId,
 
-      // ✅ Backend expects ObjectId, not booking number string
-      bookingOrder: selectedOrderId,
-      // ✅ You may pass the first selected DC (or map if multiple)
-      deliveryChallan:
-        dcList.find((dc) => selectedDcNos.includes(dc.dcNo))?._id || null,
+    // ✅ Products payload same as your Postman example
+    products: items.map((item) => ({
+      categoryName: item.categoryName || "",
+      itemName: item.item,
+      issue: item.issue,                 // total issued from API
+      sold: item.qty,                    // current sold quantity
+      return: item.issue - item.qty,     // difference = returned qty
+      itemUnit: item.itemUnit || "piece",
+      rate: item.rate,
+    })),
 
-      // ✅ Products match your backend structure
-      products: items.map((item) => ({
-        name: item.item,
-        rate: item.rate,
-        qty: item.qty,
-        total: item.total,
-      })),
-
-      // ✅ Tax IDs only
-      taxTypes: taxOptions
-        .filter((opt) => taxes.some((t) => t.type === opt.taxName))
-        .map((opt) => opt._id),
-
-      // ✅ Total amount
-      totalAmount: parseFloat(totalPrice) || 0,
-    };
-    console.log({ newInvoice });
-
-    try {
-      if (editingInvoice) {
-        setInvoices((prev) =>
-          prev.map((inv) =>
-            inv._id === editingInvoice._id
-              ? { ...inv, ...newInvoice, _id: inv._id }
-              : inv
-          )
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Sales Invoice updated successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        try {
-          await api.post("/sales-invoice", newInvoice, {
-            headers: {
-              Authorization: `Bearer ${userInfo?.token}`,
-            },
-          });
-        } catch (error) {
-          toast.error(error.response.data.message);
-        }
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Sales Invoice added successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      }
-      fetchInvoices();
-      resetForm();
-    } catch (error) {
-      console.error("Error saving sales invoice:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to save sales invoice.",
-        confirmButtonColor: "#d33",
-      });
-    }
+    // ✅ Total amount
+    totalAmount: parseFloat(totalPrice) || 0,
   };
 
-  const handleDelete = (id) => {
-    const swalWithTailwindButtons = Swal.mixin({
-      customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
-      },
-      buttonsStyling: false,
-    });
+  console.log("🧾 Final Payload Sent:", newInvoice);
 
-    swalWithTailwindButtons
-      .fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      })
-      .then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            await api.delete(`/sales-invoice/${id}`, {
-              headers: {
-                Authorization: `Bearer ${userInfo?.token}`,
-              },
-            });
-            setInvoices((prev) => prev.filter((inv) => inv._id !== id));
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Sales Invoice deleted successfully.",
-              "success"
-            );
-          } catch (error) {
-            console.error("Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              "Failed to delete sales invoice.",
-              "error"
-            );
-          }
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
+  try {
+    if (editingInvoice) {
+      setInvoices((prev) =>
+        prev.map((inv) =>
+          inv._id === editingInvoice._id
+            ? { ...inv, ...newInvoice, _id: inv._id }
+            : inv
+        )
+      );
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: "Sales Invoice updated successfully.",
+        confirmButtonColor: "#3085d6",
+      });
+    } else {
+      try {
+        await api.post("/sales-invoice", newInvoice,{
+    headers: {
+      Authorization: `Bearer ${userInfo?.token}`,
+    },
+  });
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to add invoice");
+      }
+      Swal.fire({
+        icon: "success",
+        title: "Added!",
+        text: "Sales Invoice added successfully.",
+        confirmButtonColor: "#3085d6",
+      });
+    }
+   fetchOrderTaking()
+    fetchInvoices();
+    resetForm();
+  } catch (error) {
+    console.error("Error saving sales invoice:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error!",
+      text: "Failed to save sales invoice.",
+      confirmButtonColor: "#d33",
+    });
+  }finally{
+    setIsSaving(false)
+  }
+};
+
+  const handleDelete = async (id) => {
+  const swalWithTailwindButtons = Swal.mixin({
+    customClass: {
+      actions: "space-x-2",
+      confirmButton:
+        "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+      cancelButton:
+        "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+    },
+    buttonsStyling: false,
+  });
+
+  swalWithTailwindButtons
+    .fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel!",
+      reverseButtons: true,
+    })
+    .then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // ✅ Proper delete syntax with Axios and headers
+          await api.delete(`/sales-invoice/${id}`,{
+    headers: {
+      Authorization: `Bearer ${userInfo?.token}`,
+    },
+  });
+
+          // ✅ Remove deleted invoice from state instantly
+          setInvoices((prev) => prev.filter((inv) => inv._id !== id));
+
           swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Sales Invoice is safe 🙂",
+            "Deleted!",
+            "Sales Invoice deleted successfully.",
+            "success"
+          );
+        } catch (error) {
+          console.error("❌ Delete error:", error);
+          swalWithTailwindButtons.fire(
+            "Error!",
+            error.response?.data?.message ||
+              "Failed to delete sales invoice. Please try again.",
             "error"
           );
         }
-      });
-  };
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        swalWithTailwindButtons.fire(
+          "Cancelled",
+          "Sales Invoice is safe 🙂",
+          "info"
+        );
+      }
+    });
+};
+
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -460,55 +438,6 @@ const SalesInvoice = () => {
 
   const handleAddTax = () => {
     setTaxes((prev) => [...prev, { type: "", value: "", amount: "" }]);
-  };
-  const handleDcSelect = (dcNo, isChecked) => {
-    setSelectedDcNos((prev) => {
-      const updated = isChecked
-        ? [...prev, dcNo]
-        : prev.filter((item) => item !== dcNo);
-
-      // Filter selected DC objects
-      const selectedDCs = dcList.filter((dc) => updated.includes(dc.dcNo));
-
-      if (selectedDCs.length > 0) {
-        const firstCustomer = selectedDCs[0].bookingOrder?.customer || {};
-
-        setVendor(firstCustomer.customerName || "");
-        setAddress(firstCustomer.address || "");
-        setPhoneNo(firstCustomer.phoneNumber || "");
-        setBalance(firstCustomer.balance?.toString() || "0");
-
-        const combinedItems = selectedDCs.flatMap((dc, index) =>
-          dc.products.map((p, i) => ({
-            srNo: index * 100 + i + 1,
-            DcNo: dc.dcNo,
-            item: p.name,
-            rate: p.rate || 0,
-            qty: p.qty,
-            total: p.total || p.qty * (p.invoiceRate || 0),
-          }))
-        );
-
-        setItems(combinedItems);
-        setDeliveryDate(
-          selectedDCs[0]?.bookingOrder?.deliveryDate
-            ? selectedDCs[0].bookingOrder.deliveryDate.split("T")[0]
-            : ""
-        );
-      } else {
-        setVendor("");
-        setAddress("");
-        setPhoneNo("");
-        setBalance("");
-        setDeliveryDate("");
-        setItems([]);
-      }
-
-      // ✅ ADD THIS LINE HERE:
-      if (isChecked) setShowDcDropdown(false);
-
-      return updated;
-    });
   };
 
   useEffect(() => {
@@ -589,31 +518,28 @@ const SalesInvoice = () => {
           </div>
         </div>
 
-        <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
-            <div className="min-w-[1200px]">
-              <div className="hidden lg:grid grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+        <div className="rounded-xl border border-gray-200 overflow-hidden">
+          <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
+            <div className="min-w-[1000px]">
+              {/* ✅ Table Header */}
+              <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>SR</div>
                 <div>Invoice No.</div>
                 <div>Invoice Date</div>
-                <div>DC No.</div>
-                <div>Delivery Date</div>
-                <div>Delivery Address</div>
-                <div>Booking Number</div>
-                <div>Vendor</div>
-                <div>Address</div>
-                <div>Phone Number</div>
-                <div>Balance</div>
+                <div>Order No.</div>
+                <div>Order Date</div>
+                <div>Status</div>
                 <div>Total Amount</div>
                 <div>Actions</div>
               </div>
 
-              <div className="flex flex-col divide-y divide-gray-100">
+              {/* ✅ Table Body */}
+              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
                 {loading ? (
                   <TableSkeleton
                     rows={currentRecords.length || 5}
-                    cols={13}
-                    className="lg:grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                    cols={8}
+                    className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                   />
                 ) : currentRecords.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -623,7 +549,7 @@ const SalesInvoice = () => {
                   currentRecords.map((invoice, index) => (
                     <div
                       key={invoice._id}
-                      className="grid grid-cols-1 lg:grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div className="text-gray-600">
                         {indexOfFirstRecord + index + 1}
@@ -633,51 +559,53 @@ const SalesInvoice = () => {
                         {new Date(invoice.invoiceDate).toLocaleDateString()}
                       </div>
                       <div className="text-gray-600">
-                        {invoice.deliveryChallan?.dcNo || "-"}
+                        {invoice.orderTakingId?.orderId || "-"}
                       </div>
                       <div className="text-gray-600">
-                        {invoice.bookingOrder?.deliveryDate
+                        {invoice.orderTakingId?.date
                           ? new Date(
-                              invoice.bookingOrder.deliveryDate
+                              invoice.orderTakingId?.date
                             ).toLocaleDateString()
                           : "-"}
                       </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.deliveryAddress
-                          ? invoice.bookingOrder.deliveryAddress.slice(0, 11) +
-                            "..."
-                          : "-"}
+
+                      <div
+                        className={`w-[120px] py-1 rounded-md text-center text-sm font-semibold
+                  ${
+                    invoice.status === "Pending"
+                      ? "bg-yellow-100 text-yellow-600"
+                      : ""
+                  }
+                  ${
+                    invoice.status === "Completed"
+                      ? "bg-green-100 text-green-600"
+                      : ""
+                  }
+                  ${
+                    invoice.status === "Cancelled"
+                      ? "bg-red-100 text-red-600"
+                      : ""
+                  }
+                `}
+                      >
+                        {invoice.status}
                       </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.orderNo || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.customer?.customerName || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.customer?.address || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.customer?.phoneNumber || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.bookingOrder?.customer?.balance?.toLocaleString() ||
-                          "0"}
-                      </div>
+
                       <div className="text-gray-600">
                         {invoice?.totalAmount || "-"}
                       </div>
+
                       <div className="flex gap-3 justify-start">
                         <button
                           onClick={() => handleDownlode(invoice)}
-                          className="py-1 text-sm rounded text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Edit"
+                          className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
+                          title="Download"
                         >
                           <Download size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(invoice._id)}
-                          className="py-1 text-sm rounded text-red-600 hover:bg-red-50 transition-colors"
+                          className="text-red-600 hover:bg-red-50 rounded p-1 transition-colors"
                           title="Delete"
                         >
                           <Trash2 size={18} />
@@ -690,7 +618,7 @@ const SalesInvoice = () => {
             </div>
           </div>
 
-          {/* Pagination Controls */}
+          {/* ✅ Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex justify-between my-4 px-10">
               <div className="text-sm text-gray-600">
@@ -730,8 +658,13 @@ const SalesInvoice = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
+                {isSaving && (
+                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingInvoice
@@ -797,7 +730,7 @@ const SalesInvoice = () => {
                     )}
                   </div>
 
-                  {/* Booking No (2nd row, half width) */}
+                  {/* order Taking (2nd row, half width) */}
                   <div className="min-w-[50%]">
                     <label className="block text-gray-700 font-medium mb-2">
                       Order Taking No.
@@ -805,20 +738,63 @@ const SalesInvoice = () => {
                     <select
                       value={bookingNo}
                       onChange={(e) => {
-                        const selectedOrder = bookingOrders.find(
-                          (order) => order.orderNo === e.target.value
+                        const selectedOrder = orderTaking.find(
+                          (order) => order.orderId === e.target.value
                         );
+
                         setBookingNo(e.target.value);
-                        if (selectedOrder?._id) {
+
+                        if (selectedOrder) {
+                          // ✅ store selected order id
                           setSelectedOrderId(selectedOrder._id);
+
+                          // ✅ set customer info
+                          setVendor(
+                            selectedOrder.customerId?.customerName || ""
+                          );
+                          setAddress(selectedOrder.customerId?.address || "");
+                          setPhoneNo(
+                            selectedOrder.customerId?.phoneNumber || ""
+                          );
+
+                          setBalance(
+                            selectedOrder.customerId?.salesBalance?.toString() ||
+                              "0"
+                          );
+
+                          // ✅ populate product table
+                          const mappedItems = selectedOrder.products.map(
+                            (p, index) => ({
+                              srNo: index + 1,
+                              OrderNo: selectedOrder.orderId,
+                              item: p.itemName,
+                              rate: p.rate || 0,
+                              qty: p.qty,
+                              issue: p.qty, // ✅ total issued from API
+                              sold: p.qty, // ✅ start as sold = issue
+                              return: 0, // ✅ nothing returned initially
+                              originalQty: p.qty,
+                              total: p.totalAmount || p.rate * p.qty,
+                            })
+                          );
+                          setItems(mappedItems);
+
+                          setItems(mappedItems);
+                        } else {
+                          // 🧹 reset if empty
+                          setVendor("");
+                          setAddress("");
+                          setPhoneNo("");
+                          setBalance("");
+                          setItems([]);
                         }
                       }}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     >
                       <option value="">Select Order Taking No.</option>
-                      {bookingOrders.map((order) => (
-                        <option key={order._id} value={order.orderNo}>
-                          {order.orderNo}
+                      {orderTaking.map((order) => (
+                        <option key={order._id} value={order.orderId}>
+                          {order.orderId}
                         </option>
                       ))}
                     </select>
@@ -894,7 +870,7 @@ const SalesInvoice = () => {
                         SR#.
                       </div>
                       <div className="px-4 py-2 border-r border-gray-300">
-                        DC No
+                        Order No
                       </div>
                       <div className="px-4 py-2 border-r border-gray-300">
                         Item
@@ -924,7 +900,7 @@ const SalesInvoice = () => {
                             {i + 1}
                           </div>
                           <div className="px-4 py-2 border-r border-gray-300 ">
-                            {item.DcNo}
+                            {item.OrderNo}
                           </div>
                           <div className="px-4 py-2 border-r border-gray-300 ">
                             {item.item}
@@ -953,8 +929,35 @@ const SalesInvoice = () => {
                           </div>
 
                           <div className="px-4 py-2 border-r border-gray-300 ">
-                            {item.qty}
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.qty}
+                              onChange={(e) => {
+                                let newQty = parseFloat(e.target.value) || 1;
+
+                                // ✅ Prevent going below 1
+                                if (newQty < 1) newQty = 1;
+
+                                // ✅ Prevent increasing beyond the original order quantity
+                                if (newQty > item.originalQty) return;
+
+                                setItems((prevItems) =>
+                                  prevItems.map((it) =>
+                                    it.srNo === item.srNo
+                                      ? {
+                                          ...it,
+                                          qty: newQty,
+                                          total: newQty * it.rate,
+                                        }
+                                      : it
+                                  )
+                                );
+                              }}
+                              className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                            />
                           </div>
+
                           <div className="px-4 py-2 ">{item.total}</div>
                         </div>
                       ))
@@ -1011,11 +1014,11 @@ const SalesInvoice = () => {
                 </div>
 
                 {/* Tax Section (replaces Sales Tax) */}
-
+                {/* 
                 <div className="mt-4 space-y-4">
                   {taxes.map((tax, index) => (
                     <div key={index} className="flex items-end gap-4">
-                      {/* Tax Type */}
+                 
                       <div className="flex-1 min-w-0">
                         <label className="block text-gray-700 text-sm font-medium mb-1">
                           Tax Type
@@ -1028,7 +1031,7 @@ const SalesInvoice = () => {
                             );
                             handleTaxChange(index, "type", e.target.value);
 
-                            // ✅ Only set value when user actually selects something
+                          
                             if (selectedTax && e.target.value !== "") {
                               handleTaxChange(
                                 index,
@@ -1048,7 +1051,7 @@ const SalesInvoice = () => {
                         </select>
                       </div>
 
-                      {/* Tax Value */}
+                 
                       <div className="flex-1 min-w-0">
                         <label className="block text-gray-700 text-sm font-medium mb-1">
                           Value (%)
@@ -1065,7 +1068,7 @@ const SalesInvoice = () => {
                         />
                       </div>
 
-                      {/* Tax Amount (auto-calculated) */}
+                  
                       <div className="flex-1 min-w-0">
                         <label className="block text-gray-700 text-sm font-medium mb-1">
                           Amount
@@ -1079,7 +1082,7 @@ const SalesInvoice = () => {
                         />
                       </div>
 
-                      {/* Add Button */}
+                     
                       {index === taxes.length - 1 && (
                         <button
                           type="button"
@@ -1092,7 +1095,7 @@ const SalesInvoice = () => {
                     </div>
                   ))}
 
-                  {/* Show total tax only if multiple taxes */}
+                
                   {taxes.length > 1 && (
                     <div className="flex justify-end mr-20">
                       <div className="text-right mt-2">
@@ -1109,7 +1112,7 @@ const SalesInvoice = () => {
                     </div>
                   )}
 
-                  {/* Summary Section */}
+                
                   <div className="  flex justify-end mr-20">
                     <div className=" space-y-1 text-right">
                       <div>
@@ -1147,7 +1150,7 @@ const SalesInvoice = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <button
                   type="submit"
