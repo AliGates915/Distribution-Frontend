@@ -7,7 +7,7 @@ import { api } from "../../../../context/ApiService";
 
 const CashDeposite = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
- const [deliveryChallans, setDeliveryChallans] = useState([]);
+  const [deliveryChallans, setDeliveryChallans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dcNo, setDcNo] = useState("");
   const [date, setDate] = useState("");
@@ -52,94 +52,105 @@ const CashDeposite = () => {
   const recordsPerPage = 10;
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const [editingVoucher, setEditingVoucher] = useState(null); // Fixed: was editingReceipt
+  const [nextReceiptId, setNextReceiptId] = useState("001");
+  const [cashData, setCashData] = useState({
+    receiptId: "",
+    date: "",
+    customer: "", // store customer _id (not name)
+    amountReceived: 0,
+    newBalance: 0,
+    remarks: "",
+  });
+  const [customersCash, setCustomersCash] = useState([]);
 
   // ✅ Static data fallback (mocked delivery challans)
-const fetchDeliveryChallan = useCallback(() => {
-  setLoading(true);
+  const fetchDeliveryChallan = useCallback(() => {
+    setLoading(true);
 
-  // Simulate async delay like API
-  setTimeout(() => {
-    const mockData = [
-      {
-        _id: "1",
-        dcNo: "DC-001",
-        date: "2025-10-18",
-        orderNo: "ORD-001",
-        orderDate: "2025-10-17",
-        orderDetails: {
-          customer: "Ali Enterprises",
-          person: "Ali Khan",
-          phone: "+923001234567",
-          address: "Lahore, Pakistan",
-          orderType: "Standard",
-          mode: "Truck",
-          deliveryAddress: "Gulberg, Lahore",
-          deliveryDate: "2025-10-19",
-          totalWeight: 1500,
+    // Simulate async delay like API
+    setTimeout(() => {
+      const mockData = [
+        {
+          _id: "1",
+          dcNo: "DC-001",
+          date: "2025-10-18",
+          orderNo: "ORD-001",
+          orderDate: "2025-10-17",
+          orderDetails: {
+            customer: "Ali Enterprises",
+            person: "Ali Khan",
+            phone: "+923001234567",
+            address: "Lahore, Pakistan",
+            orderType: "Standard",
+            mode: "Truck",
+            deliveryAddress: "Gulberg, Lahore",
+            deliveryDate: "2025-10-19",
+            totalWeight: 1500,
+          },
+          vehicleDetails: {
+            truckNo: "TRK-567",
+            driverName: "Ahmed",
+            father: "Rashid",
+            cnic: "35201-1234567-9",
+            mobileNo: "03001234567",
+            containerNo1: "CN-111",
+            batchNo1: "B001",
+            forLocation1: "Karachi",
+            containerNo2: "CN-112",
+            batchNo2: "B002",
+            forLocation2: "Multan",
+            firstWeight: 1200,
+            weightBridgeName: "Lahore Weighbridge",
+            weightBridgeSlipNo: "SLIP-0023",
+          },
+          remarks: "Deliver ASAP",
+          approvalRemarks: "Checked and verified",
+          status: "Pending",
         },
-        vehicleDetails: {
-          truckNo: "TRK-567",
-          driverName: "Ahmed",
-          father: "Rashid",
-          cnic: "35201-1234567-9",
-          mobileNo: "03001234567",
-          containerNo1: "CN-111",
-          batchNo1: "B001",
-          forLocation1: "Karachi",
-          containerNo2: "CN-112",
-          batchNo2: "B002",
-          forLocation2: "Multan",
-          firstWeight: 1200,
-          weightBridgeName: "Lahore Weighbridge",
-          weightBridgeSlipNo: "SLIP-0023",
+        {
+          _id: "2",
+          dcNo: "DC-002",
+          date: "2025-10-19",
+          orderNo: "ORD-002",
+          orderDate: "2025-10-18",
+          orderDetails: {
+            customer: "Galaxy Distributors",
+            person: "Umer Shah",
+            phone: "+923334567890",
+            address: "Karachi, Pakistan",
+            orderType: "Express",
+            mode: "Van",
+            deliveryAddress: "Clifton, Karachi",
+            deliveryDate: "2025-10-20",
+            totalWeight: 850,
+          },
+          vehicleDetails: {
+            truckNo: "VAN-890",
+            driverName: "Naveed",
+            father: "Hassan",
+            cnic: "42201-9876543-2",
+            mobileNo: "03211234567",
+            containerNo1: "CN-210",
+            batchNo1: "B010",
+            forLocation1: "Hyderabad",
+            containerNo2: "",
+            batchNo2: "",
+            forLocation2: "",
+            firstWeight: 900,
+            weightBridgeName: "Karachi Weighbridge",
+            weightBridgeSlipNo: "SLIP-0045",
+          },
+          remarks: "Urgent Delivery",
+          approvalRemarks: "",
+          status: "Approved",
         },
-        remarks: "Deliver ASAP",
-        approvalRemarks: "Checked and verified",
-        status: "Pending",
-      },
-      {
-        _id: "2",
-        dcNo: "DC-002",
-        date: "2025-10-19",
-        orderNo: "ORD-002",
-        orderDate: "2025-10-18",
-        orderDetails: {
-          customer: "Galaxy Distributors",
-          person: "Umer Shah",
-          phone: "+923334567890",
-          address: "Karachi, Pakistan",
-          orderType: "Express",
-          mode: "Van",
-          deliveryAddress: "Clifton, Karachi",
-          deliveryDate: "2025-10-20",
-          totalWeight: 850,
-        },
-        vehicleDetails: {
-          truckNo: "VAN-890",
-          driverName: "Naveed",
-          father: "Hassan",
-          cnic: "42201-9876543-2",
-          mobileNo: "03211234567",
-          containerNo1: "CN-210",
-          batchNo1: "B010",
-          forLocation1: "Hyderabad",
-          containerNo2: "",
-          batchNo2: "",
-          forLocation2: "",
-          firstWeight: 900,
-          weightBridgeName: "Karachi Weighbridge",
-          weightBridgeSlipNo: "SLIP-0045",
-        },
-        remarks: "Urgent Delivery",
-        approvalRemarks: "",
-        status: "Approved",
-      },
-    ];
+      ];
 
-    setDeliveryChallans(mockData);
-    setLoading(false);
-  }, 1000);
-}, []);
+      setDeliveryChallans(mockData);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   // Delivery challan search
   useEffect(() => {
@@ -164,10 +175,9 @@ const fetchDeliveryChallan = useCallback(() => {
     }, 1000);
 
     return () => clearTimeout(delayDebounce);
-  }, [searchTerm, fetchDeliveryChallan, ]);
+  }, [searchTerm, fetchDeliveryChallan]);
 
   // Generate next DC No
-
 
   // Reset form fields
   const resetForm = () => {
@@ -449,7 +459,7 @@ const fetchDeliveryChallan = useCallback(() => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">
-              Delivery Challan Details
+              Cash Deposit Details
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -464,7 +474,7 @@ const fetchDeliveryChallan = useCallback(() => {
               className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
               onClick={handleAddChallan}
             >
-              + Add Delivery Challan
+              + Add Payment
             </button>
           </div>
         </div>
@@ -598,13 +608,13 @@ const fetchDeliveryChallan = useCallback(() => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
-                  {editingChallan
-                    ? "Update Delivery Challan"
-                    : "Add a New Delivery Challan"}
+                  {editingVoucher
+                    ? "Update Payment Receipt Voucher"
+                    : "Add a New Payment Receipt Voucher"}
                 </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
@@ -615,810 +625,153 @@ const fetchDeliveryChallan = useCallback(() => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
+                {/* Cash Form */}
+
+                <div className="space-y-4">
+                  {/* Date & Receipt ID */}
                   <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        DC No <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={editingChallan ? dcNo : `DC-${nextDcNo}`}
-                        readOnly
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.dcNo
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
-                        placeholder="Enter DC No"
-                        required
-                      />
-                      {errors.dcNo && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.dcNo}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
                         Date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.date
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
+                        value={cashData.date}
+                        onChange={(e) =>
+                          setCashData({ ...cashData, date: e.target.value })
+                        }
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
-                      {errors.date && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.date}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Order No <span className="text-red-500">*</span>
+                        Receipt ID <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
-                        value={orderNo}
-                        onChange={(e) => setOrderNo(e.target.value)}
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.orderNo
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
-                        placeholder="Enter Order No"
+                        value={
+                          editingVoucher
+                            ? editingVoucher.receiptId
+                            : nextReceiptId
+                        }
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
-                      {errors.orderNo && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.orderNo}
-                        </p>
-                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
+                  </div>
+
+                  {/* Customer & Balance */}
+                  <div className="flex gap-4">
+                    <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Order Date <span className="text-red-500">*</span>
+                        Customer Name <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={cashData.customer}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          const selectedCustomer = customers.find(
+                            (c) => c._id === selectedId
+                          );
+
+                          setCashData({
+                            ...cashData,
+                            customer: selectedCustomer?._id || "",
+                            balance: selectedCustomer?.balance || 0, // ✅ store actual balance
+                            newBalance: selectedCustomer?.balance || 0,
+                            amountReceived: 0, // reset when new customer selected
+                          });
+                        }}
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">Select Customer</option>
+                        {customersCash.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.customerName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Balance field */}
+                    <div className="flex-1">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Balance
                       </label>
                       <input
-                        type="date"
-                        value={orderDate}
-                        onChange={(e) => setOrderDate(e.target.value)}
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.orderDate
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
+                        type="number"
+                        value={cashData.balance}
+                        readOnly
+                        className="w-full p-3 border rounded-md bg-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amount Received & New Balance */}
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Amount Received <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={cashData.amountReceived}
+                        onChange={(e) => {
+                          const amount = parseFloat(e.target.value) || 0;
+                          const newBalance = cashData.balance - amount; // ✅ live calculation
+                          setCashData({
+                            ...cashData,
+                            amountReceived: amount,
+                            newBalance,
+                          });
+                        }}
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
-                      {errors.orderDate && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.orderDate}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </div>
-                <div className="flex gap-4 mb-4">
-                  <div className="flex-1">
-                    <button
-                      type="button"
-                      className={`w-full py-2 rounded-md ${
-                        activeTab === "orderDetails"
-                          ? "bg-newPrimary text-white"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                      onClick={() => setActiveTab("orderDetails")}
-                    >
-                      Order Details
-                    </button>
-                  </div>
-                  <div className="flex-1">
-                    <button
-                      type="button"
-                      className={`w-full py-2 rounded-md ${
-                        activeTab === "vehicleDetails"
-                          ? "bg-newPrimary text-white"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                      onClick={() => setActiveTab("vehicleDetails")}
-                    >
-                      Vehicle Details
-                    </button>
-                  </div>
-                </div>
-
-                {activeTab === "orderDetails" && (
-                  <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
-                    <div className="space-y-4">
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Customer <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={orderDetails.customer}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                customer: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.customer
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Customer"
-                            required
-                          />
-                          {errors.customer && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.customer}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Person <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={orderDetails.person}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                person: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.person
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Person"
-                            required
-                          />
-                          {errors.person && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.person}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Phone <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={orderDetails.phone}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                phone: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.phone
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Phone"
-                            required
-                          />
-                          {errors.phone && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.phone}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Address <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={orderDetails.address}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                address: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.address
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Address"
-                            required
-                          />
-                          {errors.address && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.address}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Order Type <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            value={orderDetails.orderType}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                orderType: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.orderType
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            required
-                          >
-                            <option value="">Select Order Type</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Express">Express</option>
-                          </select>
-                          {errors.orderType && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.orderType}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Mode <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            value={orderDetails.mode}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                mode: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.mode
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            required
-                          >
-                            <option value="">Select Mode</option>
-                            <option value="Truck">Truck</option>
-                            <option value="Van">Van</option>
-                          </select>
-                          {errors.mode && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.mode}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Total Weight <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            value={orderDetails.totalWeight}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                totalWeight: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.totalWeight
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Total Weight"
-                            min="0"
-                            step="0.01"
-                            required
-                          />
-                          {errors.totalWeight && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.totalWeight}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Delivery Date{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            value={orderDetails.deliveryDate}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                deliveryDate: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.deliveryDate
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            required
-                          />
-                          {errors.deliveryDate && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.deliveryDate}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Delivery Address{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={orderDetails.deliveryAddress}
-                            onChange={(e) =>
-                              setOrderDetails({
-                                ...orderDetails,
-                                deliveryAddress: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.deliveryAddress
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Delivery Address"
-                            required
-                          />
-                          {errors.deliveryAddress && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.deliveryAddress}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "vehicleDetails" && (
-                  <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
-                    <div className="space-y-4">
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Truck No <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.truckNo}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                truckNo: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.truckNo
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Truck No"
-                            required
-                          />
-                          {errors.truckNo && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.truckNo}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Driver Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.driverName}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                driverName: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.driverName
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Driver Name"
-                            required
-                          />
-                          {errors.driverName && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.driverName}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Father <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.father}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                father: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.father
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Father's Name"
-                            required
-                          />
-                          {errors.father && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.father}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            CNIC <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.cnic}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                cnic: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.cnic
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter CNIC"
-                            required
-                          />
-                          {errors.cnic && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.cnic}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Mobile No <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.mobileNo}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                mobileNo: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.mobileNo
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Mobile No"
-                            required
-                          />
-                          {errors.mobileNo && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.mobileNo}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Container No 1{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.containerNo1}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                containerNo1: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.containerNo1
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Container No 1"
-                            required
-                          />
-                          {errors.containerNo1 && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.containerNo1}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Batch No 1 <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.batchNo1}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                batchNo1: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.batchNo1
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Batch No 1"
-                            required
-                          />
-                          {errors.batchNo1 && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.batchNo1}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            For Location 1{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.forLocation1}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                forLocation1: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.forLocation1
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter For Location 1"
-                            required
-                          />
-                          {errors.forLocation1 && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.forLocation1}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Container No 2
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.containerNo2}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                containerNo2: e.target.value,
-                              })
-                            }
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                            placeholder="Enter Container No 2"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Batch No 2
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.batchNo2}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                batchNo2: e.target.value,
-                              })
-                            }
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                            placeholder="Enter Batch No 2"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            For Location 2
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.forLocation2}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                forLocation2: e.target.value,
-                              })
-                            }
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                            placeholder="Enter For Location 2"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            First Weight <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            value={vehicleDetails.firstWeight}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                firstWeight: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.firstWeight
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter First Weight"
-                            min="0"
-                            step="0.01"
-                            required
-                          />
-                          {errors.firstWeight && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.firstWeight}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Weight Bridge Name{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.weightBridgeName}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                weightBridgeName: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.weightBridgeName
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Weight Bridge Name"
-                            required
-                          />
-                          {errors.weightBridgeName && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.weightBridgeName}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <label className="block text-gray-700 font-medium mb-2">
-                            Weight Bridge Slip No{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={vehicleDetails.weightBridgeSlipNo}
-                            onChange={(e) =>
-                              setVehicleDetails({
-                                ...vehicleDetails,
-                                weightBridgeSlipNo: e.target.value,
-                              })
-                            }
-                            className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                              errors.weightBridgeSlipNo
-                                ? "border-red-500 focus:ring-red-500"
-                                : "border-gray-300 focus:ring-newPrimary"
-                            }`}
-                            placeholder="Enter Weight Bridge Slip No"
-                            required
-                          />
-                          {errors.weightBridgeSlipNo && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {errors.weightBridgeSlipNo}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Remarks
+                        New Balance
                       </label>
-                      <textarea
-                        value={remarks}
-                        onChange={(e) => setRemarks(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter Remarks"
-                        rows="3"
+                      <input
+                        type="text"
+                        value={Math.max(0, Math.round(cashData.newBalance))} // prevent negative display
+                        readOnly
+                        className={`w-full p-3 border rounded-md ${
+                          cashData.newBalance < 0
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100"
+                        }`}
                       />
                     </div>
                   </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Approval Remarks
-                      </label>
-                      <textarea
-                        value={approvalRemarks}
-                        onChange={(e) => setApprovalRemarks(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter Approval Remarks"
-                        rows="3"
-                      />
-                    </div>
+                  {/* Remarks Field */}
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Remarks
+                    </label>
+                    <textarea
+                      value={cashData.remarks}
+                      onChange={(e) =>
+                        setCashData({
+                          ...cashData,
+                          remarks: e.target.value,
+                        })
+                      }
+                      placeholder="Enter any remarks or notes"
+                      className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      rows="3"
+                    />
                   </div>
                 </div>
+
                 <button
                   type="submit"
-                  disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
                 >
-                  {loading
-                    ? "Saving..."
-                    : editingChallan
-                    ? "Update Delivery Challan"
-                    : "Save Delivery Challan"}
+                  Save Payment
                 </button>
               </form>
             </div>
