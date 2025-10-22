@@ -10,10 +10,11 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { set } from "date-fns";
 import { ScaleLoader } from "react-spinners";
+import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
- const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [invoiceId, setInvoiceId] = useState("");
@@ -72,7 +73,7 @@ const SalesInvoice = () => {
     fetchInvoices();
   }, [fetchInvoices]);
 
-  console.log({ invoices });
+ 
 
   // fetch booking orders
   const fetchOrderTaking = useCallback(async () => {
@@ -98,7 +99,7 @@ const SalesInvoice = () => {
       setLoading(true);
       const response = await api.get("/taxes");
       setTaxOptions(response || []); // ✅ store options here
-      console.log("Fetched taxes:", response.data);
+    
     } catch (error) {
       console.error("Failed to fetch booking orders", error);
     } finally {
@@ -112,8 +113,7 @@ const SalesInvoice = () => {
     fetchTaxes();
   }, [fetchTaxes]);
 
-  console.log({ orderTaking });
-
+ 
   // Invoice search
   // 🔍 Sales Invoice Search (same logic as Delivery Challan search)
   useEffect(() => {
@@ -196,19 +196,19 @@ const SalesInvoice = () => {
   };
 
   // Validate form fields
- const validateForm = () => {
-  const newErrors = {};
+  const validateForm = () => {
+    const newErrors = {};
 
-  if (!invoiceDate?.trim()) newErrors.invoiceDate = "Invoice Date is required";
-  if (!selectedOrderId)
-    newErrors.orderTakingId = "Order Taking selection is required";
-  if (items.length === 0)
-    newErrors.items = "At least one product is required";
+    if (!invoiceDate?.trim())
+      newErrors.invoiceDate = "Invoice Date is required";
+    if (!selectedOrderId)
+      newErrors.orderTakingId = "Order Taking selection is required";
+    if (items.length === 0)
+      newErrors.items = "At least one product is required";
 
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
-
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handlers for form and table actions
   const handleAddInvoice = () => {
@@ -217,196 +217,195 @@ const SalesInvoice = () => {
     setInvoiceDate(new Date().toISOString().split("T")[0]);
   };
 
-  const handleEditClick = (invoice) => {
-    console.log({ invoice });
+  // const handleEditClick = (invoice) => {
+  //   console.log({ invoice });
 
-    setEditingInvoice(invoice);
+  //   setEditingInvoice(invoice);
 
-    // ✅ Core invoice info
-    setInvoiceId(invoice.invoiceNo || "");
-    setInvoiceDate(invoice.invoiceDate?.split("T")[0] || "");
+  //   // ✅ Core invoice info
+  //   setInvoiceId(invoice.invoiceNo || "");
+  //   setInvoiceDate(invoice.invoiceDate?.split("T")[0] || "");
 
-    // ✅ Booking order details
-    setSelectedOrderId(invoice.bookingOrder?._id || null);
-    setBookingNo(invoice.bookingOrder?.orderNo || "");
-    setDeliveryDate(
-      invoice.bookingOrder?.deliveryDate
-        ? invoice.bookingOrder.deliveryDate.split("T")[0]
-        : ""
-    );
+  //   // ✅ Booking order details
+  //   setSelectedOrderId(invoice.bookingOrder?._id || null);
+  //   setBookingNo(invoice.bookingOrder?.orderNo || "");
+  //   setDeliveryDate(
+  //     invoice.bookingOrder?.deliveryDate
+  //       ? invoice.bookingOrder.deliveryDate.split("T")[0]
+  //       : ""
+  //   );
 
-    // ✅ Customer info
-    const customer = invoice.bookingOrder?.customer || {};
-    setVendor(customer.customerName || "");
-    setAddress(customer.address || "");
-    setPhoneNo(customer.phoneNumber || "");
-    setBalance(customer.balance?.toString() || "0");
+  //   // ✅ Customer info
+  //   const customer = invoice.bookingOrder?.customer || {};
+  //   setVendor(customer.customerName || "");
+  //   setAddress(customer.address || "");
+  //   setPhoneNo(customer.phoneNumber || "");
+  //   setBalance(customer.balance?.toString() || "0");
 
-    // ✅ Delivery Challan info
-    setSelectedDcNos(
-      invoice.deliveryChallan ? [invoice.deliveryChallan.dcNo] : []
-    );
+  //   // ✅ Delivery Challan info
+  //   setSelectedDcNos(
+  //     invoice.deliveryChallan ? [invoice.deliveryChallan.dcNo] : []
+  //   );
 
-    // ✅ Product items
-    setItems(
-      invoice.products?.map((p, index) => ({
-        srNo: index + 1,
-        DcNo: invoice.deliveryChallan?.dcNo || "",
-        item: p.name,
-        rate: p.rate,
-        qty: p.qty,
-        total: p.total,
-      })) || []
-    );
+  //   // ✅ Product items
+  //   setItems(
+  //     invoice.products?.map((p, index) => ({
+  //       srNo: index + 1,
+  //       DcNo: invoice.deliveryChallan?.dcNo || "",
+  //       item: p.name,
+  //       rate: p.rate,
+  //       qty: p.qty,
+  //       total: p.total,
+  //     })) || []
+  //   );
 
-    // ✅ Total calculations
-    setTotalPrice(invoice.totalAmount || 0);
-    setDiscountPercentage(invoice.discountPercentage?.toString() || "");
-    setDiscountAmount(invoice.discountAmount?.toString() || "");
-    setSalesTax(invoice.salesTax || false);
-    setNetAmount(invoice.netAmount?.toString() || "");
+  //   // ✅ Total calculations
+  //   setTotalPrice(invoice.totalAmount || 0);
+  //   setDiscountPercentage(invoice.discountPercentage?.toString() || "");
+  //   setDiscountAmount(invoice.discountAmount?.toString() || "");
+  //   setSalesTax(invoice.salesTax || false);
+  //   setNetAmount(invoice.netAmount?.toString() || "");
 
-    // ✅ Reset errors and open form
-    setErrors({});
-    setIsSliderOpen(true);
-  };
+  //   // ✅ Reset errors and open form
+  //   setErrors({});
+  //   setIsSliderOpen(true);
+  // };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validateForm()) return;
- setIsSaving(true);
-  const newInvoice = {
-    invoiceNo: editingInvoice ? invoiceId : `INV-${nextInvoiceId}`,
-    invoiceDate: invoiceDate.trim(),
+    if (!validateForm()) return;
+    setIsSaving(true);
+    const newInvoice = {
+      invoiceNo: editingInvoice ? invoiceId : `INV-${nextInvoiceId}`,
+      invoiceDate: invoiceDate.trim(),
 
-    // ✅ Match backend exactly (orderTakingId instead of bookingOrder)
-    orderTakingId: selectedOrderId,
+      // ✅ Match backend exactly (orderTakingId instead of bookingOrder)
+      orderTakingId: selectedOrderId,
 
-    // ✅ Products payload same as your Postman example
-    products: items.map((item) => ({
-      categoryName: item.categoryName || "",
-      itemName: item.item,
-      issue: item.issue,                 // total issued from API
-      sold: item.qty,                    // current sold quantity
-      return: item.issue - item.qty,     // difference = returned qty
-      itemUnit: item.itemUnit || "piece",
-      rate: item.rate,
-    })),
+      // ✅ Products payload same as your Postman example
+      products: items.map((item) => ({
+        categoryName: item.categoryName || "",
+        itemName: item.item,
+        issue: item.issue, // total issued from API
+        sold: item.qty, // current sold quantity
+        return: item.issue - item.qty, // difference = returned qty
+        itemUnit: item.itemUnit || "piece",
+        rate: item.rate,
+      })),
 
-    // ✅ Total amount
-    totalAmount: parseFloat(totalPrice) || 0,
+      // ✅ Total amount
+      totalAmount: parseFloat(totalPrice) || 0,
+    };
+
+   
+
+    try {
+      if (editingInvoice) {
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            inv._id === editingInvoice._id
+              ? { ...inv, ...newInvoice, _id: inv._id }
+              : inv
+          )
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: "Sales Invoice updated successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        try {
+          await api.post("/sales-invoice", newInvoice, {
+            headers: {
+              Authorization: `Bearer ${userInfo?.token}`,
+            },
+          });
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to add invoice");
+        }
+        Swal.fire({
+          icon: "success",
+          title: "Added!",
+          text: "Sales Invoice added successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      }
+      fetchOrderTaking();
+      fetchInvoices();
+      resetForm();
+    } catch (error) {
+      console.error("Error saving sales invoice:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Failed to save sales invoice.",
+        confirmButtonColor: "#d33",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  console.log("🧾 Final Payload Sent:", newInvoice);
-
-  try {
-    if (editingInvoice) {
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv._id === editingInvoice._id
-            ? { ...inv, ...newInvoice, _id: inv._id }
-            : inv
-        )
-      );
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Sales Invoice updated successfully.",
-        confirmButtonColor: "#3085d6",
-      });
-    } else {
-      try {
-        await api.post("/sales-invoice", newInvoice,{
-    headers: {
-      Authorization: `Bearer ${userInfo?.token}`,
-    },
-  });
-      } catch (error) {
-        toast.error(error.response?.data?.message || "Failed to add invoice");
-      }
-      Swal.fire({
-        icon: "success",
-        title: "Added!",
-        text: "Sales Invoice added successfully.",
-        confirmButtonColor: "#3085d6",
-      });
-    }
-   fetchOrderTaking()
-    fetchInvoices();
-    resetForm();
-  } catch (error) {
-    console.error("Error saving sales invoice:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error!",
-      text: "Failed to save sales invoice.",
-      confirmButtonColor: "#d33",
-    });
-  }finally{
-    setIsSaving(false)
-  }
-};
-
   const handleDelete = async (id) => {
-  const swalWithTailwindButtons = Swal.mixin({
-    customClass: {
-      actions: "space-x-2",
-      confirmButton:
-        "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-      cancelButton:
-        "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
-    },
-    buttonsStyling: false,
-  });
+    const swalWithTailwindButtons = Swal.mixin({
+      customClass: {
+        actions: "space-x-2",
+        confirmButton:
+          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
+        cancelButton:
+          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
+      },
+      buttonsStyling: false,
+    });
 
-  swalWithTailwindButtons
-    .fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "No, cancel!",
-      reverseButtons: true,
-    })
-    .then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          // ✅ Proper delete syntax with Axios and headers
-          await api.delete(`/sales-invoice/${id}`,{
-    headers: {
-      Authorization: `Bearer ${userInfo?.token}`,
-    },
-  });
+    swalWithTailwindButtons
+      .fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "No, cancel!",
+        reverseButtons: true,
+      })
+      .then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            // ✅ Proper delete syntax with Axios and headers
+            await api.delete(`/sales-invoice/${id}`, {
+              headers: {
+                Authorization: `Bearer ${userInfo?.token}`,
+              },
+            });
 
-          // ✅ Remove deleted invoice from state instantly
-          setInvoices((prev) => prev.filter((inv) => inv._id !== id));
+            // ✅ Remove deleted invoice from state instantly
+            setInvoices((prev) => prev.filter((inv) => inv._id !== id));
 
+            swalWithTailwindButtons.fire(
+              "Deleted!",
+              "Sales Invoice deleted successfully.",
+              "success"
+            );
+          } catch (error) {
+            console.error("❌ Delete error:", error);
+            swalWithTailwindButtons.fire(
+              "Error!",
+              error.response?.data?.message ||
+                "Failed to delete sales invoice. Please try again.",
+              "error"
+            );
+          }
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
-            "Deleted!",
-            "Sales Invoice deleted successfully.",
-            "success"
-          );
-        } catch (error) {
-          console.error("❌ Delete error:", error);
-          swalWithTailwindButtons.fire(
-            "Error!",
-            error.response?.data?.message ||
-              "Failed to delete sales invoice. Please try again.",
-            "error"
+            "Cancelled",
+            "Sales Invoice is safe 🙂",
+            "info"
           );
         }
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-        swalWithTailwindButtons.fire(
-          "Cancelled",
-          "Sales Invoice is safe 🙂",
-          "info"
-        );
-      }
-    });
-};
-
+      });
+  };
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -450,45 +449,33 @@ const SalesInvoice = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  async function handleDownlode(invoice) {
-    // Store selected invoice for rendering
+  async function handleDownload(invoice) {
     setSelectedInvoice(invoice);
 
-    // Wait a bit to ensure the hidden invoice template is rendered
     setTimeout(async () => {
       if (!invoiceRef.current) return;
 
       try {
-        // Capture the invoice as an image
         const canvas = await html2canvas(invoiceRef.current, {
-          scale: 2, // Higher scale = sharper PDF
-          useCORS: true, // Allow external images (like logos)
+          scale: 2,
+          useCORS: true,
           scrollX: 0,
           scrollY: 0,
         });
 
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF("p", "mm", "a4");
-
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        // Add image to PDF
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-        // Save file with invoice number as name
-        pdf.save(
-          `${invoice.bookingOrder?.customer?.customerName || "Customer"}-${
-            invoice.invoiceNo || "Invoice"
-          }.pdf`
-        );
+        pdf.save(`${invoice.invoiceNo || "Invoice"}.pdf`);
 
         toast.success(`Invoice ${invoice.invoiceNo} downloaded successfully!`);
       } catch (error) {
         console.error("Error generating PDF:", error);
         toast.error("Failed to generate invoice PDF.");
       }
-    }, 400); // Wait a short delay for DOM render
+    }, 400);
   }
 
   return (
@@ -597,12 +584,13 @@ const SalesInvoice = () => {
 
                       <div className="flex gap-3 justify-start">
                         <button
-                          onClick={() => handleDownlode(invoice)}
+                          onClick={() => handleDownload(invoice)}
                           className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
                           title="Download"
                         >
                           <Download size={18} />
                         </button>
+
                         <button
                           onClick={() => handleDelete(invoice._id)}
                           className="text-red-600 hover:bg-red-50 rounded p-1 transition-colors"
@@ -660,8 +648,8 @@ const SalesInvoice = () => {
               ref={sliderRef}
               className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
-                {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              {isSaving && (
+                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -1195,6 +1183,10 @@ const SalesInvoice = () => {
           }
         `}</style>
       </div>
+      {/* Hidden invoice template for download */}
+<div style={{ position: "absolute", left: "-9999px", top: "0" }}>
+  <InvoiceTemplate ref={invoiceRef} invoice={selectedInvoice} />
+</div>
     </div>
   );
 };

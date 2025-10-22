@@ -121,14 +121,26 @@ const OrderTaking = () => {
     fetchOrderTaking();
   }, []);
 
-  // Auto-generate Order ID and Date
-  useEffect(() => {
-    if (!editingOrder) {
-      const nextId = (orders.length + 1).toString().padStart(3, "0");
-      setOrderId(`ORD-${nextId}`);
-      setOrderDate(new Date().toISOString().split("T")[0]);
-    }
-  }, [isSliderOpen, orders, editingOrder]);
+
+
+  
+ // Auto-generate Order ID and Date (based on highest existing number)
+useEffect(() => {
+  if (!editingOrder && orders.length > 0) {
+    const maxNo = Math.max(
+      ...orders.map((o) => {
+        const match = o.orderId?.match(/ORD-(\d+)/);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+    );
+    setOrderId(`ORD-${(maxNo + 1).toString().padStart(3, "0")}`);
+  } else if (!editingOrder && orders.length === 0) {
+    setOrderId("ORD-001");
+  }
+
+  setOrderDate(new Date().toISOString().split("T")[0]);
+}, [orders, editingOrder, isSliderOpen]);
+
 
   // Auto calculate total
   useEffect(() => {
@@ -421,7 +433,7 @@ const OrderTaking = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
