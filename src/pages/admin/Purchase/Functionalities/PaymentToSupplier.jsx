@@ -20,9 +20,19 @@ const PaymentToSupplier = () => {
   const [bookingOrders, setBookingOrders] = useState([]);
   const [specification, setSpecification] = useState("");
   const [itemsList, setItemsList] = useState([]);
-
   const [qty, setQty] = useState(1);
   const [total, setTotal] = useState(0);
+  const [editingVoucher, setEditingVoucher] = useState(null); // Fixed: was editingReceipt
+  const [cashData, setCashData] = useState({
+    receiptId: "",
+    date: "",
+    customer: "", // store customer _id (not name)
+    amountReceived: 0,
+    newBalance: 0,
+    remarks: "",
+  });
+  const [nextReceiptId, setNextReceiptId] = useState("001");
+  const [customersCash, setCustomersCash] = useState([]);
 
   const handleAddItem = () => {
     if (!product) return;
@@ -511,7 +521,7 @@ const PaymentToSupplier = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">
-              Delivery Challan Details
+              Supplier Payment Details
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -526,7 +536,7 @@ const PaymentToSupplier = () => {
               className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
               onClick={handleAddChallan}
             >
-              + Add Delivery Challan
+              + Add Payment
             </button>
           </div>
         </div>
@@ -686,14 +696,13 @@ const PaymentToSupplier = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
-              {/* Header */}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
-                  {editingChallan
-                    ? "Update Delivery Challan"
-                    : "Add a New Delivery Challan"}
+                  {editingVoucher
+                    ? "Update Payment Receipt Voucher"
+                    : "Add a New Payment Receipt Voucher"}
                 </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
@@ -703,381 +712,154 @@ const PaymentToSupplier = () => {
                 </button>
               </div>
 
-              {/* ================= FORM ================= */}
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                {/* 1️⃣ SECTION — BASIC INFO */}
-                <div className="border bg-gray-100 p-4 rounded-lg space-y-4">
+                {/* Cash Form */}
+
+                <div className="space-y-4">
+                  {/* Date & Receipt ID */}
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        DC No <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={editingChallan ? dcNo : `DC-${nextDcNo}`}
-                        readOnly
-                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-
-                    <div className="flex-1">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        DC Date <span className="text-red-500">*</span>
+                        Date <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        value={cashData.date}
+                        onChange={(e) =>
+                          setCashData({ ...cashData, date: e.target.value })
+                        }
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Receipt ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          editingVoucher
+                            ? editingVoucher.receiptId
+                            : nextReceiptId
+                        }
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
                       />
                     </div>
                   </div>
 
+                  {/* Customer & Balance */}
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Booking Order <span className="text-red-500">*</span>
+                        Customer Name <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={orderNo}
-                        disabled={!!editingChallan}
+                        value={cashData.customer}
                         onChange={(e) => {
                           const selectedId = e.target.value;
-                          setOrderNo(selectedId);
-
-                          const selectedOrder = bookingOrders.find(
-                            (order) => order._id === selectedId
+                          const selectedCustomer = customers.find(
+                            (c) => c._id === selectedId
                           );
 
-                          if (selectedOrder) {
-                            setOrderDate(selectedOrder.orderDate.split("T")[0]);
-                            setAvailableProducts(
-                              (selectedOrder.products || []).map((p) => ({
-                                ...p,
-                                deliverQty:
-                                  p.deliverQty ?? p.orderedQty ?? p.qty ?? 0, // 🟢 Default deliverQty = orderedQty
-                              }))
-                            );
-
-                            setOrderDetails({
-                              customer:
-                                selectedOrder.customer?.customerName || "",
-                              phone: selectedOrder.customer?.phoneNumber || "",
-                              address: selectedOrder.customer?.address || "",
-                              deliveryAddress:
-                                selectedOrder.deliveryAddress || "",
-                            });
-                          }
+                          setCashData({
+                            ...cashData,
+                            customer: selectedCustomer?._id || "",
+                            balance: selectedCustomer?.balance || 0, // ✅ store actual balance
+                            newBalance: selectedCustomer?.balance || 0,
+                            amountReceived: 0, // reset when new customer selected
+                          });
                         }}
-                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
                       >
-                        <option value="">Select Booking Order</option>
-
-                        {/* 🧩 Inject current challan’s booking order if not loaded yet */}
-                        {editingChallan &&
-                          !bookingOrders.some(
-                            (b) => b._id === editingChallan.bookingOrder?._id
-                          ) && (
-                            <option value={editingChallan.bookingOrder?._id}>
-                              {editingChallan.bookingOrder?.orderNo ||
-                                "Unknown Order"}
-                            </option>
-                          )}
-
-                        {/* Regular fetched options */}
-                        {bookingOrders.map((order) => (
-                          <option key={order._id} value={order._id}>
-                            {order.orderNo}
+                        <option value="">Select Customer</option>
+                        {customersCash.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.customerName}
                           </option>
                         ))}
                       </select>
                     </div>
 
+                    {/* Balance field */}
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Order Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={orderDate}
-                        onChange={(e) => setOrderDate(e.target.value)}
-                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2️⃣ SECTION — CUSTOMER / DELIVERY DETAILS */}
-                <div className="border bg-gray-100 p-4 rounded-lg space-y-4">
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Customer <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={orderDetails.customer}
-                        onChange={(e) =>
-                          setOrderDetails({
-                            ...orderDetails,
-                            customer: e.target.value,
-                          })
-                        }
-                        readOnly
-                        className="w-full p-3 border bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-
-                    <div className="flex-1">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Phone Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={orderDetails.phone}
-                        onChange={(e) =>
-                          setOrderDetails({
-                            ...orderDetails,
-                            phone: e.target.value,
-                          })
-                        }
-                        readOnly
-                        className="w-full p-3 border bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    {/* Address */}
-                    <div className="flex-1">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={orderDetails.address}
-                        onChange={(e) =>
-                          setOrderDetails({
-                            ...orderDetails,
-                            address: e.target.value,
-                          })
-                        }
-                        readOnly
-                        className="w-full p-3 border bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter address"
-                      />
-                    </div>
-
-                    {/* Delivery Address */}
-                    <div className="flex-1">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Delivery Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={orderDetails.deliveryAddress}
-                        onChange={(e) =>
-                          setOrderDetails({
-                            ...orderDetails,
-                            deliveryAddress: e.target.value,
-                          })
-                        }
-                        readOnly
-                        className="w-full p-3 border bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter delivery address"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3️⃣ SECTION — PRODUCT ITEMS */}
-                <div className="border bg-gray-100 p-4 w-[590px] rounded-lg space-y-4">
-                  {/* Line 1 */}
-                  <div className="flex flex-wrap items-end gap-4">
-                    {/* Product */}
-                    <div className=" min-w-[180px]">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Product
-                      </label>
-                      <select
-                        value={product}
-                        onChange={(e) => handleProductSelect(e.target.value)}
-                        readOnly
-                        disabled
-                        className="w-full h-[48px] px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100 text-gray-600 cursor-not-allowed"
-                      >
-                        <option value="">Select Product</option>
-                        {availableProducts.map((p, idx) => (
-                          <option key={idx} value={p.name}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Qty */}
-                    <div className=" min-w-[120px]">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Qty
+                        Balance
                       </label>
                       <input
                         type="number"
-                        min="1"
-                        value={qty}
+                        value={cashData.balance}
+                        readOnly
+                        className="w-full p-3 border rounded-md bg-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amount Received & New Balance */}
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Amount Received <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={cashData.amountReceived}
                         onChange={(e) => {
-                          const newQty = Number(e.target.value);
-
-                          const selectedProd = availableProducts.find(
-                            (p) => p.name === product
-                          );
-
-                          // 🧠 Check if newQty > orderedQty
-                          if (
-                            selectedProd &&
-                            newQty > (selectedProd.orderedQty || 0)
-                          ) {
-                            Swal.fire({
-                              icon: "warning",
-                              title: "Invalid Quantity",
-                              html: `You entered <b>${newQty}</b>, but ordered quantity is only <b>${selectedProd.orderedQty}</b>.`,
-                              text: "Deliver quantity cannot be greater than ordered quantity!",
-                              timer: 4000,
-                              showConfirmButton: false,
-                              showCloseButton: true, // 🟢 adds the top-right close (X) button
-                              position: "center",
-                              timerProgressBar: true, // ⏳ adds a small progress bar for timeout
-                            });
-                            return; // ❌ stop further execution
-                          }
-
-                          setQty(newQty);
-
-                          if (selectedProd) {
-                            const perUnit =
-                              selectedProd.rate && selectedProd.rate > 0
-                                ? selectedProd.rate
-                                : (selectedProd.total || 0) /
-                                  (selectedProd.deliverQty ||
-                                    selectedProd.orderedQty ||
-                                    selectedProd.qty ||
-                                    1);
-                            setTotal(perUnit * newQty);
-                          }
+                          const amount = parseFloat(e.target.value) || 0;
+                          const newBalance = cashData.balance - amount; // ✅ live calculation
+                          setCashData({
+                            ...cashData,
+                            amountReceived: amount,
+                            newBalance,
+                          });
                         }}
-                        className="w-full h-[48px] px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter quantity"
+                        className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
                       />
                     </div>
-
-                    {/* Total */}
-                    {/* <div className="flex-1 min-w-[160px]">
+                    <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Total
+                        New Balance
                       </label>
                       <input
-                        type="number"
-                        value={total}
+                        type="text"
+                        value={Math.max(0, Math.round(cashData.newBalance))} // prevent negative display
                         readOnly
-                        className="w-full h-[48px] px-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700"
-                        placeholder="Total"
+                        className={`w-full p-3 border rounded-md ${
+                          cashData.newBalance < 0
+                            ? "bg-red-100 text-red-600"
+                            : "bg-gray-100"
+                        }`}
                       />
-                    </div> */}
-
-                    {/* Add Button */}
-                    <div className="flex items-end min-w-[90px]">
-                      <button
-                        type="button"
-                        onClick={handleAddItem}
-                        className="w-full h-[48px] bg-newPrimary text-white font-semibold rounded-lg hover:bg-newPrimary/80 transition flex justify-center items-center gap-2"
-                      >
-                        + Add
-                      </button>
                     </div>
                   </div>
-
-                  {/* Table */}
-                  {/* Available Product Table */}
-                  {availableProducts.length > 0 && (
-                    <div className="overflow-x-auto mt-4 w-[510px]">
-                      {/* Header */}
-                      <div className="grid grid-cols-[50px_100px_200px_200px] bg-gray-100 text-gray-600 text-sm font-medium border-[1px] border-gray-200 rounded-t-lg">
-                        <div className="px-3 py-2 text-center border-b">
-                          Sr #
-                        </div>
-                        <div className="px-3 py-2 text-center border-b">
-                          Product
-                        </div>
-                        <div className="px-3 py-2 text-center border-b">
-                          Ordered Qty
-                        </div>
-                        <div className="px-3 py-2 text-center border-b">
-                          deliver Quntity
-                        </div>
-                      </div>
-
-                      {/* Rows */}
-                      <div className="border border-t-0 border-gray-200 rounded-b-lg divide-y">
-                        {availableProducts.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="grid grid-cols-[50px_100px_200px_200px] text-gray-700 text-sm hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => {
-                              setProduct(item.name);
-                              setRate(item.rate);
-                              setQty(item.deliverQty || item.orderedQty); // prioritize deliverQty
-                              setSpecification(item.details || "");
-                              setTotal(
-                                item.rate * (item.deliverQty || item.orderedQty)
-                              );
-                            }}
-                          >
-                            <div className="px-3 py-2 text-center">
-                              {idx + 1}
-                            </div>
-                            <div className="px-3 py-2 text-center">
-                              {item.name}
-                            </div>
-                            <div className="px-3 py-2 text-center">
-                              <span className="text-blue-600 underline">
-                                {item.orderedQty}
-                              </span>
-                            </div>
-                            <div className="px-3 py-2 text-center">
-                              {item.deliverQty || 0}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4️⃣ SECTION — REMARKS */}
-                <div className="border bg-gray-100 p-4 rounded-lg space-y-4">
+                  {/* Remarks Field */}
                   <div>
                     <label className="block text-gray-700 font-medium mb-2">
                       Remarks
                     </label>
                     <textarea
-                      value={remarks}
-                      onChange={(e) => setRemarks(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      placeholder="Enter Remarks"
+                      value={cashData.remarks}
+                      onChange={(e) =>
+                        setCashData({
+                          ...cashData,
+                          remarks: e.target.value,
+                        })
+                      }
+                      placeholder="Enter any remarks or notes"
+                      className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows="3"
                     />
                   </div>
                 </div>
 
-                {/* SUBMIT BUTTON */}
                 <button
                   type="submit"
-                  disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
                 >
-                  {loading
-                    ? "Saving..."
-                    : editingChallan
-                    ? "Update Delivery Challan"
-                    : "Save Delivery Challan"}
+                  Save Payment
                 </button>
               </form>
             </div>

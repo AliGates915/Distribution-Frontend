@@ -20,7 +20,11 @@ const staticGrns = [
     },
     date: "2025-10-01",
     items: [
-      { itemName: "Widget A", quantity: 10, description: "High-quality widget" },
+      {
+        itemName: "Widget A",
+        quantity: 10,
+        description: "High-quality widget",
+      },
       { itemName: "Widget B", quantity: 5, description: "Standard widget" },
     ],
     isEnable: true,
@@ -64,9 +68,7 @@ const staticGatePassOptions = [
       address: "456 Oak Ave, Town",
       phoneNumber: "+0987654321",
     },
-    items: [
-      { _id: "item3", itemName: "Gadget X", quantity: 20 },
-    ],
+    items: [{ _id: "item3", itemName: "Gadget X", quantity: 20 }],
   },
 ];
 
@@ -98,6 +100,7 @@ const GRN = () => {
   const [selectedGrn, setSelectedGrn] = useState(null);
   const sliderRef = useRef(null);
   const [nextGRNId, setNextGrnId] = useState("001");
+  const [rate, setRate] = useState("");
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -182,9 +185,12 @@ const GRN = () => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       };
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/items`, {
-        headers,
-      });
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/items`,
+        {
+          headers,
+        }
+      );
       setItemOptions(res.data.length ? res.data : staticItemOptions);
     } catch (error) {
       console.error("Failed to fetch items:", error);
@@ -351,11 +357,9 @@ const GRN = () => {
         );
         Swal.fire("Updated!", "GRN updated successfully.", "success");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/grn`,
-          newGrn,
-          { headers }
-        );
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/grn`, newGrn, {
+          headers,
+        });
         Swal.fire("Added!", "GRN added successfully.", "success");
       }
 
@@ -489,7 +493,11 @@ const GRN = () => {
 
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={5} cols={7} className="lg:grid-cols-7" />
+                    <TableSkeleton
+                      rows={5}
+                      cols={7}
+                      className="lg:grid-cols-7"
+                    />
                   ) : grns.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No GRNs found.
@@ -513,7 +521,9 @@ const GRN = () => {
                         <div className="text-gray-600">
                           {grn.supplier?.phoneNumber || "N/A"}
                         </div>
-                        <div className="text-gray-500">{formatDate(grn.date)}</div>
+                        <div className="text-gray-500">
+                          {formatDate(grn.date)}
+                        </div>
                         <div className="flex justify-end gap-3">
                           <button
                             onClick={() => handleEditClick(grn)}
@@ -606,7 +616,6 @@ const GRN = () => {
                   </div>
                 </div>
                 <div className="flex gap-4">
-                 
                   <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
                       Supplier <span className="text-red-500">*</span>
@@ -623,9 +632,9 @@ const GRN = () => {
                           {supplier.name}
                         </option>
                       ))} */}
-                      </select>
+                    </select>
                   </div>
-                   <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
                       Phone <span className="text-red-500">*</span>
                     </label>
@@ -653,7 +662,6 @@ const GRN = () => {
                       placeholder="Enter address"
                     />
                   </div>
-                 
                 </div>
 
                 <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
@@ -700,6 +708,18 @@ const GRN = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
+                        Rate
+                      </label>
+                      <input
+                        type="text"
+                        value={rate}
+                        onChange={(e) => setRate(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        placeholder="Enter rate"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-gray-700 font-medium mb-2">
                         Description
                       </label>
                       <input
@@ -714,7 +734,7 @@ const GRN = () => {
                       <button
                         type="button"
                         onClick={handleAddItem}
-                        className="w-40 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
+                        className="w-20 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
                       >
                         + Add
                       </button>
@@ -736,6 +756,9 @@ const GRN = () => {
                                 Qty
                               </th>
                               <th className="px-4 py-2 border border-gray-300">
+                                Rate
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
                                 Description
                               </th>
                             </tr>
@@ -754,6 +777,9 @@ const GRN = () => {
                                 </td>
                                 <td className="px-4 py-2 border border-gray-300 text-center">
                                   {item.qty}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {item.rate}
                                 </td>
                                 <td className="px-4 py-2 border border-gray-300">
                                   {item.description}
