@@ -391,7 +391,7 @@ const AmountReceivales = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">
-              Customer Ledger Details
+              Amount Receivable Details
             </h1>
           </div>
           <div className="flex items-center gap-3">
