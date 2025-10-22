@@ -349,21 +349,36 @@ const generateRandomBarcode = () => {
           formData,
           { headers }
         );
-        toast.success("Item Details Updated successfully");
+        Swal.fire({
+                 icon: "success",
+                 title: "Added!",
+                 text: "List Items Upadted successfully.",
+                 confirmButtonColor: "#3085d6",
+               });
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/item-details`,
           formData,
           { headers }
         );
-        toast.success("Item Details Added successfully");
+         Swal.fire({
+                 icon: "success",
+                 title: "Added!",
+                 text: "List Items Added successfully.",
+                 confirmButtonColor: "#3085d6",
+               });
       }
 
       reState();
       fetchData();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item Unit failed`);
+        Swal.fire({
+              icon: "error",
+              title: "Error!",
+              text: `${error.response.data.message}`,
+              confirmButtonColor: "#d33",
+            });
     }
   };
 
@@ -395,6 +410,7 @@ const generateRandomBarcode = () => {
   };
   // Edit Item
   const handleEdit = (item) => {
+console.log({item});
 
     setIsEdit(true);
     setEditId(item._id);
@@ -407,7 +423,7 @@ const generateRandomBarcode = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit?._id || "");
+    setItemUnit(item?.itemUnit || "");
     setItemType(item?.itemType?._id || "");
   setItemCategoryId(item.itemId)
     // Normal fields
@@ -578,7 +594,7 @@ const generateRandomBarcode = () => {
                   <TableSkeleton
                     rows={itemList.length || 5}
                     cols={userInfo?.isAdmin ? 7 : 6}
-                    className="lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_auto]"
+                    className="lg:grid-cols-[200px,200px,200px,200px,200px,200px,120px]"
                   />
                 ) : itemList.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -588,7 +604,7 @@ const generateRandomBarcode = () => {
                   currentRecords.map((item, index) => (
                     <div
                       key={item._id}
-                      className="grid grid-cols-1 lg:grid-cols-[200px,200px,200px,200px,200px,100px,200px,_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[200px,200px,200px,200px,200px,200px,120px] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
@@ -627,7 +643,7 @@ const generateRandomBarcode = () => {
 
                       {/* Actions */}
                       {userInfo?.isAdmin && (
-                        <div className="flex justify-end gap-3">
+                        <div className="flex justify-start gap-3">
                           <button
                             onClick={() => handleEdit(item)}
                             className="text-blue-500 hover:underline"
@@ -919,11 +935,11 @@ const generateRandomBarcode = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                        {itemUnitList.map((item) => (
-                          <option key={item._id} value={item._id}>
-                            {item.unitName}
-                          </option>
-                        ))}
+                        <option value="Kg">Kg</option>
+                        <option value="Piece">Piece</option>
+                        <option value="Bag">Bag</option>
+                        <option value="Cotton">Cotton</option>
+                       
                       </select>
                     </div>
 
