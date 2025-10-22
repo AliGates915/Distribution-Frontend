@@ -747,139 +747,91 @@ const SalesInvoice = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                <div className="space-y-3 border p-4 pb-6 rounded-lg bg-gray-100">
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Invoice No. <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={
-                          editingInvoice ? invoiceId : `INV-${nextInvoiceId}`
+                <div className="grid grid-cols-2 gap-4 border p-4 pb-6 rounded-lg bg-gray-100">
+                  {/* Invoice No */}
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Invoice No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={
+                        editingInvoice ? invoiceId : `INV-${nextInvoiceId}`
+                      }
+                      readOnly
+                      className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                        errors.invoiceId
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-newPrimary"
+                      }`}
+                      placeholder="Enter invoice no."
+                      required
+                    />
+                    {errors.invoiceId && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.invoiceId}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Invoice Date */}
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Invoice Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={invoiceDate}
+                      onChange={(e) => setInvoiceDate(e.target.value)}
+                      className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
+                        errors.invoiceDate
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-newPrimary"
+                      }`}
+                      required
+                    />
+                    {errors.invoiceDate && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.invoiceDate}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Booking No (2nd row, half width) */}
+                  <div className="min-w-[50%]">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Order Taking No.
+                    </label>
+                    <select
+                      value={bookingNo}
+                      onChange={(e) => {
+                        const selectedOrder = bookingOrders.find(
+                          (order) => order.orderNo === e.target.value
+                        );
+                        setBookingNo(e.target.value);
+                        if (selectedOrder?._id) {
+                          setSelectedOrderId(selectedOrder._id);
                         }
-                        readOnly
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.invoiceId
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
-                        placeholder="Enter invoice no."
-                        required
-                      />
-                      {errors.invoiceId && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.invoiceId}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Invoice Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={invoiceDate}
-                        onChange={(e) => setInvoiceDate(e.target.value)}
-                        className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                          errors.invoiceDate
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-newPrimary"
-                        }`}
-                        required
-                      />
-                      {errors.invoiceDate && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.invoiceDate}
-                        </p>
-                      )}
-                    </div>
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    >
+                      <option value="">Select Order Taking No.</option>
+                      {bookingOrders.map((order) => (
+                        <option key={order._id} value={order.orderNo}>
+                          {order.orderNo}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-
-                  {/* Booking No + DC No on same line */}
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Booking No.
-                      </label>
-                      <select
-                        value={bookingNo}
-                        onChange={(e) => {
-                          const selectedOrder = bookingOrders.find(
-                            (order) => order.orderNo === e.target.value
-                          );
-                          setBookingNo(e.target.value);
-                          if (selectedOrder?._id) {
-                            setSelectedOrderId(selectedOrder._id);
-                          }
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      >
-                        <option value="">Select Booking No.</option>
-                        {bookingOrders.map((order) => (
-                          <option key={order._id} value={order.orderNo}>
-                            {order.orderNo}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex-1 dc-dropdown-container min-w-0 relative">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        DC No. <span className="text-red-500">*</span>
-                      </label>
-
-                      <div
-                        onClick={() => setShowDcDropdown((prev) => !prev)}
-                        className={`w-full p-3 border rounded-md bg-white cursor-pointer focus:outline-none ${
-                          errors.dcNo ? "border-red-500" : "border-gray-300"
-                        }`}
-                      >
-                        {selectedDcNos.length > 0
-                          ? selectedDcNos.join(", ")
-                          : "Select DC No."}
-                      </div>
-
-                      {showDcDropdown && (
-                        <div className="absolute top-full left-0 mt-1 z-50 w-full border border-gray-300 rounded-md bg-white shadow-lg max-h-48 overflow-y-auto p-2">
-                          {dcList.map((dc) => (
-                            <label
-                              key={dc._id}
-                              className="flex items-center gap-2 mb-1"
-                            >
-                              <input
-                                type="checkbox"
-                                value={dc.dcNo}
-                                checked={selectedDcNos.includes(dc.dcNo)}
-                                onChange={(e) =>
-                                  handleDcSelect(
-                                    e.target.value,
-                                    e.target.checked
-                                  )
-                                }
-                                className="accent-newPrimary"
-                              />
-                              <span>{dc.dcNo}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-
-                      {errors.dcNo && (
-                        <p className="text-red-500 text-xs mt-1">
-                          {errors.dcNo}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4"></div>
+                </div>
+                <div className="grid gap-4 border p-4 pb-6 rounded-lg bg-gray-100">
                   <div className="flex gap-4">
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
                         Customer
                       </label>
                       <input
+                        disabled
                         type="text"
                         value={vendor}
                         readOnly
@@ -893,6 +845,7 @@ const SalesInvoice = () => {
                         Phone No.
                       </label>
                       <input
+                        disabled
                         type="text"
                         value={phoneNo}
                         readOnly
@@ -904,22 +857,10 @@ const SalesInvoice = () => {
                   <div className="flex gap-4">
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Delivery Date
-                      </label>
-                      <input
-                        type="date"
-                        value={deliveryDate}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Delivery date"
-                      />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
                         Address
                       </label>
                       <input
+                        disabled
                         type="text"
                         value={address}
                         readOnly
@@ -927,14 +868,12 @@ const SalesInvoice = () => {
                         placeholder="Address"
                       />
                     </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="min-w-[50%]">
+                    <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium mb-2">
                         Balance
                       </label>
                       <input
+                        disabled
                         type="number"
                         value={balance}
                         readOnly
@@ -944,7 +883,6 @@ const SalesInvoice = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="mt-6">
                   <h3 className="text-lg font-medium text-gray-700 mb-4">
                     Items
@@ -1254,7 +1192,6 @@ const SalesInvoice = () => {
           }
         `}</style>
       </div>
-     
     </div>
   );
 };
