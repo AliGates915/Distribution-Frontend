@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import CommanHeader from "../../../../../src/components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
-import TableSkeleton from "../../Skeleton";
+import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
 import { ScaleLoader } from "react-spinners";
 

@@ -4,9 +4,9 @@ import gsap from "gsap";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-import CommanHeader from "../../../../../src/components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
-import TableSkeleton from "../../Skeleton";
+import TableSkeleton from "../../Components/Skeleton";
 
 const VehicleInformation = () => {
   const [vehicles, setVehicles] = useState([]);

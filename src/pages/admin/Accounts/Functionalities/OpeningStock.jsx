@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import CommanHeader from "../../Components/CommanHeader";
 import axios from "axios";
-import TableSkeleton from "../../Skeleton";
+import TableSkeleton from "../../Components/Skeleton";
 
 const OpeningStock = () => {
 

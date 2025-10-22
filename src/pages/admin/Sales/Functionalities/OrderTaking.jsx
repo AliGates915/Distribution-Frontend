@@ -5,8 +5,8 @@ import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import axios from "axios";
 import TableSkeleton from "../../Components/Skeleton";
-import FuncatiolityViewModalFile from "./FuncatiolityViewModalFile";
 import { ScaleLoader } from "react-spinners";
+import ViewModal from "../../../../helper/ViewModel";
 
 const OrderTaking = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -137,23 +137,23 @@ const OrderTaking = () => {
   }, [qty, rate]);
 
   const handleAddItem = () => {
-   if (!product) {
-    toast.error("Please select a Product");
-    return;
-  }
-  if (!qty || qty <= 0) {
-    toast.error("Please enter a valid Quantity");
-    return;
-  }
-  if (!unit) {
-    toast.error("Please select a Unit");
-    return;
-  }
-  if (!rate || rate <= 0) {
-    toast.error("Rate is missing or invalid");
-    return;
-  }
-  
+    if (!product) {
+      toast.error("Please select a Product");
+      return;
+    }
+    if (!qty || qty <= 0) {
+      toast.error("Please enter a valid Quantity");
+      return;
+    }
+    if (!unit) {
+      toast.error("Please select a Unit");
+      return;
+    }
+    if (!rate || rate <= 0) {
+      toast.error("Rate is missing or invalid");
+      return;
+    }
+
     const newItem = {
       id: items.length + 1,
       product,
@@ -178,7 +178,7 @@ const OrderTaking = () => {
       toast.error("Please fill all required fields");
       return;
     }
-setIsSaving(true)
+    setIsSaving(true);
     const payload = {
       orderId,
       salesmanId: salesman,
@@ -237,7 +237,7 @@ setIsSaving(true)
 
   const handleEdit = (order) => {
     console.log(order);
-    
+
     setEditingOrder(order);
 
     // match your backend fields
@@ -285,56 +285,55 @@ setIsSaving(true)
     setRate("");
     setTotal("");
     setItems([]);
-    setBalance("")
+    setBalance("");
     setIsSliderOpen(false);
   };
 
   const handleDelete = async (id) => {
-  const confirm = await Swal.fire({
-    title: "Are you sure?",
-    text: "This will permanently delete the order.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-  });
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete the order.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-  if (confirm.isConfirmed) {
-    try {
-      // 🔥 Delete from backend
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/order-taker/${id}`,
-        headers
-      );
+    if (confirm.isConfirmed) {
+      try {
+        // 🔥 Delete from backend
+        await axios.delete(
+          `${import.meta.env.VITE_API_BASE_URL}/order-taker/${id}`,
+          headers
+        );
 
-      // ✅ Remove from local state
-      setOrders((prev) => prev.filter((o) => o._id !== id));
+        // ✅ Remove from local state
+        setOrders((prev) => prev.filter((o) => o._id !== id));
 
-      // ✅ Success alert
-      Swal.fire({
-        icon: "success",
-        title: "Deleted!",
-        text: "Order deleted successfully.",
-        confirmButtonColor: "#3085d6",
-      });
-    } catch (error) {
-      console.error("Error deleting order:", error);
-      toast.error(error.response?.data?.message || "Failed to delete order");
+        // ✅ Success alert
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Order deleted successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      } catch (error) {
+        console.error("Error deleting order:", error);
+        toast.error(error.response?.data?.message || "Failed to delete order");
+      }
     }
-  }
-};
-
+  };
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = orders.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(orders.length / recordsPerPage);
   console.log({ orders });
-const handleRemoveItem = (index) => {
-  const updatedItems = items.filter((_, i) => i !== index);
-  setItems(updatedItems);
-};
+  const handleRemoveItem = (index) => {
+    const updatedItems = items.filter((_, i) => i !== index);
+    setItems(updatedItems);
+  };
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -587,9 +586,9 @@ const handleRemoveItem = (index) => {
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
                         <option value="">Select</option>
-                        <option value="Kg">Kg</option>
+                        <option value="Piece">Piece</option>
                         <option value="Pet">Pet</option>
-                        <option value="Mann">Mann</option>
+                        <option value="Box">Box</option>
                       </select>
                     </div>
                     <div>
@@ -677,7 +676,8 @@ const handleRemoveItem = (index) => {
         )}
       </div>
       {isView && selectedOrder && (
-        <FuncatiolityViewModalFile
+        <ViewModal
+          type="order"
           data={selectedOrder}
           onClose={() => setIsView(false)}
         />

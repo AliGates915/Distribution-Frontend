@@ -1,7 +1,7 @@
 import { SaveIcon, Search } from "lucide-react";
 import React, { useState, useCallback, useEffect } from "react";
-import TableSkeleton from "./Skeleton";
-import CommanHeader from "../../components/CommanHeader";
+import TableSkeleton from "../admin/Components/Skeleton";
+import CommanHeader from "../admin/Components/CommanHeader";
 import axios from "axios";
 
 const OpeningBalance = () => {

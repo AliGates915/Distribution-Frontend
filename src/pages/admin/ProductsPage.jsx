@@ -5,7 +5,7 @@ import axios from 'axios'
 import { FiEdit, FiTrash } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { PuffLoader } from "react-spinners";
-import CommanHeader from "../../components/CommanHeader";
+import CommanHeader from "../admin/Components/CommanHeader";
 
 
 const ProductsPage = () => {
