@@ -1,201 +1,234 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { HashLoader } from "react-spinners";
-import gsap from "gsap";
+import { Eye, Loader, SquarePen, Trash2 } from "lucide-react";
 import axios from "axios";
-import { toast } from "react-toastify";
-import Swal from "sweetalert2";
 import CommanHeader from "../../Components/CommanHeader";
-import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
+import Swal from "sweetalert2";
+import toast from "react-hot-toast";
+import ViewModel from "../../../../helper/ViewModel";
+import { ScaleLoader } from "react-spinners";
 
 const LoadReturn = () => {
-  const [customerList, setCustomerList] = useState([
-  ]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadReturns, setLoadReturns] = useState([]);
+  const [salesmenOptions, setSalesmenOptions] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [contactPerson, setContactPerson] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState("");
-  const [status, setStatus] = useState(true);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [ntn, setNtn] = useState("");
-  const [gst, setGst] = useState("");
-  const [creditLimit, setCreditLimit] = useState("");
-  const [creditTime, setCreditTime] = useState("");
-  const [isEdit, setIsEdit] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadNo, setLoadNo] = useState("");
+  const [loadDate, setLoadDate] = useState("");
+  const [salesman, setSalesman] = useState("");
+  const [itemsList, setItemsList] = useState([]);
+  const [totalQty, setTotalQty] = useState(0);
+  const [prevBalance, setPrevBalance] = useState();
+  const [amount, setAmount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [isEnable, setIsEnable] = useState(true);
+  const [isView, setIsView] = useState(false);
+  const [editingLoadReturn, setEditingLoadReturn] = useState(null);
+  const [selectedLoadReturn, setSelectedLoadReturn] = useState(null);
   const sliderRef = useRef(null);
-  const [loading, setLoading] = useState(true);
+  const [nextLoadNo, setNextLoadNo] = useState("001");
+
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const { token } = userInfo || {};
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
 
-  // GSAP Animation for Modal
-  useEffect(() => {
-    if (isSliderOpen) {
-      if (sliderRef.current) {
-        sliderRef.current.style.display = "block";
-      }
-      gsap.fromTo(
-        sliderRef.current,
-        { scale: 0.7, opacity: 0, y: -50 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }
-      );
-    } else {
-      gsap.to(sliderRef.current, {
-        scale: 0.7,
-        opacity: 0,
-        y: -50,
-        duration: 0.4,
-        ease: "power3.in",
-        onComplete: () => {
-          if (sliderRef.current) {
-            sliderRef.current.style.display = "none";
-          }
-        },
-      });
-    }
-  }, [isSliderOpen]);
-
-  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/customers`;
-
-  const fetchCustomersList = useCallback(async () => {
+  // Fetch salesmen options
+  const fetchSalesmenOptions = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}`);
-      setCustomerList(res.data);
-    
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/employees/orders`
+      );
+      setSalesmenOptions(res.data.length ? res.data : staticSalesmen);
     } catch (error) {
-      console.error("Failed to fetch Customers", error);
+      console.error("Failed to fetch salesmen:", error);
+      setTimeout(() => {
+        toast.error("Failed to fetch salesmen. Using static data.");
+      }, 2000);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   }, []);
 
   useEffect(() => {
-    fetchCustomersList();
-  }, [fetchCustomersList]);
+    fetchSalesmenOptions();
+  }, [fetchSalesmenOptions]);
 
-  // Handlers
-  const handleAddCustomer = () => {
+  // Fetch load returns
+  const fetchLoadReturns = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/load-sheets`
+      );
+
+      // ✅ Extract array properly
+      const loadReturnsData = res.data?.data || [];
+      setLoadReturns(loadReturnsData);
+    } catch (error) {
+      console.error("Failed to fetch load returns:", error);
+      setTimeout(() => {
+        toast.error("Failed to fetch load returns.");
+      }, 2000);
+      // fallback if API fails
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLoadReturns();
+  }, [fetchLoadReturns]);
+
+  // Next Load Return No
+  useEffect(() => {
+    if (loadReturns.length > 0) {
+      const maxNo = Math.max(
+        ...loadReturns.map((lr) => {
+          const match = lr.loadReturnNo?.match(/LR-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+      );
+      setNextLoadNo((maxNo + 1).toString().padStart(3, "0"));
+    } else {
+      setNextLoadNo("001");
+    }
+  }, [loadReturns]);
+
+  // Handlers for form and table actions
+  const handleAddClick = () => {
+    setEditingLoadReturn(null);
+    setLoadNo("");
+    setLoadDate("");
+    setSalesman("");
+    setItemsList([]);
+    setTotalQty(0);
+    setPrevBalance();
+    setAmount(0);
+    setTotalAmount(0);
+    setIsEnable(true);
+    setLoadDate(new Date().toISOString().split("T")[0]);
     setIsSliderOpen(true);
-    setIsEdit(false);
-    setEditId(null);
-    setCustomerName("");
-    setContactPerson("");
-    setEmail("");
-    setAddress("");
-    setPaymentTerms("");
-    setPhoneNumber("");
-    setMobileNumber("");
-    setDesignation("");
-    setNtn("");
-    setGst("");
-    setCreditLimit("");
-    setCreditTime("");
-    setStatus(true);
   };
 
-  const validateEmail = (email) => {
-    const re = /^\S+@\S+\.\S+$/;
-    return re.test(email);
+  const handleEditClick = (loadReturn) => {
+    console.log({ loadReturn });
+    setEditingLoadReturn(loadReturn);
+    setLoadNo(loadReturn.loadReturnNo);
+    setLoadDate(formatDate(loadReturn.loadDate));
+
+    // ✅ Correctly match the salesman by _id
+    const selectedSalesman = salesmenOptions.find(
+      (sm) => sm._id === loadReturn.salesmanId?._id
+    );
+    setSalesman(selectedSalesman?._id || "");
+
+    // ✅ Map products correctly (qty instead of issues)
+    setItemsList(
+      (loadReturn.invoices || []).map((inv, idx) => ({
+        sr: idx + 1,
+        invoiceNo: inv.invoiceNo,
+        invoiceDate: inv.invoiceDate,
+        orderId: inv.orderId,
+        customerName: inv.customerName,
+        qty: inv.qty || 0,
+        amount: inv.amount || 0,
+      }))
+    );
+
+    // ✅ Totals
+    setTotalQty(loadReturn.totalQty || 0);
+    const newPrevBalance = loadReturn.salesmanId.preBalance;
+    const newAmount =
+      loadReturn.invoices?.reduce((sum, inv) => sum + (inv.amount || 0), 0) || 0;
+
+    setPrevBalance(newPrevBalance);
+    setAmount(newAmount);
+    setTotalAmount(newPrevBalance + newAmount);
+    setIsEnable(loadReturn.isEnable ?? true);
+    setIsSliderOpen(true);
   };
 
-  // Save or Update Customer
-  const handleSave = async () => {
-    if (
-      paymentTerms === "CreditCard" &&
-      status &&
-      (!creditLimit || creditLimit > 5000000)
-    ) {
-      toast.error("❌ Credit limit is required and must not exceed 50 lac");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!loadDate || !salesman) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "⚠️ Please fill in Load Return Date and Salesman.",
+        confirmButtonColor: "#d33",
+      });
       return;
     }
-
-    if (!validateEmail(email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    const formData = {
-      customerName,
-      email,
-      contactPerson,
-      address,
-      mobileNumber,
-      phoneNumber,
-      designation,
-      ntn,
-      gst,
-      paymentTerms: paymentTerms === "CreditCard" ? "Credit" : paymentTerms,
-      creditTime: paymentTerms === "CreditCard" ? creditTime : undefined,
-      creditLimit: paymentTerms === "CreditCard" ? creditLimit : undefined,
-      status,
+    setIsSaving(true);
+    const newLoadReturn = {
+      loadReturnNo: editingLoadReturn ? loadReturnNo : `LR-${nextLoadNo}`,
+      loadDate,
+      salesmanId: salesman, // backend expects ID
+      invoices: itemsList.map((item) => ({
+        invoiceNo: item.invoiceNo,
+        invoiceDate: item.invoiceDate,
+        orderId: item.orderId,
+        customerName: item.customerName,
+        qty: item.qty || 0,
+        amount: item.amount || 0,
+      })),
+      totalQty,
+      totalAmount,
     };
 
     try {
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      let res;
-      if (isEdit && editId) {
-        res = await axios.put(`${API_URL}/${editId}`, formData, { headers });
-        toast.success("Customer updated successfully");
+      if (editingLoadReturn) {
+        // Update existing load return
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/load-returns/${editingLoadReturn._id}`,
+          newLoadReturn,
+          { headers }
+        );
+        Swal.fire("Updated!", "Load Return updated successfully.", "success");
       } else {
-        res = await axios.post(`${API_URL}`, formData, { headers });
-        setCustomerList([...customerList, res.data]);
-        toast.success("Customer added successfully");
+        // Create new load return
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/load-returns`,
+          newLoadReturn,
+          { headers }
+        );
+        Swal.fire("Added!", "Load Return added successfully.", "success");
       }
-      fetchCustomersList();
-      setCustomerName("");
-      setContactPerson("");
-      setEmail("");
-      setAddress("");
-      setPaymentTerms("");
-      setPhoneNumber("");
-      setDesignation("");
-      setNtn("");
-      setGst("");
-      setCreditLimit("");
-      setCreditTime("");
-      setStatus(true);
+
+      // Refresh list
+      fetchLoadReturns();
       setIsSliderOpen(false);
-      setIsEdit(false);
-      setEditId(null);
+      setItemsList([]);
     } catch (error) {
-      console.error(error);
-      toast.error(error?.response?.data?.message || "Something went wrong");
+      console.error("Error saving load return:", error);
+      Swal.fire("Error!", "Something went wrong while saving.", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Edit Customer
-  const handleEdit = (customer) => {
-    setIsEdit(true);
-    setEditId(customer._id);
-    setCustomerName(customer.customerName);
-    setContactPerson(customer.contactPerson);
-    setEmail(customer.email);
-    setAddress(customer.address);
-    setPhoneNumber(customer.phoneNumber || "");
-    setMobileNumber(customer.mobileNumber || "");
-    setDesignation(customer.designation || "");
-    setNtn(customer.ntn || "");
-    setGst(customer.gst || "");
-    setPaymentTerms(
-      customer.paymentTerms === "Credit"
-        ? "CreditCard"
-        : customer.paymentTerms || ""
-    );
-    setCreditLimit(customer.creditLimit || "");
-    setCreditTime(customer.creditTime || "");
-    setStatus(customer.status);
-    setIsSliderOpen(true);
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) return "Invalid Date";
+    const day = String(parsed.getDate()).padStart(2, "0");
+    const month = String(parsed.getMonth() + 1).padStart(2, "0");
+    const year = parsed.getFullYear();
+    return `${year}-${month}-${day}`;
   };
 
-  // Delete Customer
   const handleDelete = async (id) => {
     const swalWithTailwindButtons = Swal.mixin({
       customClass: {
@@ -221,453 +254,426 @@ const LoadReturn = () => {
       .then(async (result) => {
         if (result.isConfirmed) {
           try {
-            await axios.delete(`${API_URL}/${id}`, {
-              headers: {
-                Authorization: `Bearer ${userInfo?.token}`,
-              },
-            });
-            setCustomerList(customerList.filter((c) => c._id !== id));
+            const { token } = userInfo || {};
+            const headers = {
+              Authorization: `Bearer ${token}`,
+            };
+            await axios.delete(
+              `${import.meta.env.VITE_API_BASE_URL}/load-returns/${id}`,
+              { headers }
+            );
+            setLoadReturns(loadReturns.filter((lr) => lr._id !== id));
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Customer deleted successfully.",
+              "Load Return deleted successfully.",
               "success"
             );
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete customer.",
+              "Failed to delete load return.",
               "error"
             );
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Customer is safe 🙂",
+            "Load Return is safe 🙂",
             "error"
           );
         }
       });
   };
 
+const handleSalesmanChange = async (e) => {
+  const selectedId = e.target.value;
+  setSalesman(selectedId);
+
+  const selectedSalesman = salesmenOptions.find(
+    (sm) => sm._id === selectedId
+  );
+  setPrevBalance(selectedSalesman?.preBalance || 0);
+
+  if (!selectedId) return;
+
+  try {
+    setItemsLoading(true);
+
+    // ✅ Correct API endpoint (removed hardcoded ID)
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}sales-invoice/salesman/${selectedId}`
+    );
+
+    const invoices = res.data?.data || [];
+
+    // ✅ Flatten and map invoice + product details
+    const formattedItems = invoices.flatMap((inv, idx) =>
+      inv.products.map((prod, pIdx) => ({
+        sr: `${idx + 1}.${pIdx + 1}`,
+        invoiceNo: inv.invoiceNo,
+        invoiceDate: new Date(inv.invoiceDate).toLocaleDateString(),
+        orderId: inv.orderTakingId?.orderId || "N/A",
+        customerName: inv.orderTakingId?.customerId?.customerName || "N/A",
+        itemName: prod.itemName,
+        categoryName: prod.categoryName || "-",
+        unit: prod.itemUnit,
+        issue: prod.issue,
+        sold: prod.sold,
+        returned: prod.return,
+        rate: prod.rate,
+        totalAmount: prod.totalAmount,
+      }))
+    );
+
+    setItemsList(formattedItems);
+
+    // ✅ Calculate total sold quantity and amount
+    const totalQty = formattedItems.reduce(
+      (sum, item) => sum + (item.sold || 0),
+      0
+    );
+    const totalAmount = formattedItems.reduce(
+      (sum, item) => sum + (item.totalAmount || 0),
+      0
+    );
+
+    setTotalQty(totalQty);
+    setAmount(totalAmount);
+    setTotalAmount((selectedSalesman?.preBalance || 0) + totalAmount);
+  } catch (error) {
+    console.error("Error fetching invoices:", error);
+    toast.error("Failed to load invoices.");
+  } finally {
+    setItemsLoading(false);
+  }
+};
+
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-newPrimary">
-            Customers List
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage your customer details
-          </p>
+      <div className="px-6 mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-newPrimary">
+              Load Return Details
+            </h1>
+          </div>
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+            onClick={handleAddClick}
+          >
+            + Add Load Return
+          </button>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
-          onClick={handleAddCustomer}
-        >
-          + Add Customer
-        </button>
-      </div>
 
-      <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="min-w-[1100px]">
-            <div className="hidden lg:grid grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-              <div>ID</div>
-              <div>Name</div>
-              <div>Contact</div>
-              <div>Email</div>
-              <div>Address</div>
-              <div>Phone</div>
-              <div>Payment</div>
-              <div>Status</div>
-              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
-            </div>
-
-            <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-              {loading ? (
-                <TableSkeleton
-                  rows={customerList.length > 0 ? customerList.length : 5}
-                  cols={userInfo?.isAdmin ? 9 : 8}
-                  className="lg:grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto]"
-                />
-              ) : customerList.length === 0 ? (
-                <div className="text-center py-4 text-gray-500 bg-white">
-                  No customers found.
+        <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div className="inline-block min-w-[1200px] w-full align-middle">
+                <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                  <div>SR#</div>
+                  <div>Load Return No.</div>
+                  <div>Salesman</div>
+                  <div>Invoice No</div>
+                  <div>Load Return Date</div>
+                  <div className={`${loading ? "" : "text-right"}`}>
+                    Actions
+                  </div>
                 </div>
-              ) : (
-                customerList?.map((c) => (
-                  <>
-                    <div
-                      key={c._id}
-                      className="hidden lg:grid grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                    >
-                      <div className="font-medium text-gray-900">
-                        {c._id?.slice(0, 6)}
-                      </div>
-                      <div className="text-gray-700">{c.customerName}</div>
-                      <div className="text-gray-600">{c.contactPerson}</div>
-                      <div className="text-gray-600">{c.email}</div>
-                      <div className="text-gray-600 truncate">{c.address}</div>
-                      <div className="text-gray-600">{c.phoneNumber}</div>
-                      <div className="text-gray-600">
-                        {c.paymentTerms}
-                        {c.paymentTerms === "Credit" && c.creditLimit
-                          ? ` (${c.creditLimit})`
-                          : ""}
-                      </div>
-                      <div className="font-semibold">
-                        {c.status ? (
-                          <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
-                            Inactive
-                          </span>
-                        )}
-                      </div>
-                      {userInfo?.isAdmin && (
+
+                <div className="flex flex-col divide-y divide-gray-100">
+                  {loading ? (
+                    <TableSkeleton
+                      rows={loadReturns.length > 0 ? loadReturns.length : 5}
+                      cols={6}
+                      className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr]"
+                    />
+                  ) : loadReturns.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500 bg-white">
+                      No load returns found.
+                    </div>
+                  ) : (
+                    loadReturns.map((loadReturn, idx) => (
+                      <div
+                        key={loadReturn._id}
+                        className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      >
+                        <div className="text-gray-600">{idx + 1}</div>
+                        <div className="text-gray-600">{loadReturn.loadNo}</div>
+                        <div className="text-gray-600">
+                          {loadReturn.salesmanId?.employeeName || "N/A"}
+                        </div>
+                        <div className="text-gray-600">
+                          {loadReturn.loadNo || "N/A"}
+                        </div>
+                        <div className="text-gray-600">
+                          {new Date(loadReturn.loadDate).toLocaleDateString("en-GB")}
+                        </div>
                         <div className="flex justify-end gap-3">
                           <button
-                            onClick={() => handleEdit(c)}
-                            className="text-blue-600 hover:underline"
+                            onClick={() => handleEditClick(loadReturn)}
+                            className="py-1 text-sm rounded text-blue-600"
+                            title="Edit"
                           >
                             <SquarePen size={18} />
                           </button>
                           <button
-                            onClick={() => handleDelete(c._id)}
-                            className="text-red-600 hover:underline"
+                            onClick={() => handleDelete(loadReturn._id)}
+                            className="py-1 text-sm text-red-600"
+                            title="Delete"
                           >
                             <Trash2 size={18} />
                           </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div
-                      key={`mobile-${c._id}`}
-                      className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
-                    >
-                      <h3 className="font-semibold text-gray-800">
-                        {c.customerName}
-                      </h3>
-                      <p className="text-sm text-gray-600">{c.contactPerson}</p>
-                      <p className="text-sm text-gray-600">{c.email}</p>
-                      <p className="text-sm text-gray-600">{c.phoneNumber}</p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {c.address}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {c.paymentTerms}{" "}
-                        {c.paymentTerms === "Credit" && c.creditLimit
-                          ? `(Limit: ${c.creditLimit})`
-                          : ""}
-                      </p>
-                      <p
-                        className={`text-sm font-semibold ${
-                          c.status ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {c.status ? "Active" : "Inactive"}
-                      </p>
-
-                      {userInfo?.isAdmin && (
-                        <div className="mt-3 flex justify-end gap-3">
                           <button
-                            className="text-blue-500"
-                            onClick={() => handleEdit(c)}
+                            onClick={() => {
+                              setSelectedLoadReturn(loadReturn);
+                              setIsView(true);
+                            }}
+                            className="text-amber-600 hover:bg-amber-50 rounded"
                           >
-                            <SquarePen size={18} />
-                          </button>
-                          <button
-                            className="text-red-500"
-                            onClick={() => handleDelete(c._id)}
-                          >
-                            <Trash2 size={18} />
+                            <Eye size={18} />
                           </button>
                         </div>
-                      )}
-                    </div>
-                  </>
-                ))
-              )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {isSliderOpen && (
-        <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-          <div
-            ref={sliderRef}
-            className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-          >
-            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
-              <h2 className="text-xl font-bold text-newPrimary">
-                {isEdit ? "Update a Customer" : "Add a New Customer"}
-              </h2>
-              <button
-                className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
-                onClick={() => {
-                  setIsSliderOpen(false);
-                  setIsEdit(false);
-                  setEditId(null);
-                  setCustomerName("");
-                  setContactPerson("");
-                  setEmail("");
-                  setAddress("");
-                  setPaymentTerms("");
-                  setPhoneNumber("");
-                  setDesignation("");
-                  setNtn("");
-                  setGst("");
-                  setCreditLimit("");
-                  setCreditTime("");
-                  setStatus(true);
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4 p-4 md:p-6">
-              <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Customer Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    required
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={phoneNumber}
-                    required
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. +1-213-555-9876"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Mobile Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={mobileNumber}
-                    required
-                    onChange={(e) => setMobileNumber(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. 03005678901"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    required
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Contact Person <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={contactPerson}
-                    required
-                    onChange={(e) => setContactPerson(e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Designation <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={designation}
-                    required
-                    onChange={(e) => setDesignation(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. Purchasing Manager"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={address}
-                  required
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full p-2 border rounded"
-                />
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    NTN <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={ntn}
-                    required
-                    onChange={(e) => setNtn(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. NTN456789123"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    GST <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={gst}
-                    required
-                    onChange={(e) => setGst(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. 27DEFGH5678J2K4"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Payment Terms <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      value="CreditCard"
-                      checked={paymentTerms === "CreditCard"}
-                      onChange={(e) => setPaymentTerms(e.target.value)}
-                      className="form-radio"
-                    />
-                    Credit
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      value="Cash"
-                      checked={paymentTerms === "Cash"}
-                      onChange={(e) => setPaymentTerms(e.target.value)}
-                      className="form-radio"
-                    />
-                    Cash
-                  </label>
-                </div>
-              </div>
-              {paymentTerms === "CreditCard" && (
-                <div className="flex gap-4">
-                  <div className="w-1/2">
-                    <label className="block text-gray-700 font-medium">
-                      Credit Time Limit{" "}
-                      <span className="text-newPrimary">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={creditTime}
-                      onChange={(e) => setCreditTime(e.target.value)}
-                      className="w-full p-2 border rounded"
-                      placeholder="Enter time limit (days)"
-                    />
-                  </div>
-                  <div className="w-1/2">
-                    <label className="block text-gray-700 font-medium">
-                      Credit Cash Limit{" "}
-                      <span className="text-newPrimary">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={creditLimit}
-                      onChange={(e) => setCreditLimit(e.target.value)}
-                      className="w-full p-2 border rounded"
-                      placeholder="Enter cash limit"
-                    />
-                  </div>
+        {isSliderOpen && (
+          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
+            <div
+              ref={sliderRef}
+              className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+            >
+              {isSaving && (
+                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                  <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
-              <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Status</label>
+              <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
+                <h2 className="text-xl font-bold text-newPrimary">
+                  {editingLoadReturn ? "Update Load Return" : "Add a New Load Return"}
+                </h2>
                 <button
-                  type="button"
-                  onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
+                  onClick={() => {
+                    setIsSliderOpen(false);
+                    setLoadNo("");
+                    setLoadDate("");
+                    setSalesman("");
+                    setItemsList([]);
+                    setTotalQty(0);
+                    setPrevBalance(0);
+                    setAmount(0);
+                    setTotalAmount(0);
+                    setIsEnable(true);
+                    setEditingLoadReturn(null);
+                  }}
                 >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
-                  />
+                  ×
                 </button>
-                <span>{status ? "Active" : "Inactive"}</span>
               </div>
-              <button
-                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
-                onClick={handleSave}
-              >
-                Save Customer
-              </button>
+
+              <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Load Return No. <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editingLoadReturn ? loadNo : `LR-${nextLoadNo}`}
+                      onChange={(e) => setLoadNo(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      placeholder="Enter Load Return No."
+                      readOnly={!!editingLoadReturn}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Load Return Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={loadDate}
+                      onChange={(e) => setloadDate(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Salesman <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={salesman}
+                      onChange={handleSalesmanChange}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      required
+                    >
+                      <option value="">Select Salesman</option>
+                      {salesmenOptions.map((sm) => (
+                        <option key={sm._id} value={sm._id}>
+                          {sm.employeeName || "N/A"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {itemsLoading ? (
+                  <div className="flex justify-center items-center py-6 text-gray-500">
+                    <span className="animate-spin">
+                      <Loader size={22} />
+                    </span>
+                    <span className="ml-2 text-newPrimary">
+                      Loading invoices...
+                    </span>
+                  </div>
+                ) : (
+                  itemsList.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="overflow-x-auto">
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <table className="w-full border-collapse">
+                            <thead className="bg-gray-100 text-gray-600 text-sm">
+                              <tr>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Sr #
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Invoice No.
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Invoice Date
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Order ID
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Customer Name
+                                </th>
+                                <th className="px-4 py-2 border border-gray-300">
+                                  Qty
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-gray-700 text-sm">
+                              {itemsList.map((item, idx) => (
+                                <tr
+                                  key={idx}
+                                  className="hover:bg-gray-50 text-center"
+                                >
+                                  <td className="px-4 py-2 border border-gray-300 text-center">
+                                    {item.sr}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.invoiceNo}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.invoiceDate}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.orderId}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.customerName}
+                                  </td>
+                                  <td className="px-4 py-2 border border-gray-300">
+                                    {item.qty}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                <div className="grid grid-cols-2 gap-80 items-start">
+                  {/* Left side — Prev Balance box */}
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Prev Balance
+                    </label>
+                    <input
+                      type="number"
+                      value={prevBalance}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Prev Balance"
+                    />
+                  </div>
+
+                  {/* Right side — Text labels only */}
+                  <div className="flex flex-col text-gray-800 font-medium text-lg w-44 ml-auto">
+                    <div className="flex justify-between">
+                      <p>Total Qty:</p>
+                      <span className="font-semibold">{totalQty}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Amount:</p>
+                      <span className="font-semibold">{amount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Total Amount:</p>
+                      <span className="font-semibold">{totalAmount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
+                >
+                  {loading
+                    ? "Saving..."
+                    : editingLoadReturn
+                    ? "Update Load Return"
+                    : "Save Load Return"}
+                </button>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <style jsx>{`
-        .table-container {
-          max-width: 100%;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #edf2f7;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #a0aec0;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #718096;
-        }
-        @media (max-width: 1024px) {
-          .grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] {
-            grid-template-columns: 1fr 1.5fr 1fr 1.5fr 2fr 1fr 1fr 0.8fr 0.5fr;
+        {isView && selectedLoadReturn && (
+          <ViewModel
+            data={selectedLoadReturn}
+            type="loadreturn"
+            onClose={() => setIsView(false)}
+          />
+        )}
+
+        <style jsx>{`
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
           }
-        }
-        @media (max-width: 640px) {
-          .grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] {
-            grid-template-columns: 1fr 1.5fr 1fr 1.5fr 2fr 1fr 1fr 0.8fr 0.5fr;
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #edf2f7;
+            border-radius: 4px;
           }
-        }
-      `}</style>
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #a0aec0;
+            border-radius: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+          }
+        `}</style>
+      </div>
     </div>
   );
 };
