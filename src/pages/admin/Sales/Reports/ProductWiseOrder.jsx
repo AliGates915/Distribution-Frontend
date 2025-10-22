@@ -37,16 +37,17 @@ const AmountReceivales = () => {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [productwise, setProductwise] = useState([]);
 
-  // fetch Customer List
-  const fetchCustomerList = useCallback(async () => {
+  // fetch Product List
+  const fetchProductList = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/customers");
-      setCustomerList(response);
-      console.log("Customers:", response);
+      const response = await api.get("/item-details/reports");
+      setProductwise(response);
+      console.log("Data", response);
     } catch (error) {
-      console.error("Failed to fetch customer list", error);
+      console.error("Failed to fetch salesman list", error);
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -55,8 +56,8 @@ const AmountReceivales = () => {
   }, []);
 
   useEffect(() => {
-    fetchCustomerList();
-  }, [fetchCustomerList]);
+    fetchProductList();
+  }, [fetchProductList]);
 
   // fetch Customer ID
 
@@ -427,9 +428,9 @@ const AmountReceivales = () => {
                     required
                   >
                     <option value="">Select Product</option>
-                    {customerList.map((cust) => (
+                    {productwise.map((cust) => (
                       <option key={cust._id} value={cust._id}>
-                        {cust.customerName}
+                        {cust.itemName}
                       </option>
                     ))}
                   </select>
