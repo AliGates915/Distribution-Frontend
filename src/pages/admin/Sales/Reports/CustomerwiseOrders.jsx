@@ -5,7 +5,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const SalesmanwiseOrders = () => {
+const CustomerwiseOrders = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
   const [ledgerId, setLedgerId] = useState("");
@@ -28,39 +28,37 @@ const SalesmanwiseOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingLedgerEntry, setEditingLedgerEntry] = useState(null);
   const [errors, setErrors] = useState({});
-  const [salesman, setSalesman] = useState([]);
-  const [salesmanList, setSalesmanList] = useState([]);
+  const [customerName, setCustomerName] = useState([]);
+  const [productList, setProductList] = useState([]);
   const [nextCustomerId, setNextCustomerId] = useState("003");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
-  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState(""); // for selected ID
 
-  const [selectedSalesman, setSelectedSalesman] = useState(""); // for selected ID
-
-  // fetch Salesman
-  const fetchSalesman = useCallback(async () => {
+  // fetch Customer Name
+  const fetchCustomerName = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/employees/reports");
-      setSalesman(response); // ✅ use .data
-      console.log("Salesman List:", response);
+      const response = await api.get("/customers/reports");
+      setCustomerName(response); // ✅ use .data
+      console.log("Customer List:", response);
     } catch (error) {
-      console.error("Failed to fetch salesman list", error);
+      console.error("Failed to fetch customer list", error);
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
   }, []);
 
   useEffect(() => {
-    fetchSalesman();
-  }, [fetchSalesman]);
+    fetchCustomerName();
+  }, [fetchCustomerName]);
 
-  // fetch Salesman List by ID
-  const fetchSalesmanList = useCallback(async (id) => {
+  // fetch Customer List by ID
+  const fetchCustomerList = useCallback(async (id) => {
     if (!id) {
       console.log("No customer selected yet");
       return; // don’t run when nothing selected
@@ -68,8 +66,8 @@ const SalesmanwiseOrders = () => {
 
     try {
       setLoading(true);
-      const response = await api.get(`/sales-report/salesmanwise/${id}`);
-      setSalesmanList(response.data);
+      const response = await api.get(`/sales-report/customerwise/${id}`);
+      setProductList(response.data);
       console.log("Salesman Data:", response.data);
     } catch (error) {
       console.error("Failed to fetch salesman list", error);
@@ -80,10 +78,10 @@ const SalesmanwiseOrders = () => {
 
   // useEffect example
   useEffect(() => {
-    if (selectedSalesman) {
-      fetchSalesmanList(selectedSalesman);
+    if (selectedCustomer) {
+      fetchCustomerList(selectedCustomer);
     }
-  }, [selectedSalesman, fetchSalesmanList]);
+  }, [selectedCustomer, fetchCustomerList]);
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -97,7 +95,7 @@ const SalesmanwiseOrders = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
-  console.log("Tttsstts ", salesmanList);
+  console.log("Tttsstts ", productList);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -133,18 +131,18 @@ const SalesmanwiseOrders = () => {
                 {/* Customer Selection */}
                 <div className="w-[400px]">
                   <label className="block text-gray-700 font-medium mb-2">
-                    Customer <span className="text-red-500">*</span>
+                    Customer Name <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={selectedSalesman}
-                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                    value={selectedCustomer}
+                    onChange={(e) => setSelectedCustomer(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     required
                   >
-                    <option value="">Select Salesman</option>
-                    {salesman?.map((cust) => (
+                    <option value="">Select Customer</option>
+                    {customerName?.map((cust) => (
                       <option key={cust._id} value={cust._id}>
-                        {cust.employeeName}
+                        {cust.customerName}
                       </option>
                     ))}
                   </select>
@@ -160,7 +158,7 @@ const SalesmanwiseOrders = () => {
         <div className="p-0">
           {/* Selection Form */}
           <div className="rounded-xl shadow border border-gray-200 overflow-hidden mt-6">
-            {selectedSalesman ? (
+            {selectedCustomer ? (
               <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
                 <div className="min-w-full custom-scrollbar">
                   {/* Table Header */}
@@ -183,8 +181,8 @@ const SalesmanwiseOrders = () => {
                       </div>
                     ) : (
                       <>
-                        {salesmanList.length > 0 ? (
-                          salesmanList.map((entry, index) => (
+                        {productList.length > 0 ? (
+                          productList.map((entry, index) => (
                             <div
                               key={entry._id}
                               className="grid grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
@@ -216,7 +214,7 @@ const SalesmanwiseOrders = () => {
                           ))
                         ) : (
                           <div className="text-center py-4 text-gray-500 bg-white">
-                            No records found for this salesman.
+                            No records found for this customer.
                           </div>
                         )}
                       </>
@@ -226,7 +224,7 @@ const SalesmanwiseOrders = () => {
               </div>
             ) : (
               <div className="text-center py-6 text-gray-500 bg-white rounded-lg mt-6">
-                Please select a salesman to view salesman entries.
+                Please select a customer to view customer entries.
               </div>
             )}
 
@@ -328,4 +326,4 @@ const SalesmanwiseOrders = () => {
   );
 };
 
-export default SalesmanwiseOrders;
+export default CustomerwiseOrders;
