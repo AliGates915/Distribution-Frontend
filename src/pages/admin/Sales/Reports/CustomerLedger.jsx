@@ -4,7 +4,9 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
-
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { LedgerTemplate } from "../../../../helper/LedgerReportTemplate";
 const AmountReceivales = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
@@ -12,7 +14,7 @@ const AmountReceivales = () => {
   const [date, setDate] = useState("");
   const [salesInvoice, setSalesInvoice] = useState("");
   const [status, setStatus] = useState("");
-
+  const ledgerRef = useRef(null);
   // Already present in your code:
   const [customerName, setCustomerName] = useState("");
   const [amount, setAmount] = useState("");
@@ -202,172 +204,36 @@ const AmountReceivales = () => {
     setErrors({});
     setIsSliderOpen(false);
   };
-
-  // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
-    const trimmedCustomerId = customerId.trim();
-    const trimmedCustomerName = customerName.trim();
-    const trimmedTransactionDate = transactionDate.trim();
-    const trimmedTransactionType = transactionType.trim();
-    const trimmedAmount = amount.trim();
-    const parsedAmount = parseFloat(amount);
-
-    if (!trimmedCustomerId) newErrors.customerId = "Customer ID is required";
-    if (!trimmedCustomerName)
-      newErrors.customerName = "Customer Name is required";
-    if (!trimmedTransactionDate)
-      newErrors.transactionDate = "Transaction Date is required";
-    if (!trimmedTransactionType)
-      newErrors.transactionType = "Transaction Type is required";
-    if (!trimmedAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      newErrors.amount = "Amount must be a positive number";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handlers for form and table actions
-  const handleAddLedgerEntry = () => {
-    resetForm();
-    setIsSliderOpen(true);
-  };
-
-  const handleEditClick = (ledgerEntry) => {
-    setEditingLedgerEntry(ledgerEntry);
-    setCustomerId(ledgerEntry.customerId || "");
-    setCustomerName(ledgerEntry.customerName || "");
-    setTransactionDate(ledgerEntry.transactionDate || "");
-    setTransactionType(ledgerEntry.transactionType || "");
-    setAmount(ledgerEntry.amount || "");
-    setNotes(ledgerEntry.notes || "");
-    setErrors({});
-    setIsSliderOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
+  // Download Report
+  const handleDownloadReport = async () => {
+    if (!ledgerEntries || ledgerEntries.length === 0) {
+      Swal.fire("No Data", "No ledger data available to download.", "info");
       return;
     }
 
-    // Calculate The amount value and balance
-
-    const totalPaid = filteredLedger.reduce(
-      (acc, curr) => acc + (parseFloat(curr.paid) || 0),
-      0
-    );
-    const totalReceived = filteredLedger.reduce(
-      (acc, curr) => acc + (parseFloat(curr.received) || 0),
-      0
-    );
-    const totalBalance = totalReceived - totalPaid;
-
-    // Calculate balance based on transaction type
-    const amountValue = parseFloat(amount);
-    const balance = transactionType === "Credit" ? amountValue : -amountValue;
-
-    const newLedgerEntry = {
-      customerId: editingLedgerEntry ? customerId : `CUS-${nextCustomerId}`,
-      customerName: customerName.trim(),
-      transactionDate: transactionDate.trim(),
-      transactionType: transactionType.trim(),
-      amount: amountValue,
-      balance: parseFloat(balance.toFixed(2)),
-      notes: notes.trim(),
-    };
-
     try {
-      if (editingLedgerEntry) {
-        setLedgerEntries((prev) =>
-          prev.map((entry) =>
-            entry._id === editingLedgerEntry._id
-              ? { ...entry, ...newLedgerEntry, _id: entry._id }
-              : entry
-          )
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Ledger entry updated successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        setLedgerEntries((prev) => [
-          ...prev,
-          { ...newLedgerEntry, _id: `temp-${Date.now()}` },
-        ]);
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Ledger entry added successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      }
-      fetchLedgerEntries();
-      resetForm();
+      const canvas = await html2canvas(ledgerRef.current, {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(
+        `${ledgerEntries[0].CustomerName || "Ledger_Report"}_${
+          new Date().toISOString().split("T")[0]
+        }.pdf`
+      );
+     
     } catch (error) {
-      console.error("Error saving ledger entry:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to save ledger entry.",
-        confirmButtonColor: "#d33",
-      });
+      console.error("Error generating ledger PDF:", error);
+      Swal.fire("Error", error.message);
     }
-  };
-
-  const handleDelete = (id) => {
-    const swalWithTailwindButtons = Swal.mixin({
-      customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
-      },
-      buttonsStyling: false,
-    });
-
-    swalWithTailwindButtons
-      .fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      })
-      .then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            setLedgerEntries((prev) =>
-              prev.filter((entry) => entry._id !== id)
-            );
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Ledger entry deleted successfully.",
-              "success"
-            );
-          } catch (error) {
-            console.error("Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              "Failed to delete ledger entry.",
-              "error"
-            );
-          }
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Ledger entry is safe 🙂",
-            "error"
-          );
-        }
-      });
   };
 
   // Pagination logic
@@ -394,104 +260,73 @@ const AmountReceivales = () => {
               Customer Ledger Details
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            {/* <input
-              type="text"
-              placeholder="Enter Customer ID eg: CUS-001"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 w-[250px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            /> */}
-            {/* <button
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-              onClick={handleAddLedgerEntry}
-            >
-              + Add Ledger Entry
-            </button> */}
-          </div>
         </div>
         <div className="flex gap-6">
           {/* Left Filter Section */}
           <div className="w-full">
             <div className="space-y-5">
-              <div className="flex gap-5">
-                {/* Customer Selection */}
-                <div className="w-[400px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Customer Name <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedCustomer}
-                    onChange={(e) => setSelectedCustomer(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    required
+              <div className="flex gap-5 justify-between item-center">
+                <div className="flex items-center gap-5">
+                  {/* Customer Selection */}
+                  <div className="w-[400px]">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Customer Name <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedCustomer}
+                      onChange={(e) => setSelectedCustomer(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      required
+                    >
+                      <option value="">Select Customer</option>
+                      {customerList.map((cust) => (
+                        <option key={cust._id} value={cust._id}>
+                          {cust.customerName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Date From */}
+                  <div className="w-[200px]">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Date From
+                    </label>
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    />
+                  </div>
+
+                  {/* Date To */}
+                  <div className="w-[200px]">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Date To
+                    </label>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    />
+                  </div>
+                </div>
+                {/* downlode button */}
+                {
+                  ledgerEntries && ledgerEntries.length > 0 && (
+                      <div className="">
+                  <button
+                    className="mt-6 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+                    onClick={handleDownloadReport}
                   >
-                    <option value="">Select Customer</option>
-                    {customerList.map((cust) => (
-                      <option key={cust._id} value={cust._id}>
-                        {cust.customerName}
-                      </option>
-                    ))}
-                  </select>
+                    Download Report
+                  </button>
                 </div>
-
-                {/* Date Range */}
-                <div className="w-[250px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Date Range
-                  </label>
-                  <select
-                    value={dateRange}
-                    onChange={(e) => setDateRange(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                  >
-                    <option value="">Select Range</option>
-                    <option value="all">All Dates</option>
-                    <option value="custom">Custom</option>
-                    <option value="today">Today</option>
-                    <option value="thisWeek">This Week</option>
-                    <option value="thisMonth">This Month</option>
-                    <option value="lastMonth">Last Month</option>
-                    <option value="currentFY">Current Financial Year</option>
-                    <option value="lastFY">Last Financial Year</option>
-                    <option value="since30">Since 30 Days Ago</option>
-                    <option value="since60">Since 60 Days Ago</option>
-                    <option value="since90">Since 90 Days Ago</option>
-                    <option value="since365">Since 365 Days Ago</option>
-                    <option value="nextMonth">Next Month</option>
-                    <option value="nextFY">Next Financial Year</option>
-                    <option value="q1">Quarter 1</option>
-                    <option value="q2">Quarter 2</option>
-                    <option value="q3">Quarter 3</option>
-                    <option value="q4">Quarter 4</option>
-                  </select>
-                </div>
-
-                {/* Date From */}
-                <div className="w-[200px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Date From
-                  </label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                  />
-                </div>
-
-                {/* Date To */}
-                <div className="w-[200px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Date To
-                  </label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                  />
-                </div>
+                  )
+                }
+              
               </div>
             </div>
           </div>
@@ -638,45 +473,7 @@ const AmountReceivales = () => {
           </div>
         </div>
 
-        {isSliderOpen && (
-          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div
-              ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-            >
-              <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
-                <h2 className="text-xl font-bold text-newPrimary">
-                  {editingLedgerEntry
-                    ? "Update Ledger Entry"
-                    : "Add a New Ledger Entry"}
-                </h2>
-                <button
-                  className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={resetForm}
-                >
-                  ×
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                {/* Top Section */}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
-                >
-                  {loading
-                    ? "Saving..."
-                    : editingLedgerEntry
-                    ? "Update Ledger Entry"
-                    : "Save Ledger Entry"}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+     
 
         <style jsx>{`
           .custom-scrollbar::-webkit-scrollbar {
@@ -695,6 +492,11 @@ const AmountReceivales = () => {
           }
         `}</style>
       </div>
+      {/* Hidden Ledger Template for PDF export */}
+<div style={{ position: "absolute", left: "-9999px", top: "0" }}>
+  <LedgerTemplate ref={ledgerRef} ledgerEntries={ledgerEntries} />
+</div>
+
     </div>
   );
 };
