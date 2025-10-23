@@ -64,6 +64,7 @@ const ProductwiseOrders = () => {
   }, [selectedProduct, fetchProductList]);
 
   const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
