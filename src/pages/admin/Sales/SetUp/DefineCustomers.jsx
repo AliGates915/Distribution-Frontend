@@ -34,6 +34,23 @@ const DefineCustomers = () => {
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = customerList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(customerList.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setLoading(true);
+    setCurrentPage(pageNumber);
+    setTimeout(() => setLoading(false), 300);
+  };
+
   // GSAP Animation for Modal
   useEffect(() => {
     if (isSliderOpen) {
@@ -311,13 +328,15 @@ const DefineCustomers = () => {
                   No customers found.
                 </div>
               ) : (
-                customerList?.map((c, index) => (
+                currentRecords?.map((c, index) => (
                   <>
                     <div
                       key={c._id}
                       className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-900">{index + 1}</div>
+                      <div className="text-gray-900">
+                        {indexOfFirstRecord + index + 1}
+                      </div>
                       <div className="text-gray-700">{c.customerName}</div>
                       <div className="text-gray-600 truncate">{c.address}</div>
                       <div className="text-gray-600">{c.phoneNumber}</div>
@@ -411,6 +430,44 @@ const DefineCustomers = () => {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, customerList.length)} of{" "}
+                  {customerList.length} records
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -41,13 +41,14 @@ const ViewModal = ({ type, data, onClose }) => {
         </button>
 
         <div ref={printRef}>
+          {/* 🔹 Dynamic Heading */}
           <h2 className="text-2xl font-bold mb-6 text-center border-b pb-2">
             {type === "loadsheet"
               ? "Loadsheet Details"
               : type === "order"
               ? "Order Details"
-              : type === "invoice"
-              ? "Invoice Details"
+              : type === "DateWise-Sales"
+              ? "DateWise Sales"
               : type === "productwise"
               ? "Product-Wise Invoice Details"
               : type === "salesmanwise"
@@ -57,21 +58,8 @@ const ViewModal = ({ type, data, onClose }) => {
               : "Details"}
           </h2>
 
+          {/* 🔹 Info Sections */}
           <div className="grid grid-cols-2 gap-4 text-base mb-6">
-            {/* ✅ Salesmanwise Report Header */}
-            {type === "salesmanwise" && (
-              <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
-              </>
-            )}
-
             {/* ✅ Productwise Report Header */}
             {type === "productwise" && (
               <>
@@ -86,21 +74,7 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Invoice Header */}
-            {type === "invoice" && (
-              <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
-              </>
-            )}
-
-            {/* ✅ Customerwise Header */}
+            {/* ✅ Customer-wise existing section */}
             {type === "customerwise" && (
               <>
                 <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
@@ -115,7 +89,21 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Order Header */}
+            {/* ✅ Salesman-wise Report Header */}
+            {type === "salesmanwise" && (
+              <>
+                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
+                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
+                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId || "N/A"}</div>
+              
+                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
+                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
+                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
+                <div><strong>Status:</strong> {data.status}</div>
+              </>
+            )}
+
+            {/* ✅ Order Details Section */}
             {type === "order" && (
               <>
                 <div><strong>Order ID:</strong> {data.orderId}</div>
@@ -128,7 +116,7 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Loadsheet Header */}
+            {/* ✅ Loadsheet Details Section */}
             {type === "loadsheet" && (
               <>
                 <div><strong>Load No:</strong> {data.loadNo}</div>
@@ -141,6 +129,20 @@ const ViewModal = ({ type, data, onClose }) => {
                 <div><strong>Created At:</strong> {new Date(data.createdAt).toLocaleString()}</div>
               </>
             )}
+
+            {/* ✅ Invoice Details Section */}
+            {type === "DateWise-Sales" && (
+              <>
+                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
+                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
+                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
+                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
+                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
+                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
+                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
+                <div><strong>Status:</strong> {data.status}</div>
+              </>
+            )}
           </div>
 
           {/* 🔹 Items Table */}
@@ -148,7 +150,8 @@ const ViewModal = ({ type, data, onClose }) => {
             <thead className="bg-gray-100">
               <tr>
                 <th>Sr #</th>
-                {(type === "invoice" ||
+
+                {(type === "DateWise-Sales" ||
                   type === "productwise" ||
                   type === "salesmanwise" ||
                   type === "customerwise") && (
@@ -162,6 +165,27 @@ const ViewModal = ({ type, data, onClose }) => {
                     <th>Total</th>
                   </>
                 )}
+
+                {type === "loadsheet" && (
+                  <>
+                    <th>Category</th>
+                    <th>Item</th>
+                    <th>Pack</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                  </>
+                )}
+
+                {type === "order" && (
+                  <>
+                    <th>Category</th>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                  </>
+                )}
               </tr>
             </thead>
 
@@ -169,19 +193,49 @@ const ViewModal = ({ type, data, onClose }) => {
               {(data.products || []).map((item, idx) => (
                 <tr key={idx}>
                   <td className="text-center">{idx + 1}</td>
-                  {(type === "invoice" ||
+
+                  {(type === "DateWise-Sales" ||
                     type === "productwise" ||
                     type === "salesmanwise" ||
                     type === "customerwise") && (
                     <>
                       <td className="text-center">{item.categoryName || "-"}</td>
-                      <td className="text-center">{item.itemName || item.item}</td>
+                      <td className="text-center">{item.itemName || "-"}</td>
                       <td className="text-center">{item.issue || 0}</td>
                       <td className="text-center">{item.sold || 0}</td>
                       <td className="text-center">{item.return || 0}</td>
                       <td className="text-center">{item.rate || "-"}</td>
                       <td className="text-center">
-                        {item.totalAmount ? item.totalAmount.toLocaleString() : "-"}
+                        {item.totalAmount
+                          ? item.totalAmount.toLocaleString()
+                          : "-"}
+                      </td>
+                    </>
+                  )}
+
+                  {type === "loadsheet" && (
+                    <>
+                      <td className="text-center">{item.category || "-"}</td>
+                      <td className="text-center">{item.item}</td>
+                      <td className="text-center">{item.pack}</td>
+                      <td className="text-center">{item.qty}</td>
+                      <td className="text-center">
+                        {item.amount ? item.amount.toLocaleString() : "-"}
+                      </td>
+                    </>
+                  )}
+
+                  {type === "order" && (
+                    <>
+                      <td className="text-center">{item.categoryName || "-"}</td>
+                      <td className="text-center">{item.itemName}</td>
+                      <td className="text-center">{item.qty}</td>
+                      <td className="text-center">{item.itemUnit}</td>
+                      <td className="text-center">{item.rate}</td>
+                      <td className="text-center">
+                        {item.totalAmount
+                          ? item.totalAmount.toLocaleString()
+                          : "-"}
                       </td>
                     </>
                   )}
@@ -191,11 +245,18 @@ const ViewModal = ({ type, data, onClose }) => {
           </table>
         </div>
 
+        {/* 🔹 Footer Buttons */}
         <div className="flex justify-end gap-3 mt-6">
-          <button onClick={handlePDF} className="px-4 py-2 bg-gray-600 text-white rounded-md">
+          <button
+            onClick={handlePDF}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md"
+          >
             PDF
           </button>
-          <button onClick={handlePrint} className="px-4 py-2 bg-blue-600 text-white rounded-md">
+          <button
+            onClick={handlePrint}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
             Print
           </button>
         </div>

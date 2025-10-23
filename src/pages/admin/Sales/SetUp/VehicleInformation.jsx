@@ -1,28 +1,39 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { HashLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
-import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 const VehicleInformation = () => {
   const [vehicles, setVehicles] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [vehicleName, setVehicleName] = useState("");
   const [model, setModel] = useState("");
-  const [category, setCategory] = useState("Car");
+
   const [registrationNo, setRegistrationNo] = useState("");
-  const [isEnable, setIsEnable] = useState(true);
+
   const [editingVehicle, setEditingVehicle] = useState(null);
   const sliderRef = useRef(null);
   const [vehicleNo, setVehicleNo] = useState("");
   const [make, setMake] = useState("");
   const [vehicleType, setVehicleType] = useState("company"); // default radio button
   const [startingDate, setStartingDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = vehicles.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(vehicles.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setLoading(true);
+    setCurrentPage(pageNumber);
+    setTimeout(() => setLoading(false), 300);
+  };
 
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vehicles`;
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -32,7 +43,7 @@ const VehicleInformation = () => {
     try {
       setLoading(true);
       const res = await axios.get(API_URL);
-      setVehicles(res.data);
+      setVehicles(res.data.data);
     } catch (error) {
       console.error("Failed to fetch vehicles", error);
     } finally {
@@ -43,6 +54,21 @@ const VehicleInformation = () => {
   useEffect(() => {
     fetchVehiclesList();
   }, [fetchVehiclesList]);
+
+  // Auto-generate Vehicle No
+  useEffect(() => {
+    if (!editingVehicle && vehicles.length > 0) {
+      const maxNo = Math.max(
+        ...vehicles.map((v) => {
+          const match = v.vehicleNo?.match(/VEH-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+      );
+      setVehicleNo(`VEH-${(maxNo + 1).toString().padStart(3, "0")}`);
+    } else if (!editingVehicle && vehicles.length === 0) {
+      setVehicleNo("VEH-001");
+    }
+  }, [vehicles, editingVehicle, isSliderOpen]);
 
   // GSAP Animation
   useEffect(() => {
@@ -70,56 +96,48 @@ const VehicleInformation = () => {
   // Update handleAddClick
   const handleAddClick = () => {
     setEditingVehicle(null);
-    setVehicleNo("");
-    setVehicleName("");
     setMake("");
     setModel("");
-    setCategory("Car");
     setRegistrationNo("");
-    setStartingDate("");
+    setStartingDate(new Date().toISOString().split("T")[0]); // ✅ auto set today
     setVehicleType("company");
-    setIsEnable(true);
     setIsSliderOpen(true);
   };
 
   // Update handleEditClick
   const handleEditClick = (vehicle) => {
+    console.log({ vehicle });
+
     setEditingVehicle(vehicle);
+
     setVehicleNo(vehicle.vehicleNo || "");
-    setVehicleName(vehicle.vehicleName || "");
     setMake(vehicle.make || "");
     setModel(vehicle.model || "");
-    setCategory(vehicle.category || "Car");
-    setRegistrationNo(vehicle.registrationNo || "");
-    setStartingDate(vehicle.startingDate || "");
-    setVehicleType(vehicle.vehicleType || "company");
-    setIsEnable(vehicle.isEnable);
+    setRegistrationNo(vehicle.registrationNumber || ""); // ✅ correct backend field
+    setStartingDate(vehicle.startingDate?.split("T")[0] || "");
+
+    // Convert backend string ("Company Own" / "Rental") to your radio value
+    setVehicleType(
+      vehicle.ownershipType?.toLowerCase().includes("company")
+        ? "company"
+        : "rental"
+    );
+
     setIsSliderOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log({
-      vehicleNo,
-      vehicleName,
-      make,
-      model,
-      registrationNo,
-      startingDate,
-      vehicleType,
-    });
-
     if (
       !vehicleNo ||
-      !vehicleName ||
       !make ||
       !model ||
       !registrationNo ||
       !startingDate ||
       !vehicleType
     ) {
-      toast.error("❌ All fields are required.");
+      toast.error(" All fields are required.");
       return;
     }
 
@@ -128,15 +146,13 @@ const VehicleInformation = () => {
     // Update handleSubmit payload
     const payload = {
       vehicleNo,
-      vehicleName,
       make,
       model,
-      category,
-      registrationNo,
+      registrationNumber: registrationNo, // ✅ correct field
       startingDate,
-      vehicleType,
-      isEnable,
+      ownershipType: vehicleType === "company" ? "Company Own" : "Rental", // ✅ rename
     };
+
     try {
       let res;
       if (editingVehicle) {
@@ -148,14 +164,14 @@ const VehicleInformation = () => {
         await axios.post(API_URL, payload, {
           headers: { Authorization: `Bearer ${userInfo?.token}` },
         });
-        toast.success("✅ Vehicle added!");
+        toast.success(" Vehicle added!");
       }
       setIsSliderOpen(false);
       await fetchVehiclesList(); // Wait to ensure backend updated
       setEditingVehicle(null);
     } catch (error) {
       console.error(error);
-      toast.error("❌ Failed to save vehicle.");
+      toast.error(" Failed to save vehicle.");
     } finally {
       setLoading(false);
     }
@@ -189,13 +205,14 @@ const VehicleInformation = () => {
               headers: { Authorization: `Bearer ${userInfo?.token}` },
             });
             setVehicles(vehicles.filter((v) => v._id !== vehicleId));
-            toast.success("✅ Vehicle deleted!");
+            toast.success(" Vehicle deleted!");
           } catch (error) {
-            toast.error("❌ Failed to delete vehicle.");
+            toast.error(" Failed to delete vehicle.");
           }
         }
       });
   };
+  console.log({ vehicles });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -229,27 +246,27 @@ const VehicleInformation = () => {
               </div>
 
               {/* Table Body */}
-              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
-                  <TableSkeleton rows={5} cols={7} />
+                  <TableSkeleton rows={vehicles.length || 5} cols={7} />
                 ) : vehicles.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No vehicles found.
                   </div>
                 ) : (
-                  vehicles.map((vehicle, index) => (
+                  currentRecords?.map((vehicle, index) => (
                     <div
                       key={vehicle._id}
                       className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_120px] gap-4 lg:gap-6 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="font-medium text-gray-700">
-                        {index + 1}
+                      <div className=" text-gray-600">
+                        {indexOfFirstRecord + index + 1}
                       </div>
                       <div className="text-gray-700">{vehicle.vehicleNo}</div>
                       <div className="text-gray-700">{vehicle.make}</div>
                       <div className="text-gray-700">{vehicle.model}</div>
                       <div className="text-gray-700">
-                        {vehicle.registrationNo}
+                        {vehicle.registrationNumber}
                       </div>
                       <div className="text-gray-700">
                         {vehicle.startingDate
@@ -275,6 +292,44 @@ const VehicleInformation = () => {
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, vehicles.length)} of{" "}
+                    {vehicles.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -301,14 +356,13 @@ const VehicleInformation = () => {
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Vehicle No. <span className="text-red-500">*</span>
+                    Vehicle No.
                   </label>
                   <input
                     type="text"
                     value={vehicleNo}
-                    onChange={(e) => setVehicleNo(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-                    placeholder="e.g. ABC-1234"
+                    readOnly
+                    className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
                   />
                 </div>
 

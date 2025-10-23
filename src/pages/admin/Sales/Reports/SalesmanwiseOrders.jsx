@@ -20,40 +20,16 @@ import { Eye } from "lucide-react";
 /*******  660d969d-8881-4678-965d-3c6d61032962  *******/ import ViewModal from "../../../../helper/ViewModel";
 
 const SalesmanwiseOrders = () => {
-  const [ledgerEntries, setLedgerEntries] = useState([]);
-  // New states for CustomerLedger form
-  const [ledgerId, setLedgerId] = useState("");
   const [isView, setIsView] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [date, setDate] = useState("");
-  const [salesInvoice, setSalesInvoice] = useState("");
-  const [status, setStatus] = useState("");
 
-  // Already present in your code:
-  const [employeeName, setEmployeeName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [transactionDate, setTransactionDate] = useState("");
-  const [transactionType, setTransactionType] = useState("");
-  const [dateRange, setDateRange] = useState("thisMonth");
-
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [customerId, setCustomerId] = useState("");
 
-  const [notes, setNotes] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingLedgerEntry, setEditingLedgerEntry] = useState(null);
-  const [errors, setErrors] = useState({});
   const [salesman, setSalesman] = useState([]);
   const [salesmanList, setSalesmanList] = useState([]);
-  const [nextCustomerId, setNextCustomerId] = useState("003");
+
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-  const sliderRef = useRef(null);
-  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
 
   const [selectedSalesman, setSelectedSalesman] = useState(""); // for selected ID
 
@@ -101,18 +77,19 @@ const SalesmanwiseOrders = () => {
     }
   }, [selectedSalesman, fetchSalesmanList]);
 
-  // Pagination logic
+  // ✅ Pagination logic (based on salesmanList)
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = ledgerEntries.slice(
+  const currentRecords = salesmanList.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+  const totalPages = Math.ceil(salesmanList.length / recordsPerPage);
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSalesman]);
+
   console.log("Tttsstts ", salesmanList);
 
   return (
@@ -192,12 +169,14 @@ const SalesmanwiseOrders = () => {
                     ) : (
                       <>
                         {salesmanList.length > 0 ? (
-                          salesmanList.map((entry, index) => (
+                          currentRecords.map((entry, index) => (
                             <div
                               key={entry._id}
                               className="grid grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div className="text-gray-600">{index + 1}</div>
+                              <div className="text-gray-600">
+                                {indexOfFirstRecord + index + 1}
+                              </div>
 
                               <div className="text-gray-600">
                                 {entry.invoiceNo}
@@ -243,6 +222,46 @@ const SalesmanwiseOrders = () => {
                       </>
                     )}
                   </div>
+                  {totalPages > 1 && (
+                    <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                      <p className="text-sm text-gray-600">
+                        Showing {indexOfFirstRecord + 1} to{" "}
+                        {Math.min(indexOfLastRecord, salesmanList.length)} of{" "}
+                        {salesmanList.length} records
+                      </p>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === 1
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === totalPages
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -250,83 +269,9 @@ const SalesmanwiseOrders = () => {
                 Please select a salesman to view salesman entries.
               </div>
             )}
-
-            {/* Pagination Controls (Optional) */}
-            {totalPages > 1 && (
-              <div className="flex justify-between my-4 px-10">
-                <div className="text-sm text-gray-600">
-                  Showing {indexOfFirstRecord + 1} to{" "}
-                  {Math.min(indexOfLastRecord, filteredLedger.length)} of{" "}
-                  {filteredLedger.length} records
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        {isSliderOpen && (
-          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div
-              ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-            >
-              <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
-                <h2 className="text-xl font-bold text-newPrimary">
-                  {editingLedgerEntry
-                    ? "Update Ledger Entry"
-                    : "Add a New Ledger Entry"}
-                </h2>
-                <button
-                  className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={resetForm}
-                >
-                  ×
-                </button>
-              </div>
-
-              <form className="space-y-4 p-4 md:p-6">
-                {/* Top Section */}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
-                >
-                  {loading
-                    ? "Saving..."
-                    : editingLedgerEntry
-                    ? "Update Ledger Entry"
-                    : "Save Ledger Entry"}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
         {/* ✅ View Modal */}
         {isView && selectedOrder && (
           <ViewModal

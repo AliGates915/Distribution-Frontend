@@ -9,7 +9,7 @@ import axios from "axios";
 import { ScaleLoader } from "react-spinners";
 
 const EmployeeInformation = () => {
-    const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [employeeList, setEmployeeList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [employeeName, setEmployeeName] = useState("");
@@ -27,10 +27,24 @@ const EmployeeInformation = () => {
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
-  const [departmentList, setDepartmentList] = useState([]);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/employees`;
-  const DEPARTMENT_URL = `${import.meta.env.VITE_API_BASE_URL}/departments`;
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = employeeList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(employeeList.length / recordsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setLoading(true);
+    setCurrentPage(pageNumber);
+    setTimeout(() => setLoading(false), 300);
+  };
 
   // GSAP Animation for Modal
   useEffect(() => {
@@ -105,7 +119,7 @@ const EmployeeInformation = () => {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
- setIsSaving(true);
+    setIsSaving(true);
     const newEmployee = {
       departmentName: department,
       employeeName,
@@ -119,7 +133,6 @@ const EmployeeInformation = () => {
       bloodGroup,
       isEnable: enable,
     };
-
 
     if (isEdit && editId) {
       const res = await axios.put(`${API_URL}/${editId}`, newEmployee, {
@@ -222,7 +235,7 @@ const EmployeeInformation = () => {
         }
       });
   };
-console.log({employeeList});
+  console.log({ employeeList });
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -260,7 +273,7 @@ console.log({employeeList});
             </div>
 
             {/* ✅ Table Body */}
-            <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+            <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
               {loading ? (
                 <TableSkeleton
                   rows={employeeList.length > 0 ? employeeList.length : 5}
@@ -272,49 +285,92 @@ console.log({employeeList});
                   No employee found.
                 </div>
               ) : (
-              employeeList.map((emp, index) => (
-  <div
-    key={emp._id}
-    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-  >
-    <div className="text-gray-900">{index + 1}</div>
-    <div className="font-medium text-gray-900">{emp._id?.slice(0, 6)}</div>
-    <div className="text-gray-700">{emp?.employeeName}</div>
-    <div className="text-gray-600">{emp?.departmentName || "-"}</div>
-    <div className="text-gray-600">{emp?.mobile}</div>
-    <div className="text-gray-600">{emp?.nicNo}</div>
-    <div className="text-gray-600">{formatDate(emp.dob)}</div>
-    <div className="text-gray-600">{emp?.qualification}</div>
-    <div className="font-semibold">
-      {emp?.isEnable ? (
-        <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
-          Enabled
-        </span>
-      ) : (
-        <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
-          Disabled
-        </span>
-      )}
-    </div>
-    <div className="flex justify-end gap-3">
-      <button
-        onClick={() => handleEdit(emp)}
-        className="text-blue-600 hover:underline"
-      >
-        <SquarePen size={18} />
-      </button>
-      <button
-        onClick={() => handleDelete(emp._id)}
-        className="text-red-600 hover:underline"
-      >
-        <Trash2 size={18} />
-      </button>
-    </div>
-  </div>
-))
-
+                currentRecords.map((emp, index) => (
+                  <div
+                    key={emp._id}
+                    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                  >
+                    <div className="text-gray-900">
+                      {indexOfFirstRecord + index + 1}
+                    </div>
+                    <div className="font-medium text-gray-900">
+                      {emp._id?.slice(0, 6)}
+                    </div>
+                    <div className="text-gray-700">{emp?.employeeName}</div>
+                    <div className="text-gray-600">
+                      {emp?.departmentName || "-"}
+                    </div>
+                    <div className="text-gray-600">{emp?.mobile}</div>
+                    <div className="text-gray-600">{emp?.nicNo}</div>
+                    <div className="text-gray-600">{formatDate(emp.dob)}</div>
+                    <div className="text-gray-600">{emp?.qualification}</div>
+                    <div className="font-semibold">
+                      {emp?.isEnable ? (
+                        <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
+                          Enabled
+                        </span>
+                      ) : (
+                        <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
+                          Disabled
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleEdit(emp)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        <SquarePen size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(emp._id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, employeeList.length)} of{" "}
+                  {employeeList.length} records
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -326,7 +382,7 @@ console.log({employeeList});
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-               {isSaving && (
+            {isSaving && (
               <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" size={60} />
               </div>

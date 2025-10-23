@@ -199,6 +199,7 @@ function AppContent() {
         </Routes>
       </main>
       <Toaster position="top-right" autoClose={2000} />
+      
     </div>
   );
 }

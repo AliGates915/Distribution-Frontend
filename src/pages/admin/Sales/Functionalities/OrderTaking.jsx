@@ -81,7 +81,7 @@ const OrderTaking = () => {
     fetchCustomers();
   }, []);
 
-console.log({customersList});
+  console.log({ customersList });
 
   // fetch fished Goods
 
@@ -123,26 +123,22 @@ console.log({customersList});
     fetchOrderTaking();
   }, []);
 
+  // Auto-generate Order ID and Date (based on highest existing number)
+  useEffect(() => {
+    if (!editingOrder && orders.length > 0) {
+      const maxNo = Math.max(
+        ...orders.map((o) => {
+          const match = o.orderId?.match(/ORD-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+      );
+      setOrderId(`ORD-${(maxNo + 1).toString().padStart(3, "0")}`);
+    } else if (!editingOrder && orders.length === 0) {
+      setOrderId("ORD-001");
+    }
 
-
-  
- // Auto-generate Order ID and Date (based on highest existing number)
-useEffect(() => {
-  if (!editingOrder && orders.length > 0) {
-    const maxNo = Math.max(
-      ...orders.map((o) => {
-        const match = o.orderId?.match(/ORD-(\d+)/);
-        return match ? parseInt(match[1], 10) : 0;
-      })
-    );
-    setOrderId(`ORD-${(maxNo + 1).toString().padStart(3, "0")}`);
-  } else if (!editingOrder && orders.length === 0) {
-    setOrderId("ORD-001");
-  }
-
-  setOrderDate(new Date().toISOString().split("T")[0]);
-}, [orders, editingOrder, isSliderOpen]);
-
+    setOrderDate(new Date().toISOString().split("T")[0]);
+  }, [orders, editingOrder, isSliderOpen]);
 
   // Auto calculate total
   useEffect(() => {
@@ -250,7 +246,7 @@ useEffect(() => {
   };
 
   const handleEdit = (order) => {
-    console.log(order);
+    console.log(order, "osder");
 
     setEditingOrder(order);
 
@@ -267,7 +263,7 @@ useEffect(() => {
     // set address and phone
     setAddress(order.customerId?.address || "");
     setPhone(order.customerId?.phoneNumber || "");
-    setBalance(order.customerId?.balance || 0);
+    setBalance(order.customerId?.salesBalance || 0);
 
     // transform products to frontend-friendly items
     const formattedItems =
@@ -348,7 +344,7 @@ useEffect(() => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
-console.log({currentRecords});
+  console.log({ currentRecords });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -428,6 +424,46 @@ console.log({currentRecords});
                   ))
                 )}
               </div>
+
+              {/* ✅ Add pagination controls below here */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, orders.length)} of{" "}
+                    {orders.length} orders
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -509,7 +545,7 @@ console.log({currentRecords});
                           setCustomer(e.target.value);
                           setAddress(selected?.address || "");
                           setPhone(selected?.phoneNumber || "");
-                          setBalance(selected?.balance || 0); // ✅ New field
+                          setBalance(selected?.salesBalance || 0); // ✅ New field
                         }}
                         className="w-full p-3 border border-gray-300 rounded-md"
                       >

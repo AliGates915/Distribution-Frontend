@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye } from "lucide-react";
-import Swal from "sweetalert2";
+
 import { api } from "../../../../context/ApiService";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
@@ -12,8 +11,6 @@ const AmountReceivables = () => {
   const [showZero, setShowZero] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-
-  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
 
   // 🔹 Fetch receivables from API
   const fetchReceivables = useCallback(async () => {
@@ -42,9 +39,10 @@ const AmountReceivables = () => {
     : receivables.filter((c) => parseFloat(c.Balance) !== 0);
 
   // 🔹 Search filter (matches by Customer name or Balance)
-  const searchedCustomers = filteredCustomers.filter((r) =>
-    r.Customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.Balance?.toString().includes(searchTerm)
+  const searchedCustomers = filteredCustomers.filter(
+    (r) =>
+      r.Customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.Balance?.toString().includes(searchTerm)
   );
 
   // 🔹 Pagination
@@ -56,10 +54,12 @@ const AmountReceivables = () => {
   );
   const totalPages = Math.ceil(searchedCustomers.length / recordsPerPage);
 
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, showZero]);
 
-  console.log({currentRecords});
-  
+  console.log({ currentRecords });
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -108,7 +108,7 @@ const AmountReceivables = () => {
 
         {/* Table Section */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-y-auto lg:overflow-x-auto max-h-[600px]">
+          <div className="overflow-y-auto lg:overflow-x-auto max-h-screen">
             <div className="min-w-[600px]">
               {/* Table Header */}
               <div className="hidden lg:grid grid-cols-3 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 border-b border-gray-200">
@@ -120,11 +120,7 @@ const AmountReceivables = () => {
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
-                  <TableSkeleton
-                    rows={5}
-                    cols={3}
-                    className="lg:grid-cols-3"
-                  />
+                  <TableSkeleton rows={5} cols={3} className="lg:grid-cols-3" />
                 ) : currentRecords.length > 0 ? (
                   currentRecords.map((cust, index) => (
                     <div
@@ -148,44 +144,48 @@ const AmountReceivables = () => {
                   </div>
                 )}
               </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, searchedCustomers.length)} of{" "}
+                    {searchedCustomers.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-between my-4 px-10">
-            <div className="text-sm text-gray-600">
-              Showing {indexOfFirstRecord + 1} to{" "}
-              {Math.min(indexOfLastRecord, searchedCustomers.length)} of{" "}
-              {searchedCustomers.length} records
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === 1
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === totalPages
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
