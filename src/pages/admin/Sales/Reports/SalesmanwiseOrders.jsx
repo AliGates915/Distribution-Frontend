@@ -4,11 +4,27 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
+import { Eye } from "lucide-react";
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Component for displaying Salesmanwise Order Details
+ *
+ * @param {array} ledgerEntries - Array of ledger entries
+ * @param {string} ledgerId - Ledger ID
+ * @param {string} date - Date
+ * @param {string} salesInvoice - Invoice No
+ * @param {string} status - Order Status
+ *
+ * @returns {JSX.Element} - The rendered JSX element
+ */
+/*******  660d969d-8881-4678-965d-3c6d61032962  *******/ import ViewModal from "../../../../helper/ViewModel";
 
 const SalesmanwiseOrders = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
   const [ledgerId, setLedgerId] = useState("");
+  const [isView, setIsView] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [date, setDate] = useState("");
   const [salesInvoice, setSalesInvoice] = useState("");
   const [status, setStatus] = useState("");
@@ -109,21 +125,7 @@ const SalesmanwiseOrders = () => {
               Salesmanwise Order Details
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            {/* <input
-              type="text"
-              placeholder="Enter Customer ID eg: CUS-001"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 w-[250px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            /> */}
-            {/* <button
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-              onClick={handleAddLedgerEntry}
-            >
-              + Add Ledger Entry
-            </button> */}
-          </div>
+          <div className="flex items-center gap-3"></div>
         </div>
         <div className="flex gap-6">
           {/* Left Filter Section */}
@@ -178,8 +180,14 @@ const SalesmanwiseOrders = () => {
                   {/* Table Rows */}
                   <div className="flex flex-col divide-y divide-gray-100">
                     {loading ? (
+                      <TableSkeleton
+                        rows={salesmanList.length || 5}
+                        cols={8}
+                        className="lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                      />
+                    ) : salesmanList.length === 0 ? (
                       <div className="text-center py-4 text-gray-500 bg-white">
-                        Loading...
+                        No records found for this Salesman.
                       </div>
                     ) : (
                       <>
@@ -211,6 +219,19 @@ const SalesmanwiseOrders = () => {
                               </div>
                               <div className="text-gray-600">
                                 {entry?.totalAmount}
+                              </div>
+                              <div className="">
+                                <div>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedOrder(entry);
+                                      setIsView(true);
+                                    }}
+                                    className="text-amber-600 hover:bg-amber-50 rounded p-1"
+                                  >
+                                    <Eye size={18} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))
@@ -305,6 +326,14 @@ const SalesmanwiseOrders = () => {
               </form>
             </div>
           </div>
+        )}
+        {/* ✅ View Modal */}
+        {isView && selectedOrder && (
+          <ViewModal
+            type="salesmanwise"
+            data={selectedOrder}
+            onClose={() => setIsView(false)}
+          />
         )}
 
         <style jsx>{`

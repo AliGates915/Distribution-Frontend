@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 const ViewModal = ({ type, data, onClose }) => {
   const printRef = useRef();
 
-  // ✅ Print Function
   const handlePrint = () => {
     const printContent = printRef.current.innerHTML;
     const win = window.open("", "", "width=800,height=600");
@@ -18,8 +17,6 @@ const ViewModal = ({ type, data, onClose }) => {
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
             th { background: #f3f3f3; }
-            .info { display: flex; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
-            .info div { width: 48%; margin-bottom: 4px; }
           </style>
         </head>
         <body>${printContent}</body>
@@ -30,7 +27,7 @@ const ViewModal = ({ type, data, onClose }) => {
   };
 
   const handlePDF = () => {
-    alert("PDF export coming soon 🚀 (use html2pdf.js or jsPDF here)");
+    alert("PDF export coming soon 🚀");
   };
 
   return (
@@ -43,7 +40,6 @@ const ViewModal = ({ type, data, onClose }) => {
           <X size={20} />
         </button>
 
-        {/* PRINTABLE AREA */}
         <div ref={printRef}>
           <h2 className="text-2xl font-bold mb-6 text-center border-b pb-2">
             {type === "loadsheet"
@@ -51,59 +47,45 @@ const ViewModal = ({ type, data, onClose }) => {
               : type === "order"
               ? "Order Details"
               : type === "invoice"
-              ? "Date Wise Details"
+              ? "Invoice Details"
+              : type === "productwise"
+              ? "Product-Wise Invoice Details"
+              : type === "salesmanwise"
+              ? "Salesman-Wise Invoice Details"
+              : type === "customerwise"
+              ? "Customer-Wise Invoice Details"
               : "Details"}
           </h2>
 
-          {/* INFO SECTION */}
           <div className="grid grid-cols-2 gap-4 text-base mb-6">
-            {type === "loadsheet" && (
-              <>
-                <div><strong>Load No:</strong> {data.loadNo}</div>
-                <div><strong>Load Date:</strong> {new Date(data.loadDate).toLocaleDateString()}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Vehicle No:</strong> {data.vehicleNo}</div>
-                <div><strong>Total Qty:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> {data.totalAmount}</div>
-              </>
-            )}
-
-            {type === "order" && (
-              <>
-                <div><strong>Order ID:</strong> {data.orderId}</div>
-                <div><strong>Date:</strong> {new Date(data.date).toLocaleDateString()}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Customer:</strong> {data.customerId?.customerName}</div>
-                <div><strong>Phone:</strong> {data.customerId?.phoneNumber}</div>
-                <div><strong>Balance:</strong> {data.customerId?.balance}</div>
-              </>
-            )}
-
-            {/* 🧾 NEW INVOICE SECTION */}
-            {type === "invoice" && (
+            {type === "customerwise" && (
               <>
                 <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
                 <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
+                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
+                <div><strong>Customer Phone:</strong> {data.orderTakingId?.customerId?.phoneNumber}</div>
                 <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
                 <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Sales Balance:</strong> {data.orderTakingId?.customerId?.salesBalance}</div>
-                <div><strong>Total Qty:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> {data.totalAmount}</div>
+                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
+                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
                 <div><strong>Status:</strong> {data.status}</div>
               </>
             )}
           </div>
 
-          {/* TABLE SECTION */}
           <table className="w-full border text-sm mb-4">
             <thead className="bg-gray-100">
               <tr>
                 <th>Sr #</th>
-                {type === "invoice" && <th>Category</th>}
+                {(type === "invoice" ||
+                  type === "productwise" ||
+                  type === "salesmanwise" ||
+                  type === "customerwise") && <th>Category</th>}
                 <th>Item</th>
-                {type !== "invoice" && <th>Pack</th>}
-                {type === "invoice" ? (
+                {(type === "invoice" ||
+                  type === "productwise" ||
+                  type === "salesmanwise" ||
+                  type === "customerwise") ? (
                   <>
                     <th>Issue</th>
                     <th>Sold</th>
@@ -112,35 +94,41 @@ const ViewModal = ({ type, data, onClose }) => {
                 ) : (
                   <th>Qty</th>
                 )}
-              
                 <th>Total</th>
               </tr>
             </thead>
             <tbody>
               {(data.products || []).map((item, idx) => (
                 <tr key={idx}>
-                  <td className="text-center py-1">{idx + 1}</td>
-                  {type === "invoice" && <td className="text-center">{item.categoryName || "-"}</td>}
+                  <td className="text-center">{idx + 1}</td>
+                  {(type === "invoice" ||
+                    type === "productwise" ||
+                    type === "salesmanwise" ||
+                    type === "customerwise") && (
+                    <td className="text-center">{item.categoryName || "-"}</td>
+                  )}
                   <td className="text-center">{item.itemName || item.item}</td>
-                  {type !== "invoice" && <td className="text-center">{item.itemUnit || item.pack}</td>}
-                  {type === "invoice" ? (
+                  {(type === "invoice" ||
+                    type === "productwise" ||
+                    type === "salesmanwise" ||
+                    type === "customerwise") ? (
                     <>
-                      <td className="text-center">{item.issue}</td>
-                      <td className="text-center">{item.sold}</td>
-                      <td className="text-center">{item.return}</td>
+                      <td className="text-center">{item.issue || 0}</td>
+                      <td className="text-center">{item.sold || 0}</td>
+                      <td className="text-center">{item.return || 0}</td>
                     </>
                   ) : (
                     <td className="text-center">{item.qty || item.issues}</td>
                   )}
-                 
-                  <td className="text-center">{item.totalAmount }</td>
+                  <td className="text-center">
+                    {item.totalAmount ? item.totalAmount.toLocaleString() : "-"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* ACTIONS */}
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handlePDF}
