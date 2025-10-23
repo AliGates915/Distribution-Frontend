@@ -5,7 +5,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 
-const SalesmanwiseOrders = () => {
+const ProductwiseOrders = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   // New states for CustomerLedger form
   const [ledgerId, setLedgerId] = useState("");
@@ -28,7 +28,7 @@ const SalesmanwiseOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingLedgerEntry, setEditingLedgerEntry] = useState(null);
   const [errors, setErrors] = useState({});
-  const [salesman, setSalesman] = useState([]);
+  const [productName, setProductName] = useState([]);
   const [salesmanList, setSalesmanList] = useState([]);
   const [nextCustomerId, setNextCustomerId] = useState("003");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,41 +38,40 @@ const SalesmanwiseOrders = () => {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(""); // for selected ID
 
-  const [selectedSalesman, setSelectedSalesman] = useState(""); // for selected ID
-
-  // fetch Salesman
-  const fetchSalesman = useCallback(async () => {
+  // fetch Product Name
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/employees/reports");
-      setSalesman(response); // ✅ use .data
-      console.log("Salesman List:", response);
+      const response = await api.get("/item-details/reports");
+      setProductName(response); // ✅ use .data
+      console.log("Product List:", response);
     } catch (error) {
-      console.error("Failed to fetch salesman list", error);
+      console.error("Failed to fetch product list", error);
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
   }, []);
 
   useEffect(() => {
-    fetchSalesman();
-  }, [fetchSalesman]);
+    fetchProduct();
+  }, [fetchProduct]);
 
-  // fetch Salesman List by ID
-  const fetchSalesmanList = useCallback(async (id) => {
+  // fetch Product List by ID
+  const fetchProductList = useCallback(async (id) => {
     if (!id) {
-      console.log("No customer selected yet");
+      console.log("No product selected yet");
       return; // don’t run when nothing selected
     }
 
     try {
       setLoading(true);
-      const response = await api.get(`/sales-report/salesmanwise/${id}`);
+      const response = await api.get(`/sales-report/productwise/${id}`);
       setSalesmanList(response.data);
-      console.log("Salesman Data:", response.data);
+      console.log("Product Data:", response.data);
     } catch (error) {
-      console.error("Failed to fetch salesman list", error);
+      console.error("Failed to fetch product list", error);
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
@@ -80,10 +79,10 @@ const SalesmanwiseOrders = () => {
 
   // useEffect example
   useEffect(() => {
-    if (selectedSalesman) {
-      fetchSalesmanList(selectedSalesman);
+    if (selectedProduct) {
+      fetchProductList(selectedProduct);
     }
-  }, [selectedSalesman, fetchSalesmanList]);
+  }, [selectedProduct, fetchProductList]);
 
   // Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -133,18 +132,18 @@ const SalesmanwiseOrders = () => {
                 {/* Customer Selection */}
                 <div className="w-[400px]">
                   <label className="block text-gray-700 font-medium mb-2">
-                    Salesman <span className="text-red-500">*</span>
+                    Product Name <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={selectedSalesman}
-                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                    value={selectedProduct}
+                    onChange={(e) => setSelectedProduct(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     required
                   >
-                    <option value="">Select Salesman</option>
-                    {salesman?.map((cust) => (
+                    <option value="">Select Product</option>
+                    {productName?.map((cust) => (
                       <option key={cust._id} value={cust._id}>
-                        {cust.employeeName}
+                        {cust.itemName}
                       </option>
                     ))}
                   </select>
@@ -160,7 +159,7 @@ const SalesmanwiseOrders = () => {
         <div className="p-0">
           {/* Selection Form */}
           <div className="rounded-xl shadow border border-gray-200 overflow-hidden mt-6">
-            {selectedSalesman ? (
+            {selectedProduct ? (
               <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
                 <div className="min-w-full custom-scrollbar">
                   {/* Table Header */}
@@ -216,7 +215,7 @@ const SalesmanwiseOrders = () => {
                           ))
                         ) : (
                           <div className="text-center py-4 text-gray-500 bg-white">
-                            No records found for this salesman.
+                            No records found for this product.
                           </div>
                         )}
                       </>
@@ -226,7 +225,7 @@ const SalesmanwiseOrders = () => {
               </div>
             ) : (
               <div className="text-center py-6 text-gray-500 bg-white rounded-lg mt-6">
-                Please select a salesman to view salesman entries.
+                Please select a product to view product entries.
               </div>
             )}
 
@@ -328,4 +327,4 @@ const SalesmanwiseOrders = () => {
   );
 };
 
-export default SalesmanwiseOrders;
+export default ProductwiseOrders;
