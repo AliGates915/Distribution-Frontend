@@ -57,7 +57,7 @@ const DatewiseOrder = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-newPrimary">
             Datewise Sales Report
