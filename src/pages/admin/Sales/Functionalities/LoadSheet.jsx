@@ -374,6 +374,7 @@ const Loadsheet = () => {
       setItemsLoading(false);
     }
   };
+console.log({loads});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -395,7 +396,7 @@ const Loadsheet = () => {
 
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-screen overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1200px] w-full align-middle">
                 <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>SR#</div>
@@ -659,7 +660,7 @@ const Loadsheet = () => {
                   </div>
 
                   {/* Right side — Text labels only */}
-                  <div className="flex flex-col text-gray-800 font-medium text-lg w-44 ml-auto">
+                  <div className="flex flex-col text-gray-800 font-medium text-lg w-full ml-auto">
                     <div className="flex justify-between">
                       <p>Total Qty:</p>
                       <span className="font-semibold">{totalQty}</span>

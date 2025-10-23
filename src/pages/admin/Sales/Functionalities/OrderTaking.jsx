@@ -81,6 +81,8 @@ const OrderTaking = () => {
     fetchCustomers();
   }, []);
 
+console.log({customersList});
+
   // fetch fished Goods
 
   async function fetchFinshedGoods() {
@@ -346,6 +348,7 @@ useEffect(() => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
+console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -375,7 +378,7 @@ useEffect(() => {
                 <div>Actions</div>
               </div>
 
-              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
                   <TableSkeleton
                     rows={orders.length > 0 ? orders.length : 5}
