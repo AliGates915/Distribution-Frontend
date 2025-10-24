@@ -521,7 +521,7 @@ const SalesInvoice = () => {
               </div>
 
               {/* ✅ Table Body */}
-              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
                   <TableSkeleton
                     rows={currentRecords.length || 5}

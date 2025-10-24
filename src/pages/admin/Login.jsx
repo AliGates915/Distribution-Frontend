@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import gsap from "gsap";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../context/authSlice";
 import { FiLock, FiMail } from "react-icons/fi";
 import { Loader } from "lucide-react";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -54,7 +54,7 @@ const Login = () => {
       }, 100);
     } catch (error) {
       toast.error(
-        error.response?.data?.message ||
+        error.response?.message ||
         error.message ||
         "Login failed. Please try again."
       );

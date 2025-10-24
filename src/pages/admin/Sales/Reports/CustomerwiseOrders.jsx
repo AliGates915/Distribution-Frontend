@@ -58,8 +58,13 @@ const CustomerwiseOrders = () => {
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const totalPages = Math.ceil(productList.length / recordsPerPage);
-  const currentRecords = productList.slice(indexOfFirstRecord, indexOfLastRecord);
-
+  const currentRecords = productList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCustomer]);
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -109,14 +114,18 @@ const CustomerwiseOrders = () => {
                 {/* Table Rows */}
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={5} cols={8} className="lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]" />
+                    <TableSkeleton
+                      rows={5}
+                      cols={8}
+                      className="lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                    />
                   ) : currentRecords.length > 0 ? (
                     currentRecords.map((entry, index) => (
                       <div
                         key={entry._id}
                         className="grid grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
-                        <div>{indexOfFirstRecord + index + 1}</div>
+                       <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{entry.invoiceNo}</div>
                         <div>
                           {new Date(entry.invoiceDate).toLocaleDateString()}
@@ -147,6 +156,46 @@ const CustomerwiseOrders = () => {
                     </div>
                   )}
                 </div>
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                    <p className="text-sm text-gray-600">
+                      Showing {indexOfFirstRecord + 1} to{" "}
+                      {Math.min(indexOfLastRecord, productList.length)} of{" "}
+                      {productList.length} records
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -155,41 +204,6 @@ const CustomerwiseOrders = () => {
             </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-between my-4 px-10">
-            <div className="text-sm text-gray-600">
-              Showing {indexOfFirstRecord + 1} to{" "}
-              {Math.min(indexOfLastRecord, productList.length)} of{" "}
-              {productList.length} records
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === 1
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === totalPages
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* 👁️ View Modal */}
         {isView && selectedOrder && (

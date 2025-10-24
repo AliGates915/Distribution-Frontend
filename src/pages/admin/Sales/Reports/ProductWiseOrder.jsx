@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Eye } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
-import Swal from "sweetalert2";
+
 import { api } from "../../../../context/ApiService";
 import ViewModal from "../../../../helper/ViewModel";
 
@@ -63,8 +63,10 @@ const ProductwiseOrders = () => {
     }
   }, [selectedProduct, fetchProductList]);
 
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
-console.log({currentRecords});
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedProduct]);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -103,7 +105,7 @@ console.log({currentRecords});
         {/* Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden mt-6">
           {selectedProduct ? (
-            <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
+            <div className="overflow-y-auto lg:overflow-x-auto max-h-screen">
               <div className="min-w-full custom-scrollbar">
                 {/* Table Header */}
                 <div className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
@@ -120,7 +122,11 @@ console.log({currentRecords});
                 {/* Table Body */}
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={salesmanList.length ||5} cols={8}  className="lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"/>
+                    <TableSkeleton
+                      rows={salesmanList.length || 5}
+                      cols={8}
+                      className="lg:grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                    />
                   ) : salesmanList.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No records found for this product.
@@ -158,6 +164,47 @@ console.log({currentRecords});
                     ))
                   )}
                 </div>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                    <p className="text-sm text-gray-600">
+                      Showing {indexOfFirstRecord + 1} to{" "}
+                      {Math.min(indexOfLastRecord, salesmanList.length)} of{" "}
+                      {salesmanList.length} records
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -166,41 +213,6 @@ console.log({currentRecords});
             </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-between my-4 px-10">
-            <div className="text-sm text-gray-600">
-              Showing {indexOfFirstRecord + 1} to{" "}
-              {Math.min(indexOfLastRecord, salesmanList.length)} of{" "}
-              {salesmanList.length} records
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === 1
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === totalPages
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ✅ View Modal Integration */}
         {isView && selectedOrder && (

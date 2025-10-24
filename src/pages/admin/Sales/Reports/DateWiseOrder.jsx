@@ -12,7 +12,8 @@ const DatewiseOrder = () => {
   const [dateTo, setDateTo] = useState("");
   const [isView, setIsView] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
   // ✅ Fetch without filter
   const fetchAllReports = async () => {
     try {
@@ -53,7 +54,21 @@ const DatewiseOrder = () => {
       fetchAllReports();
     }
   }, [dateFrom, dateTo]);
-console.log({reports});
+  // Pagination Logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = reports.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(reports.length / recordsPerPage);
+
+ useEffect(() => {
+  if (dateFrom && dateTo) {
+    fetchFilteredReports();
+  } else {
+    fetchAllReports();
+  }
+  setCurrentPage(1); // reset page
+}, [dateFrom, dateTo]);
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -108,7 +123,7 @@ console.log({reports});
               </div>
 
               {/* Body */}
-              <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
                   <TableSkeleton
                     rows={reports.length || 5}
@@ -120,7 +135,7 @@ console.log({reports});
                     No records found.
                   </div>
                 ) : (
-                  reports.map((entry, i) => (
+                  currentRecords.map((entry, i) => (
                     <div
                       key={entry._id || i}
                       className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1.5fr_1fr_1fr_80px] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
@@ -151,13 +166,52 @@ console.log({reports});
                   ))
                 )}
               </div>
+              {/* ✅ Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, reports.length)} of{" "}
+                    {reports.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
       {isView && selectedInvoice && (
         <ViewModal
-          type="invoice"
+          type="DateWise-Sales"
           data={selectedInvoice}
           onClose={() => setIsView(false)}
         />

@@ -9,7 +9,7 @@ import ViewModel from "../../../../helper/ViewModel";
 import { ScaleLoader } from "react-spinners";
 
 const Loadsheet = () => {
-   const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [loads, setLoads] = useState([]);
   const [salesmenOptions, setSalesmenOptions] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(false);
@@ -31,7 +31,8 @@ const Loadsheet = () => {
   const [selectedLoad, setSelectedLoad] = useState(null);
   const sliderRef = useRef(null);
   const [nextLoadNo, setNextLoadNo] = useState("001");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const { token } = userInfo || {};
   const headers = {
@@ -53,8 +54,7 @@ const Loadsheet = () => {
         toast.error("Failed to fetch salesmen. Using static data.");
       }, 2000);
     } finally {
-     
-        setTimeout(() => {
+      setTimeout(() => {
         setLoading(false);
       }, 2000);
     }
@@ -92,8 +92,6 @@ const Loadsheet = () => {
     fetchLoads();
   }, [fetchLoads]);
 
- 
-
   //  fetchVechiles
   const fetchVechiles = useCallback(async () => {
     try {
@@ -113,10 +111,9 @@ const Loadsheet = () => {
 
       // fallback if API fails
     } finally {
-     setTimeout(() => {
+      setTimeout(() => {
         setLoading(false);
       }, 2000);
-    
     }
   }, []);
 
@@ -156,47 +153,46 @@ const Loadsheet = () => {
     setIsSliderOpen(true);
   };
 
- const handleEditClick = (load) => {
-   console.log({ load });
-  setEditingLoad(load);
-  setLoadNo(load.loadNo);
-  setLoadDate(formatDate(load.loadDate));
+  const handleEditClick = (load) => {
+    console.log({ load });
+    setEditingLoad(load);
+    setLoadNo(load.loadNo);
+    setLoadDate(formatDate(load.loadDate));
 
-  // ✅ Correctly match the salesman by _id
-  const selectedSalesman = salesmenOptions.find(
-    (sm) => sm._id === load.salesmanId?._id
-  );
-  setSalesman(selectedSalesman?._id || "");
+    // ✅ Correctly match the salesman by _id
+    const selectedSalesman = salesmenOptions.find(
+      (sm) => sm._id === load.salesmanId?._id
+    );
+    setSalesman(selectedSalesman?._id || "");
 
-  // ✅ Set vehicle
-  setVehicleNo(load.vehicleNo || "");
+    // ✅ Set vehicle
+    setVehicleNo(load.vehicleNo || "");
 
-  // ✅ Map products correctly (qty instead of issues)
-  setItemsList(
-    (load.products || []).map((it, idx) => ({
-      sr: idx + 1,
-      category: it.category,
-      item: it.item,
-      pack: it.pack,
-      issues: it.qty, // frontend uses this field name
-      price: it.price || 0, // if your backend includes it
-      amount: it.amount,
-    }))
-  );
+    // ✅ Map products correctly (qty instead of issues)
+    setItemsList(
+      (load.products || []).map((it, idx) => ({
+        sr: idx + 1,
+        category: it.category,
+        item: it.item,
+        pack: it.pack,
+        issues: it.qty, // frontend uses this field name
+        price: it.price || 0, // if your backend includes it
+        amount: it.amount,
+      }))
+    );
 
-  // ✅ Totals
-  setTotalQty(load.totalQty || 0);
-  const newPrevBalance = load.salesmanId.preBalance;
-  const newAmount =
-    load.products?.reduce((sum, it) => sum + (it.amount || 0), 0) || 0;
+    // ✅ Totals
+    setTotalQty(load.totalQty || 0);
+    const newPrevBalance = load.salesmanId.preBalance;
+    const newAmount =
+      load.products?.reduce((sum, it) => sum + (it.amount || 0), 0) || 0;
 
-  setPrevBalance(newPrevBalance);
-  setAmount(newAmount);
-  setTotalAmount(newPrevBalance + newAmount);
-  setIsEnable(load.isEnable ?? true);
-  setIsSliderOpen(true);
-};
-
+    setPrevBalance(newPrevBalance);
+    setAmount(newAmount);
+    setTotalAmount(newPrevBalance + newAmount);
+    setIsEnable(load.isEnable ?? true);
+    setIsSliderOpen(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -210,7 +206,7 @@ const Loadsheet = () => {
       });
       return;
     }
-  setIsSaving(true);
+    setIsSaving(true);
     const newLoad = {
       loadNo: editingLoad ? loadNo : `LOAD-${nextLoadNo}`,
       loadDate,
@@ -228,7 +224,6 @@ const Loadsheet = () => {
     };
 
     try {
-    
       if (editingLoad) {
         // Update existing loadsheet
         await axios.put(
@@ -374,7 +369,12 @@ const Loadsheet = () => {
       setItemsLoading(false);
     }
   };
-console.log({loads});
+
+  // Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = loads.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(loads.length / recordsPerPage);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -422,7 +422,7 @@ console.log({loads});
                       No loadsheets found.
                     </div>
                   ) : (
-                    loads.map((load, idx) => (
+                    currentRecords.map((load, idx) => (
                       <div
                         key={load._id}
                         className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
@@ -470,6 +470,47 @@ console.log({loads});
                     ))
                   )}
                 </div>
+                {/* ✅ Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                    <p className="text-sm text-gray-600">
+                      Showing {indexOfFirstRecord + 1} to{" "}
+                      {Math.min(indexOfLastRecord, loads.length)} of{" "}
+                      {loads.length} records
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -477,12 +518,11 @@ console.log({loads});
 
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            
             <div
               ref={sliderRef}
               className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
-               {isSaving && (
+              {isSaving && (
                 <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
@@ -514,7 +554,6 @@ console.log({loads});
 
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
                 <div className=" flex gap-4">
-                  
                   <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
                       Load No. <span className="text-red-500">*</span>

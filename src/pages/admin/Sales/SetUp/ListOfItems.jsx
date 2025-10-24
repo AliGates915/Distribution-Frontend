@@ -10,7 +10,6 @@ import { SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 
-
 const ListOfItems = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [nextItemCategoryId, setNextItemCategoryId] = useState("001");
@@ -53,13 +52,15 @@ const ListOfItems = () => {
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
-
   // Utility to generate random barcode string
-const generateRandomBarcode = () => {
-  const prefix = "PBC"; // you can change prefix
-  const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
-  return `${prefix}-${randomPart}`;
-};
+  const generateRandomBarcode = () => {
+    const prefix = "PBC"; // you can change prefix
+    const randomPart = Math.random()
+      .toString(36)
+      .substring(2, 10)
+      .toUpperCase();
+    return `${prefix}-${randomPart}`;
+  };
 
   // GSAP Animation for Modal
   useEffect(() => {
@@ -96,7 +97,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-details`
       );
       setItemList(res.data); // store actual categories array
-     
     } catch (error) {
       console.error("Failed to fetch item details", error);
     } finally {
@@ -108,20 +108,19 @@ const generateRandomBarcode = () => {
   }, [fetchData]);
 
   // next gass pass id creation
-   useEffect(() => {
-  if (itemList.length > 0) {
-    const maxNo = Math.max(
-      ...itemList.map((r) => {
-        const match = r.itemId?.match(/ITEM-(\d+)/); 
-        return match ? parseInt(match[1], 10) : 0;
-      })
-    );
-    setNextItemCategoryId((maxNo + 1).toString().padStart(3, "0"));
-  } else {
-    setNextItemCategoryId("001");
-  }
-}, [itemList]);
-
+  useEffect(() => {
+    if (itemList.length > 0) {
+      const maxNo = Math.max(
+        ...itemList.map((r) => {
+          const match = r.itemId?.match(/ITEM-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+      );
+      setNextItemCategoryId((maxNo + 1).toString().padStart(3, "0"));
+    } else {
+      setNextItemCategoryId("001");
+    }
+  }, [itemList]);
 
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
@@ -131,7 +130,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/categories`
       );
       setCategoryList(res.data); // store actual categories array
-    
     } catch (error) {
       console.error("Failed to fetch categories", error);
     } finally {
@@ -145,7 +143,6 @@ const generateRandomBarcode = () => {
   // Fetch itemTypes when category changes
   useEffect(() => {
     if (!itemCategory) return; // only call when category selected
-  
 
     const fetchItemTypes = async () => {
       try {
@@ -171,7 +168,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-unit`
       );
       setItemUnitList(res.data); // store actual categories array
-     
     } catch (error) {
       console.error("Failed to fetch item unit", error);
     } finally {
@@ -190,7 +186,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/manufacturers/list`
       );
       setManufacturerList(res.data); // store actual categories array
-
     } catch (error) {
       console.error("Failed to fetch Manufacturer", error);
     } finally {
@@ -209,7 +204,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/suppliers/list`
       );
       setSupplierList(res.data); // store actual categories array
-
     } catch (error) {
       console.error("Failed to fetch Supplier", error);
     } finally {
@@ -228,7 +222,6 @@ const generateRandomBarcode = () => {
         `${import.meta.env.VITE_API_BASE_URL}/shelves`
       );
       setShelvesList(res.data); // store actual categories array
-    
     } catch (error) {
       console.error("Failed to fetch Shelves", error);
     } finally {
@@ -294,7 +287,6 @@ const generateRandomBarcode = () => {
 
   // Save or Update Item
   const handleSave = async () => {
-   
     const errors = validateForm();
     if (errors.length > 0) {
       Swal.fire({
@@ -307,7 +299,10 @@ const generateRandomBarcode = () => {
 
     const formData = new FormData();
 
-    formData.append("itemId", editId? itemCategoryId: `ITEM-${nextItemCategoryId}`);
+    formData.append(
+      "itemId",
+      editId ? itemCategoryId : `ITEM-${nextItemCategoryId}`
+    );
     formData.append("itemName", itemName);
     formData.append("itemCategory", itemCategory.id);
     formData.append("manufacturer", manufacture);
@@ -335,8 +330,6 @@ const generateRandomBarcode = () => {
       formData.append("itemImage", image);
     }
 
-
-
     try {
       const headers = {
         Authorization: `Bearer ${userInfo.token}`,
@@ -350,35 +343,35 @@ const generateRandomBarcode = () => {
           { headers }
         );
         Swal.fire({
-                 icon: "success",
-                 title: "Added!",
-                 text: "List Items Upadted successfully.",
-                 confirmButtonColor: "#3085d6",
-               });
+          icon: "success",
+          title: "Added!",
+          text: "List Items Upadted successfully.",
+          confirmButtonColor: "#3085d6",
+        });
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/item-details`,
           formData,
           { headers }
         );
-         Swal.fire({
-                 icon: "success",
-                 title: "Added!",
-                 text: "List Items Added successfully.",
-                 confirmButtonColor: "#3085d6",
-               });
+        Swal.fire({
+          icon: "success",
+          title: "Added!",
+          text: "List Items Added successfully.",
+          confirmButtonColor: "#3085d6",
+        });
       }
 
       reState();
       fetchData();
     } catch (error) {
       console.error(error);
-        Swal.fire({
-              icon: "error",
-              title: "Error!",
-              text: `${error.response.data.message}`,
-              confirmButtonColor: "#d33",
-            });
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: `${error.response.data.message}`,
+        confirmButtonColor: "#d33",
+      });
     }
   };
 
@@ -410,7 +403,7 @@ const generateRandomBarcode = () => {
   };
   // Edit Item
   const handleEdit = (item) => {
-console.log({item});
+    console.log({ item });
 
     setIsEdit(true);
     setEditId(item._id);
@@ -425,7 +418,7 @@ console.log({item});
     setShelveLocation(item?.shelveLocation?._id || "");
     setItemUnit(item?.itemUnit || "");
     setItemType(item?.itemType?._id || "");
-  setItemCategoryId(item.itemId)
+    setItemCategoryId(item.itemId);
     // Normal fields
     setItemName(item.itemName || "");
     setPerUnit(item.perUnit ? item.perUnit.toString() : "");
@@ -578,7 +571,7 @@ console.log({item});
           <div className="max-h-screen overflow-y-auto custom-scrollbar">
             <div className="inline-block w-full align-middle">
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[200px,200px,200px,200px,200px,200px,120px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-7 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>Item Category</div>
                 <div>Item Name</div>
                 <div>Purchase</div>
@@ -594,7 +587,7 @@ console.log({item});
                   <TableSkeleton
                     rows={itemList.length || 5}
                     cols={userInfo?.isAdmin ? 7 : 6}
-                    className="lg:grid-cols-[200px,200px,200px,200px,200px,200px,120px]"
+                    className="lg:grid-cols-7"
                   />
                 ) : itemList.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -604,7 +597,7 @@ console.log({item});
                   currentRecords.map((item, index) => (
                     <div
                       key={item._id}
-                      className="grid grid-cols-1 lg:grid-cols-[200px,200px,200px,200px,200px,200px,120px] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-7 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
@@ -662,48 +655,47 @@ console.log({item});
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, itemList.length)} of{" "}
+                    {itemList.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="flex justify-between my-4 px-10">
-            {/* Records info */}
-            <div className="text-sm text-gray-600">
-              Showing {indexOfFirstRecord + 1} to{" "}
-              {Math.min(indexOfLastRecord, itemList.length)} of{" "}
-              {itemList.length} records
-            </div>
-
-            {/* Pagination buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === 1
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Previous
-              </button>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-md ${
-                  currentPage === totalPages
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Slider */}
@@ -758,7 +750,9 @@ console.log({item});
                       </label>
                       <input
                         type="text"
-                        value={editId ? itemCategoryId: `ITEM-${nextItemCategoryId}`}
+                        value={
+                          editId ? itemCategoryId : `ITEM-${nextItemCategoryId}`
+                        }
                         onChange={(e) => setItemCategoryId(e.target.value)}
                         required
                         className="w-full p-2 border rounded"
@@ -771,7 +765,7 @@ console.log({item});
                       <label className="block text-gray-700 font-medium">
                         Primary Barcode <span className="text-red-500">*</span>
                       </label>
-                    
+
                       {/* Show barcode preview only if entered */}
                       {primaryBarcode && (
                         <div className="">
@@ -939,11 +933,10 @@ console.log({item});
                         <option value="Piece">Piece</option>
                         <option value="Bag">Bag</option>
                         <option value="Cotton">Cotton</option>
-                       
                       </select>
                     </div>
 
-                      {/* Per Unit */}
+                    {/* Per Unit */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Per Unit
@@ -986,7 +979,6 @@ console.log({item});
                       />
                     </div>
 
-                  
                     {/* Stock */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
