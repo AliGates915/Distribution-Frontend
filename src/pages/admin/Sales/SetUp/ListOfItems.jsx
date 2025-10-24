@@ -3,6 +3,7 @@ import { HashLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { ScaleLoader } from "react-spinners";
 import axios from "axios";
 import Barcode from "react-barcode";
 import { SquarePen, Trash2 } from "lucide-react";
@@ -11,6 +12,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 
 const ListOfItems = () => {
+  const [isSaving, setIsSaving] = useState(false);
   const [categoryList, setCategoryList] = useState([]);
   const [nextItemCategoryId, setNextItemCategoryId] = useState("001");
   const [itemUnitList, setItemUnitList] = useState([]);
@@ -296,7 +298,7 @@ const ListOfItems = () => {
       });
       return;
     }
-
+    setIsSaving(true);
     const formData = new FormData();
 
     formData.append(
@@ -342,36 +344,22 @@ const ListOfItems = () => {
           formData,
           { headers }
         );
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "List Items Upadted successfully.",
-          confirmButtonColor: "#3085d6",
-        });
+        toast.success(" Item List updated successfully");
       } else {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/item-details`,
           formData,
           { headers }
         );
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "List Items Added successfully.",
-          confirmButtonColor: "#3085d6",
-        });
+        toast.success(" Item List added successfully");
       }
-
       reState();
       fetchData();
     } catch (error) {
       console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: `${error.response.data.message}`,
-        confirmButtonColor: "#d33",
-      });
+      toast.error(" Failed to save Item List.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -703,8 +691,13 @@ const ListOfItems = () => {
         <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
           <div
             ref={sliderRef}
-            className="w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+            className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
+            {isSaving && (
+              <div className="absolute h-[155vh] inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <ScaleLoader color="#1E93AB" height={60} />
+              </div>
+            )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Item" : "Add a New Item"}
