@@ -10,7 +10,8 @@ const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const [date, setDate] = useState(today);
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,8 +39,7 @@ const CustomerLedger = () => {
     try {
       setLoading(true);
       let query = `/customer-ledger?customer=${selectedCustomer}`;
-      if (dateFrom) query += `&from=${dateFrom}`;
-      if (dateTo) query += `&to=${dateTo}`;
+
       const response = await api.get(query);
 
       setLedgerEntries(response.data?.data || response.data || []);
@@ -48,7 +48,7 @@ const CustomerLedger = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCustomer, dateFrom, dateTo]);
+  }, [selectedCustomer]);
 
   useEffect(() => {
     fetchCustomerList();
@@ -57,7 +57,7 @@ const CustomerLedger = () => {
   useEffect(() => {
     fetchLedgerEntries();
     setCurrentPage(1);
-  }, [selectedCustomer, dateFrom, dateTo, fetchLedgerEntries]);
+  }, [selectedCustomer, fetchLedgerEntries]);
 
   // ✅ PDF Download
   const handleDownloadReport = async () => {
@@ -67,15 +67,18 @@ const CustomerLedger = () => {
     }
 
     try {
-      const canvas = await html2canvas(ledgerRef.current, { scale: 2, useCORS: true });
+      const canvas = await html2canvas(ledgerRef.current, {
+        scale: 2,
+        useCORS: true,
+      });
       const pdf = new jsPDF("p", "mm", "a4");
       const width = pdf.internal.pageSize.getWidth();
       const height = (canvas.height * width) / canvas.width;
       pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, width, height);
       pdf.save(
-        `${ledgerEntries[0]?.CustomerName || "Ledger_Report"}_${new Date()
-          .toISOString()
-          .split("T")[0]}.pdf`
+        `${ledgerEntries[0]?.CustomerName || "Ledger_Report"}_${
+          new Date().toISOString().split("T")[0]
+        }.pdf`
       );
     } catch (error) {
       Swal.fire("Error", error.message, "error");
@@ -85,7 +88,10 @@ const CustomerLedger = () => {
   // ✅ Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = ledgerEntries.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = ledgerEntries.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
 
   return (
@@ -94,7 +100,9 @@ const CustomerLedger = () => {
 
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-newPrimary">Customer Ledger Details</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Customer Ledger Details
+          </h1>
 
           {ledgerEntries.length > 0 && (
             <button
@@ -108,8 +116,19 @@ const CustomerLedger = () => {
 
         {/* 🔹 Filters */}
         <div className="flex flex-wrap gap-5 mb-6">
+          <div className="w-[200px]">
+            <label className="block text-gray-700 font-medium mb-2">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
           <div className="w-[300px]">
-            <label className="block text-gray-700 font-medium mb-2">Customer</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Customer
+            </label>
             <select
               value={selectedCustomer}
               onChange={(e) => setSelectedCustomer(e.target.value)}
@@ -123,26 +142,6 @@ const CustomerLedger = () => {
               ))}
             </select>
           </div>
-
-          <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date From</label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            />
-          </div>
-
-          <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date To</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            />
-          </div>
         </div>
 
         {/* 🔹 Ledger Table */}
@@ -154,16 +153,18 @@ const CustomerLedger = () => {
               Please select a customer to view ledger entries.
             </div>
           ) : ledgerEntries.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">No ledger entries found.</div>
+            <div className="text-center py-6 text-gray-500">
+              No ledger entries found.
+            </div>
           ) : (
             <>
-              <div className="hidden lg:grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
+              <div className="hidden lg:grid grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
                 <div>SR</div>
                 <div>Date</div>
                 <div>ID</div>
                 <div>Description</div>
-                <div>Paid</div>
-                <div>Received</div>
+                <div>Debit</div>
+                <div>Credit</div>
                 <div>Balance</div>
               </div>
 
@@ -171,38 +172,47 @@ const CustomerLedger = () => {
                 {currentRecords.map((entry, i) => (
                   <div
                     key={entry._id || i}
-                    className="grid grid-cols-[0.2fr_0.5fr_0.5fr_2.5fr_repeat(3,0.7fr)] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
+                    className="grid grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
                   >
                     <div>{i + 1 + indexOfFirstRecord}</div>
                     <div>{entry.Date}</div>
-                    <div>{entry.ID}</div>
-                    <div>{entry.Description}</div>
-                    <div>{entry.Paid}</div>
-                    <div>{entry.Received}</div>
-                    <div>{entry.Balance}</div>
+                    <div>{entry.ID || "-"}</div>
+                    <div>{entry.Description || "-"}</div>
+                    <div>{entry.Debit || "-"}</div>
+                    <div>{entry.Credit || "-"}</div>
+                    <div>{entry.Balance || "-"}</div>
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-[3.7fr_repeat(3,0.7fr)] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+              <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
                 <div className="text-red-600">
-                  Paid:{" "}
+                  Total Debit:{" "}
                   {Math.round(
-                    ledgerEntries.reduce((sum, e) => sum + (parseFloat(e.Paid) || 0), 0)
+                    ledgerEntries.reduce(
+                      (sum, e) => sum + (parseFloat(e.Debit) || 0),
+                      0
+                    )
                   )}
                 </div>
                 <div className="text-green-600">
-                  Received:{" "}
+                  Total Credit:{" "}
                   {Math.round(
-                    ledgerEntries.reduce((sum, e) => sum + (parseFloat(e.Received) || 0), 0)
+                    ledgerEntries.reduce(
+                      (sum, e) => sum + (parseFloat(e.Credit) || 0),
+                      0
+                    )
                   )}
                 </div>
                 <div className="text-blue-600">
-                  Balance:{" "}
+                  Total Balance:{" "}
                   {Math.round(
-                    ledgerEntries.reduce((sum, e) => sum + (parseFloat(e.Balance) || 0), 0)
+                    ledgerEntries.reduce(
+                      (sum, e) => sum + (parseFloat(e.Balance) || 0),
+                      0
+                    )
                   )}
                 </div>
               </div>
@@ -230,7 +240,9 @@ const CustomerLedger = () => {
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                   className={`px-3 py-1 rounded-md ${
                     currentPage === totalPages
