@@ -149,7 +149,7 @@ const Sales = () => {
             </div>
           ) : (
             <>
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.5fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
                 <div>Sr</div>
                 <div>Supplier</div>
                 <div>Product</div>
@@ -159,13 +159,14 @@ const Sales = () => {
                 <div>Qty</div>
                 <div>Purchase Total</div>
                 <div>Sale Total</div>
+                <div>Profit</div>
               </div>
 
               <div className="divide-y divide-gray-100">
                 {currentRecords.map((entry, i) => (
                   <div
                     key={entry._id || i}
-                    className="grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.5fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
+                    className="grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
                   >
                     <div>{i + 1 + indexOfFirstRecord}</div>
                     <div>{entry.supplier}</div>
@@ -176,12 +177,16 @@ const Sales = () => {
                     <div>{entry.qty}</div>
                     <div>{entry.purchaseTotal}</div>
                     <div>{entry.saleTotal}</div>
+                    <div>
+                      {(parseInt(entry.saleTotal) || 0) -
+                        (parseInt(entry.purchaseTotal) || 0)}
+                    </div>
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.5fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+              <div className="grid whitespace-nowrap grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold w-full text-gray-700">
                 <div></div>
                 <div></div>
                 <div></div>
@@ -190,10 +195,13 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className="text-red-600">
-                  Purchase Total: {Math.round(totalPurchase)}
+                  Total Pur: {Math.round(totalPurchase)}
                 </div>
                 <div className="text-green-600">
-                  Sales Total: {Math.round(totalSales)}
+                  Total sal: {Math.round(totalSales)}
+                </div>
+                <div className="text-blue-600">
+                  Total Prof: {Math.round(totalSales - totalPurchase)}
                 </div>
               </div>
             </>
@@ -278,24 +286,22 @@ const Sales = () => {
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-[0.2fr_1fr_1fr_1.5fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+              <div className="grid grid-cols-[0.2fr_1fr_1fr_1.5fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
                 <div></div>
                 <div></div>
                 <div></div>
                 <div className="text-blue-600">
-                  Sales Total: {Math.round(totalSalesAmount)}
+                  Total Sal: {Math.round(totalSalesAmount)}
                 </div>
                 <div className="text-green-600">
-                  Recovery Total: {Math.round(totalRecovery)}
+                  Total Rec: {Math.round(totalRecovery)}
                 </div>
               </div>
             </>
           )}
         </div>
       </div>
-
-     
     </div>
   );
 };

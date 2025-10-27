@@ -20,6 +20,7 @@ import {
   FaUniversity,
   FaCashRegister,
   FaMapMarkerAlt,
+  FaRegCreditCard,
 } from "react-icons/fa";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
@@ -115,6 +116,11 @@ const reportsChildren = [
     to: "/admin/report/customer-ledger",
     label: "Customer Ledger",
     icon: <FaUser />,
+  },
+  {
+    to: "/admin/report/credit-aging",
+    label: "Credit Aging",
+    icon: <FaRegCreditCard />,
   },
   {
     to: "/admin/report/datewise-orders",
