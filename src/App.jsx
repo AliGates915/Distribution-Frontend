@@ -60,6 +60,7 @@ import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 
 import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
 import Sales from "./pages/admin/Sales/Functionalities/Sales.jsx";
+import CreditAgingReport from "./pages/admin/Sales/Reports/CreditAgingReport.jsx";
 
 function AppContent() {
   return (
@@ -105,6 +106,7 @@ function AppContent() {
             />
             <Route path="report/customer-ledger" element={<CustomerLedger />} />
             <Route path="report/datewise-orders" element={<DateWiseOrder />} />
+            <Route path="report/credit-aging" element={<CreditAgingReport />} />
             <Route
               path="report/productwise-orders"
               element={<ProductWiseOrder />}
