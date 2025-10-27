@@ -178,7 +178,6 @@ const ViewModal = ({ type, data, onClose }) => {
 
                 {type === "order" && (
                   <>
-                    <th>Category</th>
                     <th>Item</th>
                     <th>Qty</th>
                     <th>Unit</th>
@@ -227,7 +226,6 @@ const ViewModal = ({ type, data, onClose }) => {
 
                   {type === "order" && (
                     <>
-                      <td className="text-center">{item.categoryName || "-"}</td>
                       <td className="text-center">{item.itemName}</td>
                       <td className="text-center">{item.qty}</td>
                       <td className="text-center">{item.itemUnit}</td>

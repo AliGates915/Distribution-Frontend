@@ -259,6 +259,7 @@ const ListOfItems = () => {
     setImagePreview(null);
     setExpiryOption("NoExpiry");
     setExpiryDay("");
+    setItemKind('')
     setPrimaryBarcode(generateRandomBarcode());
   };
   // form validation
@@ -388,6 +389,7 @@ const ListOfItems = () => {
     setImage(null);
     setExpiryOption("NoExpiry");
     setExpiryDay("");
+    setItemKind("")
   };
   // Edit Item
   const handleEdit = (item) => {
