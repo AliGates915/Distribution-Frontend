@@ -58,6 +58,7 @@ import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.js
 import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
 
 import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
+import Sales from "./pages/admin/Sales/Functionalities/Sales.jsx";
 
 function AppContent() {
   return (
@@ -88,6 +89,7 @@ function AppContent() {
             <Route path="sales/order-taking" element={<OrderTaking />} />
             <Route path="sales/load-sheet" element={<LoadSheet />} />
             <Route path="sales/sales-invoice" element={<SalesInvoice />} />
+            <Route path="sales/sales" element={<Sales />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />
 

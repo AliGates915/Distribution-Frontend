@@ -36,6 +36,7 @@ import {
   Undo2,
   Scale,
   Tickets,
+  FileSpreadsheetIcon,
 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 
@@ -57,6 +58,12 @@ const salesChildren = [
     icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
   },
   {
+    to: "/admin/sales/sales",
+    label: "Sales",
+    icon: <FileSpreadsheetIcon  strokeWidth={3} size={40} />,
+  },
+  {
+    
     to: "/admin/sales/cash-deposite",
     label: "Cash Deposit",
     icon: <Banknote strokeWidth={3} size={40} />,

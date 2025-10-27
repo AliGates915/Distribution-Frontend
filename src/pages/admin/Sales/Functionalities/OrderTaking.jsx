@@ -17,6 +17,8 @@ const OrderTaking = () => {
   const [productsList, setProductsList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [balance, setBalance] = useState(null);
+  const [creditsDays, setCreditsDays] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -122,6 +124,19 @@ const OrderTaking = () => {
   useEffect(() => {
     fetchOrderTaking();
   }, []);
+
+  // 🗓️ Auto calculate Due Date based on today's date and Credit Limit
+useEffect(() => {
+  if (creditsDays) {
+    const today = new Date(); // current date
+    today.setDate(today.getDate() + Number(creditsDays)); // add credit limit days
+    const formattedDueDate = today.toISOString().split("T")[0]; // format YYYY-MM-DD
+    setDueDate(formattedDueDate);
+  } else {
+    setDueDate("");
+  }
+}, [creditsDays]);
+
 
   // Auto-generate Order ID and Date (based on highest existing number)
   useEffect(() => {
@@ -264,6 +279,7 @@ const OrderTaking = () => {
     setAddress(order.customerId?.address || "");
     setPhone(order.customerId?.phoneNumber || "");
     setBalance(order.customerId?.salesBalance || 0);
+    setCreditsDays(order.customerId?.creditTime || 0);
 
     // transform products to frontend-friendly items
     const formattedItems =
@@ -295,6 +311,8 @@ const OrderTaking = () => {
     setRate("");
     setTotal("");
     setItems([]);
+    setCreditsDays("")
+    setDueDate("")
     setBalance("");
     setIsSliderOpen(false);
   };
@@ -344,7 +362,7 @@ const OrderTaking = () => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
-  console.log({ currentRecords });
+  console.log({ customersList });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -472,7 +490,7 @@ const OrderTaking = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -545,6 +563,7 @@ const OrderTaking = () => {
                           setCustomer(e.target.value);
                           setAddress(selected?.address || "");
                           setPhone(selected?.phoneNumber || "");
+                          setCreditsDays(selected?.creditTime || "");
                           setBalance(selected?.salesBalance || 0); // ✅ New field
                         }}
                         className="w-full p-3 border border-gray-300 rounded-md"
@@ -596,6 +615,31 @@ const OrderTaking = () => {
                       />
                     </div>
                   </div>
+                        {/* Crdits Days and Due date */}
+                   <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-gray-700 mb-2">
+                        Credits Days
+                      </label>
+                      <input
+                        type="text"
+                        value={creditsDays}
+                        readOnly
+                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Due Dates */}
+                    <div className="flex-1">
+                      <label className="block text-gray-700 mb-2">Due Date</label>
+                      <input
+                        type="date"
+                        value={dueDate}
+                        readOnly
+                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Product Entry */}
@@ -637,6 +681,7 @@ const OrderTaking = () => {
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
                         <option value="">Select</option>
+                        <option value="Kg">Kg</option>
                         <option value="Piece">Piece</option>
                         <option value="Pet">Pet</option>
                         <option value="Box">Box</option>
