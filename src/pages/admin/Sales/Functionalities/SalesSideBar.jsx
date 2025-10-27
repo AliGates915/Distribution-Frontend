@@ -136,6 +136,11 @@ const reportsChildren = [
     label: "Customerwise Orders",
     icon: <FaUsers />,
   },
+    {
+    to: "/admin/report/daily-sales-report",
+    label: "Daily Sales Report",
+    icon: <FaCalendarAlt />,
+  },
 ];
 
 const SalesSidebar = () => {
