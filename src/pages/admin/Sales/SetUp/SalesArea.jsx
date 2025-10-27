@@ -1,71 +1,140 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import CommanHeader from "../../Components/CommanHeader";
-import { SquarePen, Trash2, Eye } from "lucide-react";
+import { SquarePen, Trash2 } from "lucide-react";
+import { api } from "../../../../context/ApiService";
+import TableSkeleton from "../../Components/Skeleton";
+import { ScaleLoader } from "react-spinners";
+import Swal from "sweetalert2";
 
 const AreaPage = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const sliderRef = useRef(null);
-
   const [areaData, setAreaData] = useState({
+    _id: "",
     areaName: "",
     areaDescription: "",
   });
+  const [isEditing, setIsEditing] = useState(false);
 
-  // ✅ Add dummy data here
-  const [areas, setAreas] = useState([
-    {
-      areaName: "Central Park",
-      areaDescription:
-        "A large public park in the city center, ideal for events.",
-    },
-    {
-      areaName: "Downtown Market",
-      areaDescription: "A busy shopping area with multiple stores and vendors.",
-    },
-    {
-      areaName: "Riverside Plaza",
-      areaDescription:
-        "A scenic area near the river, good for leisure activities.",
-    },
-    {
-      areaName: "Tech Hub",
-      areaDescription: "A business district with modern offices and startups.",
-    },
-    {
-      areaName: "Green Meadows",
-      areaDescription: "A peaceful area with gardens and walking paths.",
-    },
-  ]);
-
+  const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 5;
+  const recordsPerPage = 10;
   const totalPages = Math.ceil(areas.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = areas.slice(indexOfFirstRecord, indexOfLastRecord);
+  const [isSaving, setIsSaving] = useState(false);
 
+  // ✅ Fetch Sales Areas
+  const fetchSalesArea = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/sales-area");
+      setAreas(response); // ✅ fixed
+      console.log("Data", response);
+    } catch (error) {
+      console.error("Failed to fetch sales data", error);
+    } finally {
+      setLoading(false); // instead of setTimeout
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSalesArea();
+  }, [fetchSalesArea]);
+
+  // ✅ Submit Area
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setIsSaving(true); // start saving
+      // No need to set loading here; loader for table is separate
+
+      if (isEditing) {
+        await api.put(`/sales-area/${areaData._id}`, {
+          salesArea: areaData.areaName,
+          description: areaData.areaDescription,
+        });
+      } else {
+        await api.post("/sales-area", {
+          salesArea: areaData.areaName,
+          description: areaData.areaDescription,
+        });
+      }
+
+      await fetchSalesArea(); // refresh table
+      resetForm(); // close slider & reset form
+    } catch (error) {
+      console.error("Failed to save area", error);
+      alert("Error saving area. Please try again.");
+    } finally {
+      setIsSaving(false); // stop saving
+    }
+  };
+
+  // ✅ Delete Area
+  const handleDelete = async (areaId) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this area?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#1E93AB",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      customClass: { popup: "rounded-xl" },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setLoading(true);
+      await api.delete(`/sales-area/${areaId}`);
+      await fetchSalesArea();
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Area has been deleted successfully.",
+        confirmButtonColor: "#1E93AB",
+        customClass: { popup: "rounded-xl" },
+      });
+    } catch (error) {
+      console.error("Failed to delete area", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Delete Error",
+        html: "Failed to delete area. Please try again.",
+        confirmButtonText: "OK",
+        customClass: { popup: "rounded-xl" },
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Edit Area
+  const handleEditClick = (area) => {
+    setAreaData({
+      _id: area?._id,
+      areaName: area?.salesArea,
+      areaDescription: area?.description,
+    });
+    setIsEditing(true);
+    setIsSliderOpen(true); // no setTimeout needed
+  };
+
+  // ✅ Reset Form
   const resetForm = () => {
     setIsSliderOpen(false);
-    setAreaData({ areaName: "", areaDescription: "" });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setAreas((prev) => [...prev, areaData]);
-    resetForm();
-  };
-
-  const handleDelete = (index) => {
-    setAreas((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleEditClick = (index) => {
-    setAreaData(areas[index]);
-    setIsSliderOpen(true);
-    handleDelete(index);
+    setIsEditing(false);
+    setAreaData({ _id: "", areaName: "", areaDescription: "" });
   };
 
   return (
@@ -82,6 +151,7 @@ const AreaPage = () => {
           </button>
         </div>
 
+        {/* Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
@@ -91,42 +161,44 @@ const AreaPage = () => {
                   <div>SR#</div>
                   <div>Area Name</div>
                   <div>Area Description</div>
-                  <div className="text-right">Actions</div>
+                  <div className={`${loading ? "" : "text-right"}`}>
+                    Actions
+                  </div>
                 </div>
 
                 {/* Body */}
                 <div className="flex flex-col divide-y divide-gray-100">
-                  {areas.length === 0 ? (
+                  {loading ? (
+                    <TableSkeleton
+                      rows={areas.length > 0 ? areas.length : 5}
+                      cols={4}
+                      className="lg:grid-cols-[20px_1fr_3fr_1fr]"
+                    />
+                  ) : currentRecords.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No areas added yet.
                     </div>
                   ) : (
                     currentRecords.map((area, idx) => (
                       <div
-                        key={indexOfFirstRecord + idx}
+                        key={area._id}
                         className="grid grid-cols-1 lg:grid-cols-[20px_1fr_3fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
                         <div className="text-gray-600">
                           {indexOfFirstRecord + idx + 1}
                         </div>
-                        <div className="text-gray-600">{area.areaName}</div>
-                        <div className="text-gray-600">
-                          {area.areaDescription}
-                        </div>
+                        <div className="text-gray-600">{area?.salesArea}</div>
+                        <div className="text-gray-600">{area?.description}</div>
                         <div className="flex justify-end gap-3">
                           <button
-                            onClick={() =>
-                              handleEditClick(indexOfFirstRecord + idx)
-                            }
+                            onClick={() => handleEditClick(area)}
                             className="py-1 text-sm text-blue-600"
                             title="Edit"
                           >
                             <SquarePen size={18} />
                           </button>
                           <button
-                            onClick={() =>
-                              handleDelete(indexOfFirstRecord + idx)
-                            }
+                            onClick={() => handleDelete(area._id)}
                             className="py-1 text-sm text-red-600"
                             title="Delete"
                           >
@@ -183,15 +255,24 @@ const AreaPage = () => {
           </div>
         </div>
 
-        {/* Slider Form */}
+        {/* Add/Edit Slider */}
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[600px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="relative w-full md:w-[600px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
+              {/* Loader inside slider */}
+              {isSaving && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-50 rounded-2xl">
+                  <ScaleLoader color="#1E93AB" height={50} />
+                </div>
+              )}
+
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
-                <h2 className="text-xl font-bold text-newPrimary">Add Area</h2>
+                <h2 className="text-xl font-bold text-newPrimary">
+                  {isEditing ? "Edit Area" : "Add Area"}
+                </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
                   onClick={resetForm}
@@ -239,8 +320,9 @@ const AreaPage = () => {
                 <button
                   type="submit"
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80"
+                  disabled={isSaving}
                 >
-                  Save Area
+                  {isEditing ? "Update Area" : "Save Area"}
                 </button>
               </form>
             </div>
