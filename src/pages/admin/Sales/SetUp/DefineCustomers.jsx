@@ -26,13 +26,14 @@ const DefineCustomers = () => {
   const [gst, setGst] = useState("");
   const [openingBalanceDate, setOpeningBalanceDate] = useState(""); // Added opening balance date
   const [balanceReceived, setBalanceReceived] = useState(""); // Added balance received
-  const [creditTime, setCreditTime] = useState("");
+  const [creditTime, setCreditTime] = useState(30);
   const [creditLimit, setCreditLimit] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const [areaName, setAreaName] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -115,7 +116,7 @@ const DefineCustomers = () => {
     setOpeningBalanceDate(""); // Reset opening balance date
     setBalanceReceived(""); // Reset balance received
     setStatus(true);
-    setCreditTime("");
+    setCreditTime(30);
     setCreditLimit("");
   };
 
@@ -514,6 +515,24 @@ const DefineCustomers = () => {
             </div>
 
             <div className="space-y-4 p-4 md:p-6">
+              <div className="flex-1 w-[49%]">
+                <label className="block text-gray-700 font-medium">
+                  Area Name <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={areaName}
+                  required
+                  onChange={(e) => setAreaName(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Area</option>
+                  <option value="Central Park">Central Park</option>
+                  <option value="Downtown Market">Downtown Market</option>
+                  <option value="Riverside Plaza">Riverside Plaza</option>
+                  <option value="Tech Hub">Tech Hub</option>
+                  <option value="Green Meadows">Green Meadows</option>
+                </select>
+              </div>
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
@@ -694,15 +713,18 @@ const DefineCustomers = () => {
                 <div className="flex gap-4">
                   <div className="w-1/2">
                     <label className="block text-gray-700 font-medium">
-                      Credit Time Limit{" "}
+                      Credit Days Limit{" "}
                       <span className="text-newPrimary">*</span>
                     </label>
                     <input
                       type="number"
-                      value={creditTime}
-                      onChange={(e) => setCreditTime(e.target.value)}
+                      value={creditTime} // controlled input
+                      onChange={(e) =>
+                        setCreditTime(
+                          e.target.value === "" ? "" : Number(e.target.value)
+                        )
+                      }
                       className="w-full p-2 border rounded"
-                      placeholder="Enter time limit (days)"
                     />
                   </div>
                   <div className="w-1/2">

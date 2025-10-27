@@ -19,6 +19,7 @@ import {
   FaUserTie,
   FaUniversity,
   FaCashRegister,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
@@ -69,6 +70,11 @@ const salesChildren = [
 
 // setupChildren
 const setupChildren = [
+  {
+    to: "/admin/sales-area",
+    label: "Sales Area",
+    icon: <FaMapMarkerAlt />,
+  },
   {
     to: "/admin/list-of-items",
     label: "List Of Items",
