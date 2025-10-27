@@ -43,8 +43,9 @@ import ListOfItems from "./pages/admin/Sales/SetUp/ListOfItems.jsx";
 import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
 import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
 import EmployeeInformation from "./pages/admin/Sales/SetUp/EmployeeInformation.jsx";
+import SalesArea from "./pages/admin/Sales/SetUp/SalesArea.jsx";
 
-// =================== ACCOUNTS SECTION IMPORTS 
+// =================== ACCOUNTS SECTION IMPORTS
 
 import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
 import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
@@ -123,6 +124,7 @@ function AppContent() {
               path="vehicle-information"
               element={<VehicleInformation />}
             />
+            <Route path="sales-area" element={<SalesArea />} />
 
             {/* =================== PURCHASE SECTION =================== */}
 
@@ -199,7 +201,6 @@ function AppContent() {
         </Routes>
       </main>
       <Toaster position="top-right" autoClose={2000} />
-      
     </div>
   );
 }
