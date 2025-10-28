@@ -638,7 +638,7 @@ const DailySalesReport = () => {
                                       : "text-gray-700"
                                   }`}
                                 >
-                                  ${invoice.dueAmount.toLocaleString()}
+                                  {invoice.dueAmount.toLocaleString()}
                                 </span>
                               </label>
                             ))}
@@ -683,7 +683,7 @@ const DailySalesReport = () => {
                                         : "text-gray-700"
                                     }`}
                                   >
-                                    ${invoice.dueAmount.toLocaleString()}
+                                    {invoice.dueAmount.toLocaleString()}
                                   </span>
                                   <button
                                     type="button"
@@ -757,7 +757,7 @@ const DailySalesReport = () => {
                 >
                   {isSaving
                     ? "Saving..."
-                    : `Save Receivable for ${selectedInvoices.length} Invoice(s)`}
+                    : `Save Receivable `}
                 </button>
               </form>
             </div>
