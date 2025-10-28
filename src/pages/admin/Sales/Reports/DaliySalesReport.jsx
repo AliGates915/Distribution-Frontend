@@ -19,7 +19,8 @@ const DailySalesReport = () => {
   const recordsPerPage = 10;
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [paymentType, setPaymentType] = useState("Cash");
@@ -45,7 +46,12 @@ const DailySalesReport = () => {
     { customer: "Customer 02", total: 89000, received: 45000, balance: 44000 },
     { customer: "Customer 03", total: 60000, received: 80000, balance: -20000 },
     { customer: "Customer 04", total: 87000, received: 50000, balance: 37000 },
-    { customer: "Customer 05", total: 351000, received: 195000, balance: 156000 },
+    {
+      customer: "Customer 05",
+      total: 351000,
+      received: 195000,
+      balance: 156000,
+    },
   ];
 
   const staticRecoveries = [
@@ -78,9 +84,9 @@ const DailySalesReport = () => {
   // Handle individual checkbox change
   const handleInvoiceCheckboxChange = (invoiceId, isChecked) => {
     if (isChecked) {
-      setSelectedInvoices(prev => [...prev, invoiceId]);
+      setSelectedInvoices((prev) => [...prev, invoiceId]);
     } else {
-      setSelectedInvoices(prev => prev.filter(id => id !== invoiceId));
+      setSelectedInvoices((prev) => prev.filter((id) => id !== invoiceId));
     }
   };
 
@@ -88,8 +94,8 @@ const DailySalesReport = () => {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allInvoiceIds = staticInvoices
-        .filter(invoice => invoice.customerId === selectedCustomer)
-        .map(invoice => invoice._id);
+        .filter((invoice) => invoice.customerId === selectedCustomer)
+        .map((invoice) => invoice._id);
       setSelectedInvoices(allInvoiceIds);
     } else {
       setSelectedInvoices([]);
@@ -98,7 +104,7 @@ const DailySalesReport = () => {
 
   // Remove individual invoice from selection
   const removeInvoice = (invoiceId) => {
-    setSelectedInvoices(prev => prev.filter(id => id !== invoiceId));
+    setSelectedInvoices((prev) => prev.filter((id) => id !== invoiceId));
   };
 
   // Clear all selected invoices
@@ -109,10 +115,10 @@ const DailySalesReport = () => {
   // Calculate totals whenever selectedInvoices changes
   useEffect(() => {
     const totalDue = selectedInvoices.reduce((sum, invoiceId) => {
-      const invoice = staticInvoices.find(inv => inv._id === invoiceId);
+      const invoice = staticInvoices.find((inv) => inv._id === invoiceId);
       return sum + (invoice ? invoice.dueAmount : 0);
     }, 0);
-    
+
     setDueAmount(totalDue);
     setBalance(totalDue);
   }, [selectedInvoices]);
@@ -137,7 +143,11 @@ const DailySalesReport = () => {
     if (!id) return;
     try {
       setLoading(true);
-      setSalesmanList({ salesItems: staticSalesItems, paymentReceived: staticPaymentReceived, recoveries: staticRecoveries });
+      setSalesmanList({
+        salesItems: staticSalesItems,
+        paymentReceived: staticPaymentReceived,
+        recoveries: staticRecoveries,
+      });
     } catch (error) {
       console.error("Failed to fetch salesman list", error);
     } finally {
@@ -175,12 +185,12 @@ const DailySalesReport = () => {
 
   const handleSaveReceivable = async (e) => {
     e.preventDefault();
-    
+
     if (selectedInvoices.length === 0) {
       toast.error("Please select at least one invoice");
       return;
     }
-    
+
     if (!enterAmount || parseFloat(enterAmount) <= 0) {
       toast.error("Please enter a valid amount");
       return;
@@ -222,25 +232,42 @@ const DailySalesReport = () => {
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentSalesItems = salesmanList?.salesItems?.slice(indexOfFirstRecord, indexOfLastRecord) || [];
-  const currentPaymentReceived = salesmanList?.paymentReceived?.slice(indexOfFirstRecord, indexOfLastRecord) || [];
-  const currentRecoveries = salesmanList?.recoveries?.slice(indexOfFirstRecord, indexOfLastRecord) || [];
-  const totalPages = Math.ceil((salesmanList?.salesItems?.length || 0) / recordsPerPage);
+  const currentSalesItems =
+    salesmanList?.salesItems?.slice(indexOfFirstRecord, indexOfLastRecord) ||
+    [];
+  const currentPaymentReceived =
+    salesmanList?.paymentReceived?.slice(
+      indexOfFirstRecord,
+      indexOfLastRecord
+    ) || [];
+  const currentRecoveries =
+    salesmanList?.recoveries?.slice(indexOfFirstRecord, indexOfLastRecord) ||
+    [];
+  const totalPages = Math.ceil(
+    (salesmanList?.salesItems?.length || 0) / recordsPerPage
+  );
 
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedSalesman]);
 
   // Get filtered invoices for current customer
-  const filteredInvoices = staticInvoices.filter(invoice => invoice.customerId === selectedCustomer);
-  const allSelected = selectedCustomer && filteredInvoices.length > 0 && selectedInvoices.length === filteredInvoices.length;
+  const filteredInvoices = staticInvoices.filter(
+    (invoice) => invoice.customerId === selectedCustomer
+  );
+  const allSelected =
+    selectedCustomer &&
+    filteredInvoices.length > 0 &&
+    selectedInvoices.length === filteredInvoices.length;
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-newPrimary">Daily Sales Report</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Daily Sales Report
+          </h1>
           <button
             className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
             onClick={() => setIsSliderOpen(true)}
@@ -252,6 +279,18 @@ const DailySalesReport = () => {
           <div className="w-full">
             <div className="space-y-5">
               <div className="flex gap-5">
+                <div className="w-[400px]">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    required
+                  />
+                </div>
                 <div className="w-[400px]">
                   <label className="block text-gray-700 font-medium mb-2">
                     Salesman <span className="text-red-500">*</span>
@@ -284,18 +323,6 @@ const DailySalesReport = () => {
                     <option value="pending">Pending Orders</option>
                   </select>
                 </div>
-                <div className="w-[400px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    required
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -324,7 +351,10 @@ const DailySalesReport = () => {
                       ) : (
                         <>
                           {currentSalesItems.map((item, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition">
+                            <div
+                              key={index}
+                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                            >
                               <div>{item.item}</div>
                               <div>{item.rate.toLocaleString()}</div>
                               <div>{item.qty}</div>
@@ -333,11 +363,13 @@ const DailySalesReport = () => {
                           ))}
                           {/* Total Row with Colors */}
                           <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                            <div>Total</div>
+                            <div></div>
                             <div></div>
                             <div></div>
                             <div className="text-blue-800">
-                              {staticSalesItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                              Total: {staticSalesItems
+                                .reduce((sum, item) => sum + item.total, 0)
+                                .toLocaleString()}
                             </div>
                           </div>
                         </>
@@ -367,26 +399,50 @@ const DailySalesReport = () => {
                       ) : (
                         <>
                           {currentPaymentReceived.map((item, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition">
+                            <div
+                              key={index}
+                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                            >
                               <div>{item.customer}</div>
                               <div>{item.total.toLocaleString()}</div>
                               <div>{item.received.toLocaleString()}</div>
-                              <div className={item.balance < 0 ? 'text-red-600' : 'text-gray-700'}>
+                              <div
+                                className={
+                                  item.balance < 0
+                                    ? "text-red-600"
+                                    : "text-gray-700"
+                                }
+                              >
                                 {item.balance.toLocaleString()}
                               </div>
                             </div>
                           ))}
                           {/* Total Row with Colors */}
                           <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                            <div>Total</div>
+                            <div></div>
                             <div className="text-blue-600">
-                              {staticPaymentReceived.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                              Total: {staticPaymentReceived
+                                .reduce((sum, item) => sum + item.total, 0)
+                                .toLocaleString()}
                             </div>
                             <div className="text-green-600">
-                              {staticPaymentReceived.reduce((sum, item) => sum + item.received, 0).toLocaleString()}
+                              Total Rec: {staticPaymentReceived
+                                .reduce((sum, item) => sum + item.received, 0)
+                                .toLocaleString()}
                             </div>
-                            <div className={staticPaymentReceived.reduce((sum, item) => sum + item.balance, 0) < 0 ? 'text-red-600' : 'text-blue-800'}>
-                              {staticPaymentReceived.reduce((sum, item) => sum + item.balance, 0).toLocaleString()}
+                            <div
+                              className={
+                                staticPaymentReceived.reduce(
+                                  (sum, item) => sum + item.balance,
+                                  0
+                                ) < 0
+                                  ? "text-red-600"
+                                  : "text-blue-800"
+                              }
+                            >
+                              Total Bal: {staticPaymentReceived
+                                .reduce((sum, item) => sum + item.balance, 0)
+                                .toLocaleString()}
                             </div>
                           </div>
                         </>
@@ -416,7 +472,10 @@ const DailySalesReport = () => {
                       ) : (
                         <>
                           {currentRecoveries.map((item, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition">
+                            <div
+                              key={index}
+                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                            >
                               <div>{item.customer}</div>
                               <div>{item.due.toLocaleString()}</div>
                               <div>{item.invoices}</div>
@@ -425,13 +484,17 @@ const DailySalesReport = () => {
                           ))}
                           {/* Total Row with Colors */}
                           <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                            <div>Total</div>
+                            <div></div>
                             <div className="text-blue-600">
-                              {staticRecoveries.reduce((sum, item) => sum + item.due, 0).toLocaleString()}
+                              Total Due: {staticRecoveries
+                                .reduce((sum, item) => sum + item.due, 0)
+                                .toLocaleString()}
                             </div>
                             <div></div>
                             <div className="text-green-600">
-                              {staticRecoveries.reduce((sum, item) => sum + item.recovery, 0).toLocaleString()}
+                             Total Rec: {staticRecoveries
+                                .reduce((sum, item) => sum + item.recovery, 0)
+                                .toLocaleString()}
                             </div>
                           </div>
                         </>
@@ -445,7 +508,11 @@ const DailySalesReport = () => {
         </div>
 
         {isView && selectedOrder && (
-          <ViewModal type="dailySales" data={selectedOrder} onClose={() => setIsView(false)} />
+          <ViewModal
+            type="dailySales"
+            data={selectedOrder}
+            onClose={() => setIsView(false)}
+          />
         )}
 
         {isSliderOpen && (
@@ -457,7 +524,9 @@ const DailySalesReport = () => {
                 </div>
               )}
               <div className="flex justify-between items-center p-4 border-b bg-white rounded-t-2xl">
-                <h2 className="text-xl font-bold text-newPrimary">Add Receivable</h2>
+                <h2 className="text-xl font-bold text-newPrimary">
+                  Add Receivable
+                </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
                   onClick={resetForm}
@@ -495,7 +564,9 @@ const DailySalesReport = () => {
                 {(paymentType === "Cash" || paymentType === "Recovery") && (
                   <div className="space-y-4">
                     <div className="w-[400px]">
-                      <label className="block text-gray-700 mb-2">Select Customer</label>
+                      <label className="block text-gray-700 mb-2">
+                        Select Customer
+                      </label>
                       <select
                         value={selectedCustomer}
                         onChange={(e) => setSelectedCustomer(e.target.value)}
@@ -509,13 +580,14 @@ const DailySalesReport = () => {
                         ))}
                       </select>
                     </div>
-                    
+
                     {/* Checkbox-based Invoice Selection */}
                     {selectedCustomer && (
                       <div className="w-full border rounded-md p-4 bg-gray-50">
                         <div className="flex justify-between items-center mb-3">
                           <label className="block text-gray-700 font-medium mb-2">
-                            Select Invoice No. ({selectedInvoices.length} selected)
+                            Select Invoice No. ({selectedInvoices.length}{" "}
+                            selected)
                           </label>
                           {filteredInvoices.length > 0 && (
                             <label className="flex items-center text-sm text-gray-600">
@@ -529,7 +601,7 @@ const DailySalesReport = () => {
                             </label>
                           )}
                         </div>
-                        
+
                         {filteredInvoices.length === 0 ? (
                           <div className="text-center py-4 text-gray-500">
                             No invoices found for this customer.
@@ -544,13 +616,28 @@ const DailySalesReport = () => {
                                 <div className="flex items-center space-x-3">
                                   <input
                                     type="checkbox"
-                                    checked={selectedInvoices.includes(invoice._id)}
-                                    onChange={(e) => handleInvoiceCheckboxChange(invoice._id, e.target.checked)}
+                                    checked={selectedInvoices.includes(
+                                      invoice._id
+                                    )}
+                                    onChange={(e) =>
+                                      handleInvoiceCheckboxChange(
+                                        invoice._id,
+                                        e.target.checked
+                                      )
+                                    }
                                     className="rounded border-gray-300 text-newPrimary focus:ring-newPrimary"
                                   />
-                                  <span className="font-medium">{invoice._id}</span>
+                                  <span className="font-medium">
+                                    {invoice._id}
+                                  </span>
                                 </div>
-                                <span className={`font-medium ${invoice.dueAmount < 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                <span
+                                  className={`font-medium ${
+                                    invoice.dueAmount < 0
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                  }`}
+                                >
                                   ${invoice.dueAmount.toLocaleString()}
                                 </span>
                               </label>
@@ -564,7 +651,9 @@ const DailySalesReport = () => {
                     {selectedInvoices.length > 0 && (
                       <div className="border rounded-md p-3 bg-blue-50">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-blue-800">Selected Invoices ({selectedInvoices.length}):</span>
+                          <span className="font-medium text-blue-800">
+                            Selected Invoices ({selectedInvoices.length}):
+                          </span>
                           <button
                             type="button"
                             onClick={clearAllInvoices}
@@ -574,13 +663,26 @@ const DailySalesReport = () => {
                           </button>
                         </div>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
-                          {selectedInvoices.map(invoiceId => {
-                            const invoice = staticInvoices.find(inv => inv._id === invoiceId);
+                          {selectedInvoices.map((invoiceId) => {
+                            const invoice = staticInvoices.find(
+                              (inv) => inv._id === invoiceId
+                            );
                             return invoice ? (
-                              <div key={invoiceId} className="flex justify-between items-center bg-white p-2 rounded border">
-                                <span className="font-medium">{invoice._id}</span>
+                              <div
+                                key={invoiceId}
+                                className="flex justify-between items-center bg-white p-2 rounded border"
+                              >
+                                <span className="font-medium">
+                                  {invoice._id}
+                                </span>
                                 <div className="flex items-center space-x-2">
-                                  <span className={`font-medium ${invoice.dueAmount < 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                                  <span
+                                    className={`font-medium ${
+                                      invoice.dueAmount < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                    }`}
+                                  >
                                     ${invoice.dueAmount.toLocaleString()}
                                   </span>
                                   <button
@@ -600,7 +702,9 @@ const DailySalesReport = () => {
 
                     <div className="flex gap-4">
                       <div className="w-1/3">
-                        <label className="block text-gray-700 mb-2">Total Due Amount</label>
+                        <label className="block text-gray-700 mb-2">
+                          Total Due Amount
+                        </label>
                         <input
                           type="number"
                           value={dueAmount}
@@ -609,7 +713,9 @@ const DailySalesReport = () => {
                         />
                       </div>
                       <div className="w-1/3">
-                        <label className="block text-gray-700 mb-2">Balance</label>
+                        <label className="block text-gray-700 mb-2">
+                          Balance
+                        </label>
                         <input
                           type="number"
                           value={balance}
@@ -618,7 +724,9 @@ const DailySalesReport = () => {
                         />
                       </div>
                       <div className="w-1/3">
-                        <label className="block text-gray-700 mb-2">Enter Amount</label>
+                        <label className="block text-gray-700 mb-2">
+                          Enter Amount
+                        </label>
                         <input
                           type="number"
                           value={enterAmount}
@@ -629,7 +737,9 @@ const DailySalesReport = () => {
                       </div>
                     </div>
                     <div className="w-1/3">
-                      <label className="block text-gray-700 mb-2">New Balance</label>
+                      <label className="block text-gray-700 mb-2">
+                        New Balance
+                      </label>
                       <input
                         type="number"
                         value={newBalance}
@@ -645,7 +755,9 @@ const DailySalesReport = () => {
                   className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 disabled:opacity-50"
                   disabled={isSaving || selectedInvoices.length === 0}
                 >
-                  {isSaving ? "Saving..." : `Save Receivable for ${selectedInvoices.length} Invoice(s)`}
+                  {isSaving
+                    ? "Saving..."
+                    : `Save Receivable for ${selectedInvoices.length} Invoice(s)`}
                 </button>
               </form>
             </div>

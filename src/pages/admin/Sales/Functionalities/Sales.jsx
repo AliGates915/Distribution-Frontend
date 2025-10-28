@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../../../../context/ApiService";
-import { LedgerTemplate } from "../../../../helper/LedgerReportTemplate";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import html2canvas from "html2canvas";
