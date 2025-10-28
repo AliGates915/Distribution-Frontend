@@ -56,6 +56,7 @@ import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashReci
 import DateWiseRecovery from "./pages/admin/Accounts/Reports/DateWiseRecovery.jsx";
 import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.jsx";
 import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
+import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 
 import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
 import Sales from "./pages/admin/Sales/Functionalities/Sales.jsx";
@@ -99,7 +100,10 @@ function AppContent() {
               path="report/amount-receivable"
               element={<AmountReceivales />}
             />
-
+            <Route
+              path="report/daily-sales-report"
+              element={<DailySalesReport />}
+            />
             <Route path="report/customer-ledger" element={<CustomerLedger />} />
             <Route path="report/datewise-orders" element={<DateWiseOrder />} />
             <Route path="report/credit-aging" element={<CreditAgingReport />} />
