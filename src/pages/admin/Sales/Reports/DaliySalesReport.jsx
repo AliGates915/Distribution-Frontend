@@ -275,7 +275,7 @@ const DailySalesReport = () => {
             + Add Receivable
           </button>
         </div>
-        <div className="flex justify-start gap-96 w-full mt-4">
+        <div className="flex justify-start gap-[40rem] w-full mt-4">
           {/* ===== Left Section ===== */}
           <div className="flex flex-col space-y-2">
             {/* Salesman Field */}
@@ -286,7 +286,7 @@ const DailySalesReport = () => {
               <select
                 value={selectedSalesman}
                 onChange={(e) => setSelectedSalesman(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-newPrimary"
               >
                 <option value="">Select Salesman</option>
                 {salesman?.map((cust) => (
