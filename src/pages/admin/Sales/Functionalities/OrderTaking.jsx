@@ -95,7 +95,7 @@ const OrderTaking = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
       );
       setProductsList(res.data);
-      setUnitList(res.data || "");
+      
     } catch (error) {
       console.error("Failed to fetch Employees", error);
     } finally {
@@ -657,6 +657,7 @@ useEffect(() => {
                           );
                           setProduct(e.target.value);
                           setRate(selected?.price || "");
+                          setUnit(selected?.itemUnit|| "");
                           
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
@@ -678,7 +679,14 @@ useEffect(() => {
                     </div>
                     <div>
                       <label className="text-gray-700 text-sm">Unit</label>
-                      <select
+                      <input
+                        type="text"
+                        value={unit}
+                        disabled
+                      
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                      {/* <select
                         value={unit}
                         onChange={(e) => setUnit(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
@@ -688,7 +696,7 @@ useEffect(() => {
                           unitList?.map((un)=><option key={un._id || un.itemUnit} value={un.itemUnit}>{un.itemUnit}</option>)
                         }
                       
-                      </select>
+                      </select> */}
                     </div>
                     <div>
                       <label className="text-gray-700 text-sm">Rate</label>
