@@ -5,14 +5,13 @@ import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
-import { Eye } from "lucide-react";
 import ViewModal from "../../../../helper/ViewModel";
 import { ScaleLoader } from "react-spinners";
 import toast from "react-hot-toast";
 
 const DailySalesReport = () => {
   const [isView, setIsView] = useState(false);
-  const [mode , setMode] = useState("");
+  const [mode, setMode] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [salesman, setSalesman] = useState([]);
@@ -35,6 +34,9 @@ const DailySalesReport = () => {
   const [enterAmount, setEnterAmount] = useState("");
   const [newBalance, setNewBalance] = useState(0);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
+
+
+  const [customerId, setCustomerID] = useState("")
 
 
   const staticInvoices = [
@@ -91,8 +93,17 @@ const DailySalesReport = () => {
     try {
       setLoading(true);
       const response = await api.get(`/customers/isPending/${salesmanId}`);
-      setCustomersList(response.data || []); 
-      console.log({ customersList });
+      console.log("Resp ", response.data);
+
+      // 🧠 Ensure it’s always an array
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setCustomersList(data);
+      } else if (data && typeof data === "object") {
+        setCustomersList([data]); // wrap single object as array
+      } else {
+        setCustomersList([]);
+      }
     } catch (error) {
       console.error("❌ Failed to fetch customers by salesman:", error);
       toast.error("Failed to load customers for this salesman");
@@ -100,7 +111,7 @@ const DailySalesReport = () => {
       setLoading(false);
     }
   };
-  console.log({ customersList });
+
 
   // ✅ Fetch Orders for Selected Pending Customer
   const fetchOrdersByCustomer = async (customerId) => {
@@ -117,6 +128,13 @@ const DailySalesReport = () => {
   };
 
   useEffect(() => {
+    if (customersList.length === 1) {
+      setSelectedCustomer(customersList[0]._id);
+    }
+  }, [customersList]);
+
+
+  useEffect(() => {
     if (selectedCustomer) {
       fetchOrdersByCustomer(selectedCustomer);
     } else {
@@ -125,20 +143,21 @@ const DailySalesReport = () => {
   }, [selectedCustomer]);
 
   // ✅ Update balance when customer is selected
-useEffect(() => {
-  if (selectedCustomer) {
-    const foundCustomer = customersList.find(
-      (c) => c._id === selectedCustomer
-    );
-    console.log("✅ Found Customer:", foundCustomer); // check in console
-    setBalance(foundCustomer?.salesBalance);
-  } else {
-    setBalance(0);
-  }
-}, [selectedCustomer, customersList]);
+  useEffect(() => {
+    if (selectedCustomer) {
+      const foundCustomer = customersList.find(
+        (c) => c._id === selectedCustomer
+      );
+      setCustomerID(foundCustomer._id)
+      console.log("✅ Found Customer:", foundCustomer); // check in console
+      setBalance(foundCustomer?.salesBalance);
+    } else {
+      setBalance(0);
+    }
+  }, [selectedCustomer, customersList]);
 
 
-  console.log({ filteredInvoices });
+  // console.log("==== setCustomerID ===", customerId);
 
   // Fetching Salesman List
   const fetchSalesman = useCallback(async () => {
@@ -173,7 +192,7 @@ useEffect(() => {
     }
   }, [selectedSalesman]);
 
-  console.log({ PendingOrdersList });
+  // console.log({ PendingOrdersList });
 
   // ✅ Fetch Pending Orders Data (Sales Items, Payment Received, Recoveries)
   const fetchPendingOrderData = useCallback(async () => {
@@ -297,65 +316,65 @@ useEffect(() => {
     }
   }, [enterAmount, balance, paymentType]);
 
-//   const handleSaveReceivable = async (e) => {
-//     e.preventDefault();
+  const handleSaveReceivable = async (e) => {
+    e.preventDefault();
 
-//     if (!customer) {
-//       toast.error("Please fill all required fields");
-//       return;
-//     }
-//     setIsSaving(true);
-//     const payload = {
-//       customerId: customer,
-//       items: selectedInvoices.map((invoice) => ({
-//         invoiceId: invoice._id,
-//         amount: invoice.amount,
-//       })),
-//     };
-//  console.log({ payload });
-//  return;
-//     try {
-//       if (editingOrder) {
-//         // ✅ UPDATE EXISTING ORDER (PUT)
-//         await axios.put(
-//           `${import.meta.env.VITE_API_BASE_URL}/order-taker/${
-//             editingOrder._id
-//           }`,
-//           payload,
-//           headers // ✅ include token here
-//         );
+    // 🧩 Validation
+    if (!customerId || !paymentType || !enterAmount) {
+      toast.error("⚠️ Please fill all required fields before saving.");
+      return;
+    }
 
-//         Swal.fire({
-//           icon: "success",
-//           title: "Updated!",
-//           text: "Order updated successfully.",
-//           confirmButtonColor: "#3085d6",
-//         });
-//       } else {
-//         // ✅ CREATE NEW ORDER (POST)
-//         await axios.post(
-//           `${import.meta.env.VITE_API_BASE_URL}/order-taker`,
-//           payload,
-//           headers // ✅ include token here
-//         );
+    const payload = {
+      customerId,
+      mode: paymentType,
+      amount: enterAmount,
+    };
+    console.log("📦 Payload:", payload);
 
-//         Swal.fire({
-//           icon: "success",
-//           title: "Saved!",
-//           text: "Order saved successfully.",
-//           confirmButtonColor: "#3085d6",
-//         });
-//       }
+    const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+    const headers = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token}`,
+      },
+    };
 
-//       fetchOrderTaking(); // reload after success
-//       resetForm();
-//     } catch (error) {
-//       console.error("Error saving order:", error);
-//       toast.error(error.response?.data?.message || "Failed to save order");
-//     } finally {
-//       setIsSaving(false);
-//     }
-//   };
+    try {
+      setIsSaving(true); // start loader
+
+      // 🧠 API Call
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/order-taker/receivables/add`,
+        payload,
+        headers
+      );
+
+      // ✅ Success
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Receivable added successfully.",
+        confirmButtonColor: "#3085d6",
+      });
+
+      toast.success("💰 Receivable saved successfully!");
+
+      // Optionally reset fields
+      setEnterAmount("");
+      setPaymentType("");
+      resetForm();
+
+    } catch (error) {
+      console.error("❌ Error saving receivable:", error);
+      const message =
+        error.response?.data?.message ||
+        "Something went wrong while saving the receivable.";
+      toast.error(message);
+    } finally {
+      setIsSaving(false); // stop loader
+    }
+  };
+
 
   const resetForm = () => {
     setIsSliderOpen(false);
@@ -366,6 +385,7 @@ useEffect(() => {
     setEnterAmount("");
     setNewBalance(0);
     setPaymentType("Cash");
+
   };
   console.log({ salesmanList });
 
@@ -411,7 +431,7 @@ useEffect(() => {
                 return;
               }
               setIsSliderOpen(true);
-              fetchCustomersBySalesman(selectedSalesman); // ✅ new function call
+              fetchCustomersBySalesman(selectedSalesman);
             }}
           >
             + Add Receivable
@@ -729,24 +749,34 @@ useEffect(() => {
                 {/* Conditional Fields */}
                 {(paymentType === "Cash" || paymentType === "Recovery") && (
                   <div className="space-y-4">
-                    <div className="w-[400px]">
-                      <label className="block text-gray-700 mb-2">
-                        Select Customer
-                      </label>
-                      <select
-                        value={selectedCustomer}
-                        onChange={(e) => setSelectedCustomer(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md"
-                      >
-                        <option value="">Select Customer</option>
-                        {customersList?.map((cust) => (
-                          <option key={cust._id} value={cust._id}>
-                            {cust.customerName}
-                          </option>
-                        ))}
-                        console.log({ customersList });
-                      </select>
-                    </div>
+
+                    {/* ✅ If multiple customers -> show dropdown */}
+                    {customersList.length > 1 ? (
+                      <div className="w-[400px]">
+                        <label className="block text-gray-700 mb-2">Select Customer</label>
+                        <select
+                          value={selectedCustomer}
+                          onChange={(e) => setSelectedCustomer(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-md"
+                        >
+                          <option value="">Select Customer</option>
+                          {customersList.map((cust) => (
+                            <option key={cust._id} value={cust._id}>
+                              {cust.customerName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : customersList.length === 1 ? (
+                      // ✅ If only one customer, show directly
+                      <div className="w-[400px]">
+                        <label className="block text-gray-700 mb-2">Customer</label>
+                        <p className="p-3 border border-gray-300 rounded-md bg-gray-50">
+                          {customersList[0].customerName}
+                        </p>
+                      </div>
+                    ) : null}
+
 
                     {/* Checkbox-based Invoice Selection */}
                     {selectedCustomer && (
@@ -799,11 +829,10 @@ useEffect(() => {
                                   </span>
                                 </div>
                                 <span
-                                  className={`font-medium ${
-                                    invoice.totalAmount < 0
-                                      ? "text-red-600"
-                                      : "text-gray-700"
-                                  }`}
+                                  className={`font-medium ${invoice.totalAmount < 0
+                                    ? "text-red-600"
+                                    : "text-gray-700"
+                                    }`}
                                 >
                                   {invoice.totalAmount.toLocaleString()}
                                 </span>
@@ -844,11 +873,10 @@ useEffect(() => {
                                 </span>
                                 <div className="flex items-center space-x-2">
                                   <span
-                                    className={`font-medium ${
-                                      invoice.dueAmount < 0
-                                        ? "text-red-600"
-                                        : "text-gray-700"
-                                    }`}
+                                    className={`font-medium ${invoice.dueAmount < 0
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                      }`}
                                   >
                                     {invoice.dueAmount.toLocaleString()}
                                   </span>
@@ -920,7 +948,6 @@ useEffect(() => {
                 <button
                   type="submit"
                   className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 "
-                  disabled={isSaving || selectedInvoices.length === 0}
                 >
                   {isSaving ? "Saving..." : `Save Receivable `}
                 </button>
