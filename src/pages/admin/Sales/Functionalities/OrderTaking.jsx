@@ -33,6 +33,7 @@ const OrderTaking = () => {
   const [product, setProduct] = useState("");
   const [qty, setQty] = useState("");
   const [unit, setUnit] = useState("");
+  const [unitList, setUnitList] = useState([]);
   const [rate, setRate] = useState("");
   const [total, setTotal] = useState("");
   const [items, setItems] = useState([]);
@@ -94,6 +95,7 @@ const OrderTaking = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
       );
       setProductsList(res.data);
+      setUnitList(res.data || "");
     } catch (error) {
       console.error("Failed to fetch Employees", error);
     } finally {
@@ -216,7 +218,7 @@ useEffect(() => {
         totalAmount: Number(it.total),
       })),
     };
-
+ 
     try {
       if (editingOrder) {
         // ✅ UPDATE EXISTING ORDER (PUT)
@@ -362,7 +364,7 @@ useEffect(() => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
-  console.log({ customersList });
+  console.log({ productsList });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -490,7 +492,7 @@ useEffect(() => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full min-h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -655,6 +657,7 @@ useEffect(() => {
                           );
                           setProduct(e.target.value);
                           setRate(selected?.price || "");
+                          
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
@@ -681,10 +684,10 @@ useEffect(() => {
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
                         <option value="">Select</option>
-                        <option value="Kg">Kg</option>
-                        <option value="Piece">Piece</option>
-                        <option value="Pet">Pet</option>
-                        <option value="Box">Box</option>
+                        {
+                          unitList?.map((un)=><option key={un._id || un.itemUnit} value={un.itemUnit}>{un.itemUnit}</option>)
+                        }
+                      
                       </select>
                     </div>
                     <div>

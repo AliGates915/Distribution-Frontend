@@ -275,55 +275,56 @@ const DailySalesReport = () => {
             + Add Receivable
           </button>
         </div>
-        <div className="flex gap-6">
-          <div className="w-full">
-            <div className="space-y-5">
-              <div className="flex gap-5">
-                <div className="w-[400px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    required
-                  />
-                </div>
-                <div className="w-[400px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Salesman <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedSalesman}
-                    onChange={(e) => setSelectedSalesman(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    required
-                  >
-                    <option value="">Select Salesman</option>
-                    {salesman?.map((cust) => (
-                      <option key={cust._id} value={cust._id}>
-                        {cust.employeeName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="w-[400px]">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Orders <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedOrders}
-                    onChange={(e) => setSelectedOrders(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    required
-                  >
-                    <option value="">Select Orders</option>
-                    <option value="pending">Pending Orders</option>
-                  </select>
-                </div>
-              </div>
+        <div className="flex justify-start gap-96 w-full mt-4">
+          {/* ===== Left Section ===== */}
+          <div className="flex flex-col space-y-0">
+            {/* Salesman Field */}
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Salesman <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Salesman</option>
+                {salesman?.map((cust) => (
+                  <option key={cust._id} value={cust._id}>
+                    {cust.employeeName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Field */}
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
+          </div>
+
+          {/* ===== Right Section ===== */}
+          <div className="flex flex-col justify-start">
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Orders <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedOrders}
+                onChange={(e) => setSelectedOrders(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Orders</option>
+                <option value="pending">Pending Orders</option>
+              </select>
             </div>
           </div>
         </div>
@@ -367,7 +368,8 @@ const DailySalesReport = () => {
                             <div></div>
                             <div></div>
                             <div className="text-blue-800">
-                              Total: {staticSalesItems
+                              Total:{" "}
+                              {staticSalesItems
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
@@ -421,12 +423,14 @@ const DailySalesReport = () => {
                           <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
                             <div></div>
                             <div className="text-blue-600">
-                              Total: {staticPaymentReceived
+                              Total:{" "}
+                              {staticPaymentReceived
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
                             <div className="text-green-600">
-                              Total Rec: {staticPaymentReceived
+                              Total Rec:{" "}
+                              {staticPaymentReceived
                                 .reduce((sum, item) => sum + item.received, 0)
                                 .toLocaleString()}
                             </div>
@@ -440,7 +444,8 @@ const DailySalesReport = () => {
                                   : "text-blue-800"
                               }
                             >
-                              Total Bal: {staticPaymentReceived
+                              Total Bal:{" "}
+                              {staticPaymentReceived
                                 .reduce((sum, item) => sum + item.balance, 0)
                                 .toLocaleString()}
                             </div>
@@ -486,13 +491,15 @@ const DailySalesReport = () => {
                           <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
                             <div></div>
                             <div className="text-blue-600">
-                              Total Due: {staticRecoveries
+                              Total Due:{" "}
+                              {staticRecoveries
                                 .reduce((sum, item) => sum + item.due, 0)
                                 .toLocaleString()}
                             </div>
                             <div></div>
                             <div className="text-green-600">
-                             Total Rec: {staticRecoveries
+                              Total Rec:{" "}
+                              {staticRecoveries
                                 .reduce((sum, item) => sum + item.recovery, 0)
                                 .toLocaleString()}
                             </div>
@@ -755,9 +762,7 @@ const DailySalesReport = () => {
                   className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 disabled:opacity-50"
                   disabled={isSaving || selectedInvoices.length === 0}
                 >
-                  {isSaving
-                    ? "Saving..."
-                    : `Save Receivable `}
+                  {isSaving ? "Saving..." : `Save Receivable `}
                 </button>
               </form>
             </div>
