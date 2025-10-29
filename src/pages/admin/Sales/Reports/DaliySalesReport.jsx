@@ -275,7 +275,7 @@ const DailySalesReport = () => {
             + Add Receivable
           </button>
         </div>
-        <div className="flex justify-start gap-96 w-full mt-4">
+        <div className="flex justify-start gap-[40rem] w-full mt-4">
           {/* ===== Left Section ===== */}
           <div className="flex flex-col space-y-2">
             {/* Salesman Field */}
