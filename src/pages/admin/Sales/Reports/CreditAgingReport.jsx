@@ -20,6 +20,7 @@ const CreditAgingReport = () => {
       setLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/credit-aging`);
       
+
       if (response.data.success) {
         setApiData(response.data.data);
         setTotals(response.data.totals);
@@ -66,7 +67,7 @@ const CreditAgingReport = () => {
             <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1500px] w-full align-middle">
                 {/* Header */}
-                <div className="hidden lg:grid grid-cols-[0.3fr_1.5fr_1fr_1fr_0.7fr_0.7fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div className="hidden lg:grid grid-cols-11 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>SR</div>
                   <div>Customer</div>
                   <div>Invoice No</div>
@@ -88,7 +89,7 @@ const CreditAgingReport = () => {
                     apiData.map((row, idx) => (
                       <div
                         key={idx}
-                        className="grid grid-cols-[0.3fr_1.5fr_1fr_1fr_0.7fr_0.7fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
+                        className="grid grid-cols-11 items-center gap-6 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
                       >
                         <div>{idx + 1}</div>
                         <div>{row.customerName}</div>
@@ -120,7 +121,7 @@ const CreditAgingReport = () => {
                 </div>
 
                 {/* Totals Row */}
-                <div className="grid grid-cols-[0.3fr_1.5fr_1fr_1fr_0.7fr_0.7fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                <div className="grid grid-cols-11 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
                   <div></div>
                   <div></div>
                   <div></div>

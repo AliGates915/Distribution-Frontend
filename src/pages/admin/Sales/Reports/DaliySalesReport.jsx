@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
+import axios from "axios";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import { Eye } from "lucide-react";
@@ -11,6 +12,7 @@ import toast from "react-hot-toast";
 
 const DailySalesReport = () => {
   const [isView, setIsView] = useState(false);
+  const [mode , setMode] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [salesman, setSalesman] = useState([]);
@@ -89,7 +91,8 @@ const DailySalesReport = () => {
     try {
       setLoading(true);
       const response = await api.get(`/customers/isPending/${salesmanId}`);
-      setCustomersList(response.data || []); // ✅ update customer dropdown
+      setCustomersList(response.data || []); 
+      console.log({ customersList });
     } catch (error) {
       console.error("❌ Failed to fetch customers by salesman:", error);
       toast.error("Failed to load customers for this salesman");
@@ -294,41 +297,65 @@ useEffect(() => {
     }
   }, [enterAmount, balance, paymentType]);
 
-  const handleSaveReceivable = async (e) => {
-    e.preventDefault();
+//   const handleSaveReceivable = async (e) => {
+//     e.preventDefault();
 
-    if (selectedInvoices.length === 0) {
-      toast.error("Please select at least one invoice");
-      return;
-    }
+//     if (!customer) {
+//       toast.error("Please fill all required fields");
+//       return;
+//     }
+//     setIsSaving(true);
+//     const payload = {
+//       customerId: customer,
+//       items: selectedInvoices.map((invoice) => ({
+//         invoiceId: invoice._id,
+//         amount: invoice.amount,
+//       })),
+//     };
+//  console.log({ payload });
+//  return;
+//     try {
+//       if (editingOrder) {
+//         // ✅ UPDATE EXISTING ORDER (PUT)
+//         await axios.put(
+//           `${import.meta.env.VITE_API_BASE_URL}/order-taker/${
+//             editingOrder._id
+//           }`,
+//           payload,
+//           headers // ✅ include token here
+//         );
 
-    if (!enterAmount || parseFloat(enterAmount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
+//         Swal.fire({
+//           icon: "success",
+//           title: "Updated!",
+//           text: "Order updated successfully.",
+//           confirmButtonColor: "#3085d6",
+//         });
+//       } else {
+//         // ✅ CREATE NEW ORDER (POST)
+//         await axios.post(
+//           `${import.meta.env.VITE_API_BASE_URL}/order-taker`,
+//           payload,
+//           headers // ✅ include token here
+//         );
 
-    setIsSaving(true);
-    try {
-      Swal.fire({
-        icon: "success",
-        title: "Saved!",
-        text: `Receivable saved for ${selectedInvoices.length} invoice(s) successfully.`,
-        confirmButtonColor: "#3085d6",
-      });
-      setIsSliderOpen(false);
-      setSelectedCustomer("");
-      setSelectedInvoices([]);
-      setDueAmount(0);
-      setBalance(0);
-      setEnterAmount("");
-      setNewBalance(0);
-    } catch (error) {
-      console.error("Error saving receivable:", error);
-      toast.error("Failed to save receivable");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+//         Swal.fire({
+//           icon: "success",
+//           title: "Saved!",
+//           text: "Order saved successfully.",
+//           confirmButtonColor: "#3085d6",
+//         });
+//       }
+
+//       fetchOrderTaking(); // reload after success
+//       resetForm();
+//     } catch (error) {
+//       console.error("Error saving order:", error);
+//       toast.error(error.response?.data?.message || "Failed to save order");
+//     } finally {
+//       setIsSaving(false);
+//     }
+//   };
 
   const resetForm = () => {
     setIsSliderOpen(false);
@@ -717,6 +744,7 @@ useEffect(() => {
                             {cust.customerName}
                           </option>
                         ))}
+                        console.log({ customersList });
                       </select>
                     </div>
 
