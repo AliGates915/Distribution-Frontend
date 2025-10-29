@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../../../../context/ApiService";
+import axios from "axios";
 import { LedgerTemplate } from "../../../../helper/LedgerReportTemplate";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
@@ -10,8 +11,7 @@ const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
-  const today = new Date().toISOString().split("T")[0];
-  const [date, setDate] = useState(today);
+  const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,47 +19,66 @@ const CustomerLedger = () => {
   const ledgerRef = useRef(null);
   const recordsPerPage = 10;
 
-  // ✅ Fetch Customer List
-  const fetchCustomerList = useCallback(async () => {
+  // 1. FETCH CUSTOMERS LIST
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/customers");
-      setCustomerList(response);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/customers/isPending`
+      );
+      setCustomerList(response.data?.data || response.data || []);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
+      Swal.fire("Error", "Failed to load customers", "error");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ✅ Fetch Ledger by Customer and Date Range
-  const fetchLedgerEntries = useCallback(async () => {
-    if (!selectedCustomer) return;
+  // 2. FETCH CUSTOMER LEDGER ENTRIES (uses From & To directly)
+  const fetchCustomerLedger = useCallback(async () => {
+    if (!selectedCustomer || !dateFrom || !dateTo) return;
 
     try {
       setLoading(true);
-      let query = `/customer-ledger?customer=${selectedCustomer}`;
+      const query = `/customer-ledger?customer=${selectedCustomer}&from=${dateFrom}&to=${dateTo}`;
 
       const response = await api.get(query);
 
-      setLedgerEntries(response.data?.data || response.data || []);
+      // Transform: Paid → Debit, Received → Credit
+      const transformedData = (response.data?.data || response.data || []).map(entry => ({
+        ...entry,
+        Debit: entry.Paid || "0.00",
+        Credit: entry.Received || "0.00",
+        SR: entry.SR,
+        ID: entry.ID,
+        Date: entry.Date,
+        CustomerName: entry.CustomerName,
+        Description: entry.Description,
+        Balance: entry.Balance
+      }));
+
+      setLedgerEntries(transformedData);
     } catch (error) {
       console.error("Failed to fetch ledger entries:", error);
+      Swal.fire("Error", "Failed to load ledger entries", "error");
     } finally {
       setLoading(false);
     }
-  }, [selectedCustomer]);
+  }, [selectedCustomer, dateFrom, dateTo]);
 
+  // INITIAL LOAD
   useEffect(() => {
-    fetchCustomerList();
-  }, [fetchCustomerList]);
+    fetchCustomers();
+  }, [fetchCustomers]);
 
+  // REFETCH LEDGER when filters change
   useEffect(() => {
-    fetchLedgerEntries();
+    fetchCustomerLedger();
     setCurrentPage(1);
-  }, [selectedCustomer, fetchLedgerEntries]);
+  }, [fetchCustomerLedger]);
 
-  // ✅ PDF Download
+  // PDF Download
   const handleDownloadReport = async () => {
     if (!ledgerEntries.length) {
       Swal.fire("No Data", "No ledger data available to download.", "info");
@@ -85,7 +104,21 @@ const CustomerLedger = () => {
     }
   };
 
-  // ✅ Pagination
+  // Calculate totals
+  const totalDebit = ledgerEntries.reduce(
+    (sum, entry) => sum + (parseFloat(entry.Debit) || 0),
+    0
+  );
+  const totalCredit = ledgerEntries.reduce(
+    (sum, entry) => sum + (parseFloat(entry.Credit) || 0),
+    0
+  );
+  const totalBalance = ledgerEntries.reduce(
+    (sum, entry) => sum + (parseFloat(entry.Balance) || 0),
+    0
+  );
+
+  // Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = ledgerEntries.slice(
@@ -114,20 +147,12 @@ const CustomerLedger = () => {
           )}
         </div>
 
-        {/* 🔹 Filters */}
+        {/* Filters - Only Customer + From + To */}
         <div className="flex flex-wrap gap-5 mb-6">
-          <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            />
-          </div>
+          {/* 1. Customer Selection */}
           <div className="w-[300px]">
             <label className="block text-gray-700 font-medium mb-2">
-              Customer
+              Customer Name *
             </label>
             <select
               value={selectedCustomer}
@@ -142,15 +167,45 @@ const CustomerLedger = () => {
               ))}
             </select>
           </div>
+
+          {/* 2. From Date */}
+          <div className="w-[200px]">
+            <label className="block text-gray-700 font-medium mb-2">
+              Date From
+            </label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
+
+          {/* 3. To Date */}
+          <div className="w-[200px]">
+            <label className="block text-gray-700 font-medium mb-2">
+              Date To
+            </label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
         </div>
 
-        {/* 🔹 Ledger Table */}
+        {/* Ledger Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           {loading ? (
             <div className="text-center py-6 text-gray-500">Loading...</div>
           ) : !selectedCustomer ? (
             <div className="text-center py-6 text-gray-500">
               Please select a customer to view ledger entries.
+            </div>
+          ) : !dateFrom || !dateTo ? (
+            <div className="text-center py-6 text-gray-500">
+              Please select both From and To dates.
             </div>
           ) : ledgerEntries.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
@@ -189,31 +244,13 @@ const CustomerLedger = () => {
               <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
                 <div className="text-red-600">
-                  Total Debit:{" "}
-                  {Math.round(
-                    ledgerEntries.reduce(
-                      (sum, e) => sum + (parseFloat(e.Debit) || 0),
-                      0
-                    )
-                  )}
+                  Total Debit: {totalDebit.toLocaleString()}
                 </div>
                 <div className="text-green-600">
-                  Total Credit:{" "}
-                  {Math.round(
-                    ledgerEntries.reduce(
-                      (sum, e) => sum + (parseFloat(e.Credit) || 0),
-                      0
-                    )
-                  )}
+                  Total Credit: {totalCredit.toLocaleString()}
                 </div>
                 <div className="text-blue-600">
-                  Total Balance:{" "}
-                  {Math.round(
-                    ledgerEntries.reduce(
-                      (sum, e) => sum + (parseFloat(e.Balance) || 0),
-                      0
-                    )
-                  )}
+                  Total Balance: {totalBalance.toLocaleString()}
                 </div>
               </div>
             </>
