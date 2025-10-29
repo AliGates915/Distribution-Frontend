@@ -286,7 +286,7 @@ const DailySalesReport = () => {
               <select
                 value={selectedSalesman}
                 onChange={(e) => setSelectedSalesman(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-newPrimary"
               >
                 <option value="">Select Salesman</option>
                 {salesman?.map((cust) => (
