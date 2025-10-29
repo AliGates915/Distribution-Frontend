@@ -122,7 +122,8 @@ const DailySalesReport = () => {
     setDueAmount(totalDue);
     setBalance(totalDue);
   }, [selectedInvoices]);
-
+  
+// Fetching Salesman List
   const fetchSalesman = useCallback(async () => {
     try {
       setLoading(true);
