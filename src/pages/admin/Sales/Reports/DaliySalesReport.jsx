@@ -277,7 +277,7 @@ const DailySalesReport = () => {
         </div>
         <div className="flex justify-start gap-96 w-full mt-4">
           {/* ===== Left Section ===== */}
-          <div className="flex flex-col space-y-0">
+          <div className="flex flex-col space-y-2">
             {/* Salesman Field */}
             <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
