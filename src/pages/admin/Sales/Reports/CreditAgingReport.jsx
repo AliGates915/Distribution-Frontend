@@ -6,104 +6,49 @@ import toast from "react-hot-toast";
 
 const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
+  const [apiData, setApiData] = useState([]);
+  const [totals, setTotals] = useState({
+    totalDebit: 0,
+    totalCredit: 0,
+    totalUnderCredit: 0,
+    totalDue: 0,
+    totalOutstanding: 0
+  });
 
-  const fetchSalesmenOptions = useCallback(async () => {
+  const fetchCreditAging = useCallback(async () => {
     try {
       setLoading(true);
-      await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employees/orders`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/credit-aging`);
+      
+      if (response.data.success) {
+        setApiData(response.data.data);
+        setTotals(response.data.totals);
+        console.log("Credit Aging Data:", response.data.data);  
+        toast.success("Credit aging data loaded successfully");
+      } else {
+        throw new Error(response.data.message || "Failed to fetch data");
+      }
+      
     } catch (error) {
-      console.error("Failed to fetch salesmen:", error);
-      toast.error("Using static data (no API connected)");
+      console.error("Failed to fetch credit aging data:", error);
+      toast.error("Failed to load data from API");
+      // Clear any previous data on error
+      setApiData([]);
+      setTotals({
+        totalDebit: 0,
+        totalCredit: 0,
+        totalUnderCredit: 0,
+        totalDue: 0,
+        totalOutstanding: 0
+      });
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchSalesmenOptions();
-  }, [fetchSalesmenOptions]);
-
-  // ✅ Static data with "Outstanding" column added
-  const staticData = [
-    {
-      sr: 1,
-      customer: "280030 - Mani Somsyewala (Youhna Abad)",
-      invoiceNo: "7207",
-      deliveryDate: "10-09-2025",
-      allowDays: 30,
-      billDays: 45,
-      debit: 246900,
-      credit: 78180,
-      underCredit: 0,
-      due: 168720,
-      outstanding: 168720,
-    },
-    {
-      sr: 2,
-      customer: "280030 - Mani Somsyewala (Youhna Abad)",
-      invoiceNo: "7216",
-      deliveryDate: "16-09-2025",
-      allowDays: 30,
-      billDays: 39,
-      debit: 490800,
-      credit: 80000,
-      underCredit: 0,
-      due: 410800,
-      outstanding: 410800,
-    },
-    {
-      sr: 3,
-      customer: "280030 - Mani Somsyewala (Youhna Abad)",
-      invoiceNo: "7642",
-      deliveryDate: "15-10-2025",
-      allowDays: 30,
-      billDays: 10,
-      debit: 246900,
-      credit: 0,
-      underCredit: 246900,
-      due: 0,
-      outstanding: 246900,
-    },
-    {
-      sr: 4,
-      customer: "280037 - Mahar St (Walton Work Shop)",
-      invoiceNo: "4172",
-      deliveryDate: "15-07-2025",
-      allowDays: 30,
-      billDays: 20,
-      debit: 248000,
-      credit: 200000,
-      underCredit: 0,
-      due: 48000,
-      outstanding: 48000,
-    },
-    {
-      sr: 5,
-      customer: "280037 - Mahar St (Walton Work Shop)",
-      invoiceNo: "7915",
-      deliveryDate: "13-08-2025",
-      allowDays: 30,
-      billDays: 60,
-      debit: 248000,
-      credit: 0,
-      underCredit: 0,
-      due: 248000,
-      outstanding: 248000,
-    },
-  ];
-
-  // ✅ Totals calculation
-  const totalDebit = staticData.reduce((sum, d) => sum + d.debit, 0);
-  const totalCredit = staticData.reduce((sum, d) => sum + d.credit, 0);
-  const totalUnderCredit = staticData.reduce(
-    (sum, d) => sum + d.underCredit,
-    0
-  );
-  const totalDue = staticData.reduce((sum, d) => sum + d.due, 0);
-  const totalOutstanding = staticData.reduce(
-    (sum, d) => sum + d.outstanding,
-    0
-  );
+    fetchCreditAging();
+  }, [fetchCreditAging]);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -139,14 +84,14 @@ const CreditAgingReport = () => {
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
                     <TableSkeleton rows={5} cols={11} />
-                  ) : (
-                    staticData.map((row, idx) => (
+                  ) : apiData.length > 0 ? (
+                    apiData.map((row, idx) => (
                       <div
                         key={idx}
                         className="grid grid-cols-[0.3fr_1.5fr_1fr_1fr_0.7fr_0.7fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
                       >
-                        <div>{row.sr}</div>
-                        <div>{row.customer}</div>
+                        <div>{idx + 1}</div>
+                        <div>{row.customerName}</div>
                         <div>{row.invoiceNo}</div>
                         <div>{row.deliveryDate}</div>
                         <div>{row.allowDays}</div>
@@ -159,13 +104,18 @@ const CreditAgingReport = () => {
                             : "-"}
                         </div>
                         <div className={`$ px-2 py-1 rounded`}>
-                          {row.due > 0 ? row.due.toLocaleString() : "-"}
+                         {row.due?.toLocaleString()}
                         </div>
                         <div className="text-blue-600 font-semibold">
                           {row.outstanding.toLocaleString()}
                         </div>
                       </div>
                     ))
+                  ) : (
+                    // Show empty state when no data
+                    <div className="px-6 py-8 text-center text-gray-500">
+                      No credit aging data available
+                    </div>
                   )}
                 </div>
 
@@ -178,19 +128,19 @@ const CreditAgingReport = () => {
                   <div></div>
                   <div></div>
                   <div className="text-blue-600">
-                    Total Deb: {totalDebit.toLocaleString()}
+                    Total Deb: {totals.totalDebit.toLocaleString()}
                   </div>
                   <div className="text-green-600">
-                    Total Cred: {totalCredit.toLocaleString()}
+                    Total Cred: {totals.totalCredit.toLocaleString()}
                   </div>
                   <div className="text-orange-600">
-                    Total Under Cred: {totalUnderCredit.toLocaleString()}
+                    Total Under Cred: {totals.totalUnderCredit.toLocaleString()}
                   </div>
                   <div className="text-red-600">
-                    Total Due: {totalDue.toLocaleString()}
+                    Total Due: {totals.totalDue.toLocaleString()}
                   </div>
                   <div className="text-blue-800">
-                    Total Outstand: {totalOutstanding.toLocaleString()}
+                    Total Outstand: {totals.totalOutstanding.toLocaleString()}
                   </div>
                 </div>
               </div>
