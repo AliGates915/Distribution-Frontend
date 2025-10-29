@@ -19,6 +19,7 @@ const DailySalesReport = () => {
   const recordsPerPage = 10;
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
+  const [PendingOrdersList, setPeningOrdersList] = useState([]);
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -122,8 +123,8 @@ const DailySalesReport = () => {
     setDueAmount(totalDue);
     setBalance(totalDue);
   }, [selectedInvoices]);
-  
-// Fetching Salesman List
+
+  // Fetching Salesman List
   const fetchSalesman = useCallback(async () => {
     try {
       setLoading(true);
@@ -140,6 +141,128 @@ const DailySalesReport = () => {
     fetchSalesman();
   }, [fetchSalesman]);
 
+  // Fetch Pening Orders List
+  const fetchPendingOrdersList = useCallback(async () => {
+    if (!selectedSalesman) return;
+    try {
+      setLoading(true);
+      const response = await api.get(
+        `/order-taker/salesman/${selectedSalesman}`
+      );
+      setPeningOrdersList(response?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch salesman list", error);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  }, [selectedSalesman]);
+
+  console.log({ PendingOrdersList });
+
+  // ✅ Fetch Pending Orders Data (Sales Items, Payment Received, Recoveries)
+  const fetchPendingOrderData = useCallback(async () => {
+    if (!selectedSalesman) return;
+    try {
+      setLoading(true);
+      const response = await api.get(
+        `/order-taker/pending/salesman/${selectedSalesman}`
+      );
+      setSalesmanList({
+        salesItems: response.salesItems || [],
+        paymentReceived: response.paymentReceived || [],
+        recoveries: response.recoveries || [],
+      });
+    } catch (error) {
+      console.error("❌ Failed to fetch pending order data:", error);
+      toast.error("Failed to load pending order data");
+    } finally {
+        setTimeout(() => setLoading(false), 2000);
+    }
+  }, [selectedSalesman]);
+
+  useEffect(() => {
+    if (selectedSalesman) {
+      fetchPendingOrdersList(); // for dropdown
+      fetchPendingOrderData(); // for table data
+    }
+  }, [selectedSalesman, fetchPendingOrdersList, fetchPendingOrderData]);
+
+  // ✅ Fetch Table Data Based on Selected Order
+const fetchOrderBasedData = useCallback(async () => {
+  console.log({selectedOrders});
+  
+  if (!selectedOrders) return;
+  try {
+    setLoading(true);
+    const response = await api.get(`/order-taker/pending/order/${selectedOrders}`);
+    console.log({ response });
+      setSalesmanList({
+        salesItems: response.salesItems || [],
+        paymentReceived: response.paymentReceived || [],
+        recoveries: response.recoveries || [],
+      });
+  } catch (error) {
+    console.error("❌ Failed to fetch order-based data:", error);
+    toast.error("Failed to load order data");
+  } finally {
+     setTimeout(() => setLoading(false), 2000);
+  }
+}, [selectedOrders]);
+
+useEffect(() => {
+  if (selectedOrders) {
+    fetchOrderBasedData();
+  }
+}, [selectedOrders, fetchOrderBasedData]);
+
+
+// 🔄 Refetch Pending Orders when date changes
+useEffect(() => {
+  if (selectedSalesman && selectedDate) {
+    const fetchDatewisePendingOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(
+          `/order-taker/salesman/${selectedSalesman}?date=${selectedDate}`
+        );
+        setPeningOrdersList(response?.data || []);
+      } catch (error) {
+        console.error("❌ Failed to fetch datewise pending orders:", error);
+      } finally {
+        setTimeout(() => setLoading(false), 2000);
+      }
+    };
+    fetchDatewisePendingOrders();
+  }
+}, [selectedSalesman, selectedDate]);
+
+// 🔄 Fetch All Pending Orders (with Sales Items & Payments) when date changes
+useEffect(() => {
+  if (selectedSalesman && selectedDate) {
+    const fetchPendingOrdersWithDate = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(
+          `/order-taker/pending/salesman/${selectedSalesman}?date=${selectedDate}`
+        );
+        setSalesmanList({
+          salesItems: response.salesItems || [],
+          paymentReceived: response.paymentReceived || [],
+          recoveries: response.recoveries || [],
+        });
+      } catch (error) {
+        console.error("❌ Failed to fetch all pending orders with date:", error);
+      } finally {
+        setTimeout(() => setLoading(false), 2000);
+       
+      }
+    };
+    fetchPendingOrdersWithDate();
+  }
+}, [selectedSalesman, selectedDate]);
+
+
+
   const fetchSalesmanList = useCallback(async (id) => {
     if (!id) return;
     try {
@@ -155,12 +278,6 @@ const DailySalesReport = () => {
       setTimeout(() => setLoading(false), 2000);
     }
   }, []);
-
-  useEffect(() => {
-    if (selectedSalesman) {
-      fetchSalesmanList(selectedSalesman);
-    }
-  }, [selectedSalesman, fetchSalesmanList]);
 
   useEffect(() => {
     setCustomersList(staticCustomers);
@@ -230,6 +347,7 @@ const DailySalesReport = () => {
     setNewBalance(0);
     setPaymentType("Cash");
   };
+  console.log({ salesmanList });
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -306,6 +424,7 @@ const DailySalesReport = () => {
               <input
                 type="date"
                 value={selectedDate}
+                 max={today}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               />
@@ -324,7 +443,11 @@ const DailySalesReport = () => {
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               >
                 <option value="">Select Orders</option>
-                <option value="pending">Pending Orders</option>
+                {PendingOrdersList?.map((order) => (
+                  <option key={order._id} value={order.orderId}>
+                    {order.orderId}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -357,10 +480,10 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.item}</div>
-                              <div>{item.rate.toLocaleString()}</div>
-                              <div>{item.qty}</div>
-                              <div>{item.total.toLocaleString()}</div>
+                              <div>{item?.itemName || "-"}</div>
+                              <div>{item?.rate || "-"}</div>
+                              <div>{item?.qty || "-"}</div>
+                              <div>{item?.total || "-"}</div>
                             </div>
                           ))}
                           {/* Total Row with Colors */}
@@ -370,7 +493,7 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-800">
                               Total:{" "}
-                              {staticSalesItems
+                              {currentSalesItems
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
@@ -406,9 +529,9 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.customer}</div>
-                              <div>{item.total.toLocaleString()}</div>
-                              <div>{item.received.toLocaleString()}</div>
+                              <div>{item?.customerName}</div>
+                              <div>{item?.total || "-"}</div>
+                              <div>{item?.received}</div>
                               <div
                                 className={
                                   item.balance < 0
@@ -416,7 +539,7 @@ const DailySalesReport = () => {
                                     : "text-gray-700"
                                 }
                               >
-                                {item.balance.toLocaleString()}
+                                {item.balance || "-"}
                               </div>
                             </div>
                           ))}
@@ -425,19 +548,19 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-600">
                               Total:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
                             <div className="text-green-600">
                               Total Rec:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.received, 0)
                                 .toLocaleString()}
                             </div>
                             <div
                               className={
-                                staticPaymentReceived.reduce(
+                                currentPaymentReceived.reduce(
                                   (sum, item) => sum + item.balance,
                                   0
                                 ) < 0
@@ -446,7 +569,7 @@ const DailySalesReport = () => {
                               }
                             >
                               Total Bal:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.balance, 0)
                                 .toLocaleString()}
                             </div>
@@ -482,10 +605,10 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.customer}</div>
-                              <div>{item.due.toLocaleString()}</div>
-                              <div>{item.invoices}</div>
-                              <div>{item.recovery.toLocaleString()}</div>
+                              <div>{item?.customerName}</div>
+                              <div>{item?.dueRecovery || "-"}</div>
+                              <div>{item?.invoiceNo}</div>
+                              <div>{item?.recovery || "-"}</div>
                             </div>
                           ))}
                           {/* Total Row with Colors */}
@@ -493,17 +616,17 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-600">
                               Total Due:{" "}
-                              {staticRecoveries
-                                .reduce((sum, item) => sum + item.due, 0)
+                              {currentRecoveries
+                                .reduce((sum, item) => sum + item.dueRecovery, 0)
                                 .toLocaleString()}
                             </div>
                             <div></div>
-                            <div className="text-green-600">
+                            {/* <div className="text-green-600">
                               Total Rec:{" "}
-                              {staticRecoveries
+                              {currentRecoveries
                                 .reduce((sum, item) => sum + item.recovery, 0)
-                                .toLocaleString()}
-                            </div>
+                                .toLocaleString() || "-"}
+                            </div> */}
                           </div>
                         </>
                       )}
