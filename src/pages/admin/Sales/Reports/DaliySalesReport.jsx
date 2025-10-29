@@ -19,6 +19,7 @@ const DailySalesReport = () => {
   const recordsPerPage = 10;
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
+  const [PendingOrdersList, setPeningOrdersList] = useState([]);
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -31,45 +32,8 @@ const DailySalesReport = () => {
   const [balance, setBalance] = useState(0);
   const [enterAmount, setEnterAmount] = useState("");
   const [newBalance, setNewBalance] = useState(0);
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
 
-  // Static data based on the image
-  const staticSalesItems = [
-    { item: "Item 01", rate: 3000, qty: 2, total: 6000 },
-    { item: "Item 02", rate: 4000, qty: 5, total: 20000 },
-    { item: "Item 03", rate: 5000, qty: 10, total: 50000 },
-    { item: "Item 04", rate: 6000, qty: 20, total: 120000 },
-    { item: "Item 05", rate: 7000, qty: 30, total: 210000 },
-  ];
-
-  const staticPaymentReceived = [
-    { customer: "Customer 01", total: 50000, received: 20000, balance: 30000 },
-    { customer: "Customer 02", total: 89000, received: 45000, balance: 44000 },
-    { customer: "Customer 03", total: 60000, received: 80000, balance: -20000 },
-    { customer: "Customer 04", total: 87000, received: 50000, balance: 37000 },
-    {
-      customer: "Customer 05",
-      total: 351000,
-      received: 195000,
-      balance: 156000,
-    },
-  ];
-
-  const staticRecoveries = [
-    { customer: "Customer 01", due: 150000, invoices: 44.67, recovery: 150000 },
-    { customer: "Customer 02", due: 350000, invoices: 34.98, recovery: 200000 },
-    { customer: "Customer 03", due: 600000, invoices: 65.78, recovery: 60000 },
-    { customer: "Customer 04", due: 200000, invoices: 102.13, recovery: 20000 },
-    { customer: "Customer 05", due: 180000, invoices: 112, recovery: 50000 },
-  ];
-
-  // Static customers and invoices for demo
-  const staticCustomers = [
-    { _id: "1", customerName: "Customer 01" },
-    { _id: "2", customerName: "Customer 02" },
-    { _id: "3", customerName: "Customer 03" },
-    { _id: "4", customerName: "Customer 04" },
-    { _id: "5", customerName: "Customer 05" },
-  ];
 
   const staticInvoices = [
     { _id: "INV-001", customerId: "1", dueAmount: 30000 },
@@ -93,9 +57,7 @@ const DailySalesReport = () => {
   // Select all/deselect all functionality
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      const allInvoiceIds = staticInvoices
-        .filter((invoice) => invoice.customerId === selectedCustomer)
-        .map((invoice) => invoice._id);
+      const allInvoiceIds = filteredInvoices.map((inv) => inv.orderId);
       setSelectedInvoices(allInvoiceIds);
     } else {
       setSelectedInvoices([]);
@@ -115,15 +77,67 @@ const DailySalesReport = () => {
   // Calculate totals whenever selectedInvoices changes
   useEffect(() => {
     const totalDue = selectedInvoices.reduce((sum, invoiceId) => {
-      const invoice = staticInvoices.find((inv) => inv._id === invoiceId);
-      return sum + (invoice ? invoice.dueAmount : 0);
+      const invoice = filteredInvoices.find((inv) => inv.orderId === invoiceId);
+      return sum + (invoice ? invoice.totalAmount : 0);
     }, 0);
 
     setDueAmount(totalDue);
-    setBalance(totalDue);
   }, [selectedInvoices]);
-  
-// Fetching Salesman List
+
+  // Fetching customer List
+  const fetchCustomersBySalesman = async (salesmanId) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/customers/isPending/${salesmanId}`);
+      setCustomersList(response.data || []); // ✅ update customer dropdown
+    } catch (error) {
+      console.error("❌ Failed to fetch customers by salesman:", error);
+      toast.error("Failed to load customers for this salesman");
+    } finally {
+      setLoading(false);
+    }
+  };
+  console.log({ customersList });
+
+  // ✅ Fetch Orders for Selected Pending Customer
+  const fetchOrdersByCustomer = async (customerId) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/order-taker/pending/${customerId}`);
+      setFilteredInvoices(response.data || []); // populate invoice list dynamically
+    } catch (error) {
+      console.error("❌ Failed to fetch orders by pending customer:", error);
+      toast.error("Failed to load pending orders");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCustomer) {
+      fetchOrdersByCustomer(selectedCustomer);
+    } else {
+      setFilteredInvoices([]);
+    }
+  }, [selectedCustomer]);
+
+  // ✅ Update balance when customer is selected
+useEffect(() => {
+  if (selectedCustomer) {
+    const foundCustomer = customersList.find(
+      (c) => c._id === selectedCustomer
+    );
+    console.log("✅ Found Customer:", foundCustomer); // check in console
+    setBalance(foundCustomer?.salesBalance);
+  } else {
+    setBalance(0);
+  }
+}, [selectedCustomer, customersList]);
+
+
+  console.log({ filteredInvoices });
+
+  // Fetching Salesman List
   const fetchSalesman = useCallback(async () => {
     try {
       setLoading(true);
@@ -140,37 +154,133 @@ const DailySalesReport = () => {
     fetchSalesman();
   }, [fetchSalesman]);
 
-  const fetchSalesmanList = useCallback(async (id) => {
-    if (!id) return;
+  // Fetch Pening Orders List
+  const fetchPendingOrdersList = useCallback(async () => {
+    if (!selectedSalesman) return;
     try {
       setLoading(true);
-      setSalesmanList({
-        salesItems: staticSalesItems,
-        paymentReceived: staticPaymentReceived,
-        recoveries: staticRecoveries,
-      });
+      const response = await api.get(
+        `/order-taker/salesman/${selectedSalesman}`
+      );
+      setPeningOrdersList(response?.data || []);
     } catch (error) {
       console.error("Failed to fetch salesman list", error);
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
-  }, []);
+  }, [selectedSalesman]);
+
+  console.log({ PendingOrdersList });
+
+  // ✅ Fetch Pending Orders Data (Sales Items, Payment Received, Recoveries)
+  const fetchPendingOrderData = useCallback(async () => {
+    if (!selectedSalesman) return;
+    try {
+      setLoading(true);
+      const response = await api.get(
+        `/order-taker/pending/salesman/${selectedSalesman}`
+      );
+      setSalesmanList({
+        salesItems: response.salesItems || [],
+        paymentReceived: response.paymentReceived || [],
+        recoveries: response.recoveries || [],
+      });
+    } catch (error) {
+      console.error("❌ Failed to fetch pending order data:", error);
+      toast.error("Failed to load pending order data");
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  }, [selectedSalesman]);
 
   useEffect(() => {
     if (selectedSalesman) {
-      fetchSalesmanList(selectedSalesman);
+      fetchPendingOrdersList(); // for dropdown
+      fetchPendingOrderData(); // for table data
     }
-  }, [selectedSalesman, fetchSalesmanList]);
+  }, [selectedSalesman, fetchPendingOrdersList, fetchPendingOrderData]);
+
+  // ✅ Fetch Table Data Based on Selected Order
+  const fetchOrderBasedData = useCallback(async () => {
+    console.log({ selectedOrders });
+
+    if (!selectedOrders) return;
+    try {
+      setLoading(true);
+      const response = await api.get(
+        `/order-taker/pending/order/${selectedOrders}`
+      );
+      console.log({ response });
+      setSalesmanList({
+        salesItems: response.salesItems || [],
+        paymentReceived: response.paymentReceived || [],
+        recoveries: response.recoveries || [],
+      });
+    } catch (error) {
+      console.error("❌ Failed to fetch order-based data:", error);
+      toast.error("Failed to load order data");
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  }, [selectedOrders]);
 
   useEffect(() => {
-    setCustomersList(staticCustomers);
-  }, []);
+    if (selectedOrders) {
+      fetchOrderBasedData();
+    }
+  }, [selectedOrders, fetchOrderBasedData]);
+
+  // 🔄 Refetch Pending Orders when date changes
+  useEffect(() => {
+    if (selectedSalesman && selectedDate) {
+      const fetchDatewisePendingOrders = async () => {
+        try {
+          setLoading(true);
+          const response = await api.get(
+            `/order-taker/salesman/${selectedSalesman}?date=${selectedDate}`
+          );
+          setPeningOrdersList(response?.data || []);
+        } catch (error) {
+          console.error("❌ Failed to fetch datewise pending orders:", error);
+        } finally {
+          setTimeout(() => setLoading(false), 2000);
+        }
+      };
+      fetchDatewisePendingOrders();
+    }
+  }, [selectedSalesman, selectedDate]);
+
+  // 🔄 Fetch All Pending Orders (with Sales Items & Payments) when date changes
+  useEffect(() => {
+    if (selectedSalesman && selectedDate) {
+      const fetchPendingOrdersWithDate = async () => {
+        try {
+          setLoading(true);
+          const response = await api.get(
+            `/order-taker/pending/salesman/${selectedSalesman}?date=${selectedDate}`
+          );
+          setSalesmanList({
+            salesItems: response.salesItems || [],
+            paymentReceived: response.paymentReceived || [],
+            recoveries: response.recoveries || [],
+          });
+        } catch (error) {
+          console.error(
+            "❌ Failed to fetch all pending orders with date:",
+            error
+          );
+        } finally {
+          setTimeout(() => setLoading(false), 2000);
+        }
+      };
+      fetchPendingOrdersWithDate();
+    }
+  }, [selectedSalesman, selectedDate]);
 
   // Reset invoices when customer changes
   useEffect(() => {
     setSelectedInvoices([]);
     setDueAmount(0);
-    setBalance(0);
     setEnterAmount("");
     setNewBalance(0);
   }, [selectedCustomer]);
@@ -230,6 +340,7 @@ const DailySalesReport = () => {
     setNewBalance(0);
     setPaymentType("Cash");
   };
+  console.log({ salesmanList });
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -252,10 +363,6 @@ const DailySalesReport = () => {
     setCurrentPage(1);
   }, [selectedSalesman]);
 
-  // Get filtered invoices for current customer
-  const filteredInvoices = staticInvoices.filter(
-    (invoice) => invoice.customerId === selectedCustomer
-  );
   const allSelected =
     selectedCustomer &&
     filteredInvoices.length > 0 &&
@@ -271,7 +378,14 @@ const DailySalesReport = () => {
           </h1>
           <button
             className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-            onClick={() => setIsSliderOpen(true)}
+            onClick={() => {
+              if (!selectedSalesman) {
+                toast.error("Please select a salesman first");
+                return;
+              }
+              setIsSliderOpen(true);
+              fetchCustomersBySalesman(selectedSalesman); // ✅ new function call
+            }}
           >
             + Add Receivable
           </button>
@@ -306,6 +420,7 @@ const DailySalesReport = () => {
               <input
                 type="date"
                 value={selectedDate}
+                max={today}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               />
@@ -324,7 +439,11 @@ const DailySalesReport = () => {
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               >
                 <option value="">Select Orders</option>
-                <option value="pending">Pending Orders</option>
+                {PendingOrdersList?.map((order) => (
+                  <option key={order._id} value={order.orderId}>
+                    {order.orderId}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -345,7 +464,10 @@ const DailySalesReport = () => {
                     </div>
                     <div className="flex flex-col divide-y divide-gray-100">
                       {loading ? (
-                        <TableSkeleton rows={5} cols={4} />
+                        <TableSkeleton
+                          rows={currentSalesItems.length || 5}
+                          cols={4}
+                        />
                       ) : currentSalesItems.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 bg-white">
                           No records found.
@@ -357,10 +479,10 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.item}</div>
-                              <div>{item.rate.toLocaleString()}</div>
-                              <div>{item.qty}</div>
-                              <div>{item.total.toLocaleString()}</div>
+                              <div>{item?.itemName || "-"}</div>
+                              <div>{item?.rate || "-"}</div>
+                              <div>{item?.qty || "-"}</div>
+                              <div>{item?.total || "-"}</div>
                             </div>
                           ))}
                           {/* Total Row with Colors */}
@@ -370,7 +492,7 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-800">
                               Total:{" "}
-                              {staticSalesItems
+                              {currentSalesItems
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
@@ -394,7 +516,10 @@ const DailySalesReport = () => {
                     </div>
                     <div className="flex flex-col divide-y divide-gray-100">
                       {loading ? (
-                        <TableSkeleton rows={5} cols={4} />
+                        <TableSkeleton
+                          rows={currentPaymentReceived.length || 5}
+                          cols={4}
+                        />
                       ) : currentPaymentReceived.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 bg-white">
                           No records found.
@@ -406,9 +531,9 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.customer}</div>
-                              <div>{item.total.toLocaleString()}</div>
-                              <div>{item.received.toLocaleString()}</div>
+                              <div>{item?.customerName}</div>
+                              <div>{item?.total || "-"}</div>
+                              <div>{item?.received}</div>
                               <div
                                 className={
                                   item.balance < 0
@@ -416,7 +541,7 @@ const DailySalesReport = () => {
                                     : "text-gray-700"
                                 }
                               >
-                                {item.balance.toLocaleString()}
+                                {item.balance || "-"}
                               </div>
                             </div>
                           ))}
@@ -425,19 +550,19 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-600">
                               Total:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.total, 0)
                                 .toLocaleString()}
                             </div>
                             <div className="text-green-600">
                               Total Rec:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.received, 0)
                                 .toLocaleString()}
                             </div>
                             <div
                               className={
-                                staticPaymentReceived.reduce(
+                                currentPaymentReceived.reduce(
                                   (sum, item) => sum + item.balance,
                                   0
                                 ) < 0
@@ -446,7 +571,7 @@ const DailySalesReport = () => {
                               }
                             >
                               Total Bal:{" "}
-                              {staticPaymentReceived
+                              {currentPaymentReceived
                                 .reduce((sum, item) => sum + item.balance, 0)
                                 .toLocaleString()}
                             </div>
@@ -470,7 +595,10 @@ const DailySalesReport = () => {
                     </div>
                     <div className="flex flex-col divide-y divide-gray-100">
                       {loading ? (
-                        <TableSkeleton rows={5} cols={4} />
+                        <TableSkeleton
+                          rows={currentRecoveries.length || 5}
+                          cols={4}
+                        />
                       ) : currentRecoveries.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 bg-white">
                           No records found.
@@ -482,10 +610,10 @@ const DailySalesReport = () => {
                               key={index}
                               className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
-                              <div>{item.customer}</div>
-                              <div>{item.due.toLocaleString()}</div>
-                              <div>{item.invoices}</div>
-                              <div>{item.recovery.toLocaleString()}</div>
+                              <div>{item?.customerName}</div>
+                              <div>{item?.dueRecovery || "-"}</div>
+                              <div>{item?.invoiceNo}</div>
+                              <div>{item?.recovery || "-"}</div>
                             </div>
                           ))}
                           {/* Total Row with Colors */}
@@ -493,17 +621,20 @@ const DailySalesReport = () => {
                             <div></div>
                             <div className="text-blue-600">
                               Total Due:{" "}
-                              {staticRecoveries
-                                .reduce((sum, item) => sum + item.due, 0)
+                              {currentRecoveries
+                                .reduce(
+                                  (sum, item) => sum + item.dueRecovery,
+                                  0
+                                )
                                 .toLocaleString()}
                             </div>
                             <div></div>
-                            <div className="text-green-600">
+                            {/* <div className="text-green-600">
                               Total Rec:{" "}
-                              {staticRecoveries
+                              {currentRecoveries
                                 .reduce((sum, item) => sum + item.recovery, 0)
-                                .toLocaleString()}
-                            </div>
+                                .toLocaleString() || "-"}
+                            </div> */}
                           </div>
                         </>
                       )}
@@ -526,8 +657,8 @@ const DailySalesReport = () => {
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
-              {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              {loading && (
+                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -581,7 +712,7 @@ const DailySalesReport = () => {
                         className="w-full p-3 border border-gray-300 rounded-md"
                       >
                         <option value="">Select Customer</option>
-                        {staticCustomers.map((cust) => (
+                        {customersList?.map((cust) => (
                           <option key={cust._id} value={cust._id}>
                             {cust.customerName}
                           </option>
@@ -616,37 +747,37 @@ const DailySalesReport = () => {
                           </div>
                         ) : (
                           <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {filteredInvoices.map((invoice) => (
+                            {filteredInvoices.map((invoice, idx) => (
                               <label
-                                key={invoice._id}
+                                key={idx}
                                 className="flex items-center justify-between p-3 bg-white rounded border hover:bg-gray-50 cursor-pointer"
                               >
                                 <div className="flex items-center space-x-3">
                                   <input
                                     type="checkbox"
                                     checked={selectedInvoices.includes(
-                                      invoice._id
+                                      invoice.orderId
                                     )}
                                     onChange={(e) =>
                                       handleInvoiceCheckboxChange(
-                                        invoice._id,
+                                        invoice.orderId,
                                         e.target.checked
                                       )
                                     }
                                     className="rounded border-gray-300 text-newPrimary focus:ring-newPrimary"
                                   />
                                   <span className="font-medium">
-                                    {invoice._id}
+                                    {invoice.orderId}
                                   </span>
                                 </div>
                                 <span
                                   className={`font-medium ${
-                                    invoice.dueAmount < 0
+                                    invoice.totalAmount < 0
                                       ? "text-red-600"
                                       : "text-gray-700"
                                   }`}
                                 >
-                                  {invoice.dueAmount.toLocaleString()}
+                                  {invoice.totalAmount.toLocaleString()}
                                 </span>
                               </label>
                             ))}
@@ -725,7 +856,7 @@ const DailySalesReport = () => {
                           Balance
                         </label>
                         <input
-                          type="number"
+                          type="text"
                           value={balance}
                           readOnly
                           className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
@@ -760,7 +891,7 @@ const DailySalesReport = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 disabled:opacity-50"
+                  className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 "
                   disabled={isSaving || selectedInvoices.length === 0}
                 >
                   {isSaving ? "Saving..." : `Save Receivable `}
