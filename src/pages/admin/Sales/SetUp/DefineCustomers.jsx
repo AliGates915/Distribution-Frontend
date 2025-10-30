@@ -34,6 +34,7 @@ const DefineCustomers = () => {
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [areaName, setAreaName] = useState("");
+  const [areaNameList, setAreaNameList] = useState([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -97,6 +98,22 @@ const DefineCustomers = () => {
     fetchCustomersList();
   }, [fetchCustomersList]);
 
+   const fetchSalesAreaList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/sales-area`);
+      setAreaNameList(res.data);
+    } catch (error) {
+      console.error("Failed to fetch Customers", error);
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSalesAreaList();
+  }, [fetchSalesAreaList]);
+
   // Handlers
   const handleAddCustomer = () => {
     setIsSliderOpen(true);
@@ -145,6 +162,7 @@ const DefineCustomers = () => {
     setIsSaving(true);
 
     const formData = {
+      salesArea: areaName,
       customerName,
       email,
       contactPerson,
@@ -159,8 +177,10 @@ const DefineCustomers = () => {
       creditLimit: paymentTerms === "Credit" ? creditLimit : undefined,
       status: "Pending",
       openingBalanceDate,
-      balance: balanceReceived,
+      salesBalance: balanceReceived,
     };
+console.log({formData});
+
 
     try {
       const { token } = userInfo || {};
@@ -207,6 +227,7 @@ const DefineCustomers = () => {
   const handleEdit = (customer) => {
     setIsEdit(true);
     setEditId(customer._id);
+    setAreaName(customer.salesArea || "");
     setCustomerName(customer.customerName);
     setContactPerson(customer.contactPerson);
     setEmail(customer.email);
@@ -222,7 +243,7 @@ const DefineCustomers = () => {
       : "";
     setOpeningBalanceDate(formattedDate);
 
-    setBalanceReceived(customer.balance || ""); // Added balance received
+    setBalanceReceived(customer.salesBalance || ""); // Added balance received
     setPaymentTerms(customer.paymentTerms || "");
     setCreditTime(customer.creditTime || "");
     setCreditLimit(customer.creditLimit || "");
@@ -344,7 +365,7 @@ const DefineCustomers = () => {
                       <div className="text-gray-600">{c.contactPerson}</div>
                       <div className="text-gray-600">{c.designation}</div>
                       <div className="text-gray-600">{c.mobileNumber}</div>
-                      <div className="text-gray-600">{c.balance || "0"}</div>
+                      <div className="text-gray-600">{c.salesBalance || "0"}</div>
                       <div className="font-semibold">
                         {c.status ? (
                           <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
@@ -526,11 +547,11 @@ const DefineCustomers = () => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Area</option>
-                  <option value="Central Park">Central Park</option>
-                  <option value="Downtown Market">Downtown Market</option>
-                  <option value="Riverside Plaza">Riverside Plaza</option>
-                  <option value="Tech Hub">Tech Hub</option>
-                  <option value="Green Meadows">Green Meadows</option>
+                 {
+                  areaNameList.map((area)=> (
+                    <option key={area._id} value={area._id}>{area.salesArea}</option>
+                  ))
+                 }
                 </select>
               </div>
               <div className="flex gap-4">

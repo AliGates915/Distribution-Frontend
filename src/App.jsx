@@ -61,6 +61,10 @@ import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
 import Sales from "./pages/admin/Sales/Functionalities/Sales.jsx";
 import CreditAgingReport from "./pages/admin/Sales/Reports/CreditAgingReport.jsx";
+import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
+import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
+import ManufactureList from "./pages/admin/Sales/SetUp/ManufacturerList.jsx";
+import ShelveLocationList from "./pages/admin/Sales/SetUp/ShelveLoactionList.jsx";
 
 function AppContent() {
   return (
@@ -123,6 +127,10 @@ function AppContent() {
             />
             {/* setup */}
             <Route path="define-customers" element={<DefineCustomers />} />
+            <Route path="item-category" element={<ItemCategory />} />
+            <Route path="item-type" element={<ItemType />} />
+            <Route path="manufacture" element={<ManufactureList />} />
+            <Route path="shelve-location" element={<ShelveLocationList />} />
             <Route path="list-of-items" element={<ListOfItems />} />
             <Route
               path="employee-information"

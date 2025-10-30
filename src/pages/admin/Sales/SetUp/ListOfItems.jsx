@@ -127,7 +127,7 @@ const ListOfItems = () => {
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
     try {
-      setLoading(true);
+      setIsSaving(true);
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/categories`
       );
@@ -135,7 +135,7 @@ const ListOfItems = () => {
     } catch (error) {
       console.error("Failed to fetch categories", error);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setTimeout(() => setIsSaving(false), 1000);
     }
   }, []);
   useEffect(() => {
@@ -696,7 +696,7 @@ const ListOfItems = () => {
             className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
             {isSaving && (
-              <div className="absolute h-[155vh] inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              <div className="absolute h-full inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" height={60} />
               </div>
             )}

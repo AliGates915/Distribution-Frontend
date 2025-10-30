@@ -105,7 +105,7 @@ const DailySalesReport = () => {
         setCustomersList([]);
       }
     } catch (error) {
-      console.error("❌ Failed to fetch customers by salesman:", error);
+      console.error(" Failed to fetch customers by salesman:", error);
       toast.error("Failed to load customers for this salesman");
     } finally {
        setTimeout(() => setLoading(false), 2000);
@@ -120,7 +120,7 @@ const DailySalesReport = () => {
       const response = await api.get(`/order-taker/pending/${customerId}`);
       setFilteredInvoices(response.data || []); // populate invoice list dynamically
     } catch (error) {
-      console.error("❌ Failed to fetch orders by pending customer:", error);
+      console.error(" Failed to fetch orders by pending customer:", error);
       toast.error("Failed to load pending orders");
     } finally {
        setTimeout(() => setLoading(false), 2000);
@@ -208,7 +208,7 @@ console.log({filteredInvoices});
         recoveries: response.recoveries || [],
       });
     } catch (error) {
-      console.error("❌ Failed to fetch pending order data:", error);
+      console.error(" Failed to fetch pending order data:", error);
       toast.error("Failed to load pending order data");
     } finally {
       setTimeout(() => setLoading(false), 2000);
@@ -239,7 +239,7 @@ console.log({filteredInvoices});
         recoveries: response.recoveries || [],
       });
     } catch (error) {
-      console.error("❌ Failed to fetch order-based data:", error);
+      console.error(" Failed to fetch order-based data:", error);
       toast.error("Failed to load order data");
     } finally {
       setTimeout(() => setLoading(false), 2000);
@@ -263,7 +263,7 @@ console.log({filteredInvoices});
           );
           setPeningOrdersList(response?.data || []);
         } catch (error) {
-          console.error("❌ Failed to fetch datewise pending orders:", error);
+          console.error(" Failed to fetch datewise pending orders:", error);
         } finally {
           setTimeout(() => setLoading(false), 2000);
         }
@@ -288,7 +288,7 @@ console.log({filteredInvoices});
           });
         } catch (error) {
           console.error(
-            "❌ Failed to fetch all pending orders with date:",
+            " Failed to fetch all pending orders with date:",
             error
           );
         } finally {
@@ -321,11 +321,12 @@ console.log({filteredInvoices});
 
     // 🧩 Validation
     if (!customerId || !paymentType || !enterAmount) {
-      toast.error("⚠️ Please fill all required fields before saving.");
+      toast.error(" Please fill all required fields before saving.");
       return;
     }
 
     const payload = {
+      invoiceNo: selectedInvoices[0] || "",
       customerId,
       mode: paymentType,
       amount: enterAmount,
@@ -500,6 +501,7 @@ console.log({filteredInvoices});
           {selectedSalesman && (
             <div>
               {/* Sales Items Table */}
+              <h1 className="text-xl font-bold py-2">Sales Items</h1>
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
                 <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
                   <div className="min-w-full custom-scrollbar">
@@ -552,7 +554,10 @@ console.log({filteredInvoices});
               </div>
 
               {/* Payment Received Table */}
+              <div className="">
+               <h1 className="text-xl font-bold py-2">Payment Received</h1>
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+                 
                 <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
                   <div className="min-w-full custom-scrollbar">
                     <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
@@ -629,9 +634,12 @@ console.log({filteredInvoices});
                   </div>
                 </div>
               </div>
-
+                      </div>
               {/* Recoveries Table */}
+              <div className="">
+                  <h1 className="text-xl font-bold py-2">Recovery</h1>
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
+               
                 <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
                   <div className="min-w-full custom-scrollbar">
                     <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
@@ -688,6 +696,7 @@ console.log({filteredInvoices});
                     </div>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
           )}
