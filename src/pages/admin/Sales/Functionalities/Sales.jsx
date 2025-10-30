@@ -5,7 +5,8 @@ import Swal from "sweetalert2";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TableSkeleton from "../../Components/Skeleton";
-
+import { Printer } from "lucide-react";
+import { handleDirectPrint } from "../../../../helper/SalesPrintView";
 const Sales = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
@@ -65,7 +66,7 @@ const Sales = () => {
   useEffect(() => {
     fetchLedgerEntries();
     setCurrentPage(1);
-  }, [selectedSalesman, selectedDate, fetchLedgerEntries]);
+  }, [selectedSalesman, fetchLedgerEntries]);
 
   // ✅ Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -101,6 +102,14 @@ const Sales = () => {
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">Sales</h1>
+          {ledgerEntries.length > 0 && (
+            <button
+            onClick={() => handleDirectPrint(ledgerEntries)} 
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+            >
+              <Printer size={18} />
+            </button>
+          )}
         </div>
 
         {/* 🔹 Filters */}

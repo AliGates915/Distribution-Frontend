@@ -7,6 +7,8 @@ import Swal from "sweetalert2";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TableSkeleton from "../../Components/Skeleton";
+import {  handleLedgerPrint } from "../../../../helper/SalesPrintView";
+import { Printer } from "lucide-react";
 
 const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
@@ -38,7 +40,7 @@ const CustomerLedger = () => {
 
   // 2. FETCH CUSTOMER LEDGER ENTRIES (uses From & To directly)
   const fetchCustomerLedger = useCallback(async () => {
-   if (!selectedCustomer) return;
+    if (!selectedCustomer) return;
 
     try {
       setLoading(true);
@@ -50,17 +52,19 @@ const CustomerLedger = () => {
       const response = await api.get(query);
 
       // Transform: Paid → Debit, Received → Credit
-      const transformedData = (response.data?.data || response.data || []).map(entry => ({
-        ...entry,
-        Debit: entry.Paid || "0.00",
-        Credit: entry.Received || "0.00",
-        SR: entry.SR,
-        ID: entry.ID,
-        Date: entry.Date,
-        CustomerName: entry.CustomerName,
-        Description: entry.Description,
-        Balance: entry.Balance
-      }));
+      const transformedData = (response.data?.data || response.data || []).map(
+        (entry) => ({
+          ...entry,
+          Debit: entry.Paid || "0.00",
+          Credit: entry.Received || "0.00",
+          SR: entry.SR,
+          ID: entry.ID,
+          Date: entry.Date,
+          CustomerName: entry.CustomerName,
+          Description: entry.Description,
+          Balance: entry.Balance,
+        })
+      );
 
       setLedgerEntries(transformedData);
     } catch (error) {
@@ -82,31 +86,7 @@ const CustomerLedger = () => {
     setCurrentPage(1);
   }, [fetchCustomerLedger]);
 
-  // PDF Download
-  const handleDownloadReport = async () => {
-    if (!ledgerEntries.length) {
-      Swal.fire("No Data", "No ledger data available to download.", "info");
-      return;
-    }
 
-    try {
-      const canvas = await html2canvas(ledgerRef.current, {
-        scale: 2,
-        useCORS: true,
-      });
-      const pdf = new jsPDF("p", "mm", "a4");
-      const width = pdf.internal.pageSize.getWidth();
-      const height = (canvas.height * width) / canvas.width;
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, width, height);
-      pdf.save(
-        `${ledgerEntries[0]?.CustomerName || "Ledger_Report"}_${
-          new Date().toISOString().split("T")[0]
-        }.pdf`
-      );
-    } catch (error) {
-      Swal.fire("Error", error.message, "error");
-    }
-  };
 
   // Calculate totals
   const totalDebit = ledgerEntries.reduce(
@@ -130,6 +110,7 @@ const CustomerLedger = () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+console.log({ledgerEntries});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -143,10 +124,10 @@ const CustomerLedger = () => {
 
           {ledgerEntries.length > 0 && (
             <button
-              onClick={handleDownloadReport}
-              className="bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+              onClick={() => handleLedgerPrint(ledgerEntries)}
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
-              Download Report
+              <Printer size={18} /> 
             </button>
           )}
         </div>
@@ -202,11 +183,11 @@ const CustomerLedger = () => {
         {/* Ledger Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           {loading ? (
-             <TableSkeleton
-                    rows={ledgerEntries.length > 0 ? ledgerEntries.length : 5}
-                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
-                    className="lg:grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr]"
-                  />
+            <TableSkeleton
+              rows={ledgerEntries.length > 0 ? ledgerEntries.length : 5}
+              cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
+              className="lg:grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr]"
+            />
           ) : !selectedCustomer ? (
             <div className="text-center py-6 text-gray-500">
               Please select a customer to view ledger entries.
@@ -253,7 +234,6 @@ const CustomerLedger = () => {
                 <div className="text-green-600">
                   Total Credit: {totalCredit.toLocaleString()}
                 </div>
-              
               </div>
             </>
           )}
@@ -297,10 +277,10 @@ const CustomerLedger = () => {
         </div>
       </div>
 
-      {/* Hidden Template for PDF */}
+      {/* Hidden Template for PDF
       <div style={{ position: "absolute", left: "-9999px" }}>
         <LedgerTemplate ref={ledgerRef} ledgerEntries={ledgerEntries} />
-      </div>
+      </div> */}
     </div>
   );
 };

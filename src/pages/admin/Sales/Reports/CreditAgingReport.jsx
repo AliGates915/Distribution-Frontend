@@ -3,6 +3,8 @@ import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
+import { handleCreditAgingPrint } from "../../../../helper/SalesPrintView";
+import { Printer } from "lucide-react";
 
 const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
@@ -12,24 +14,26 @@ const CreditAgingReport = () => {
     totalCredit: 0,
     totalUnderCredit: 0,
     totalDue: 0,
-    totalOutstanding: 0
+    totalOutstanding: 0,
   });
 
   const fetchCreditAging = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/credit-aging`);
-      
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/credit-aging`
+      );
+
+      console.log({ response });
 
       if (response.data.success) {
         setApiData(response.data.data);
         setTotals(response.data.totals);
-        console.log("Credit Aging Data:", response.data.data);  
+        console.log("Credit Aging Data:", response.data.data);
         toast.success("Credit aging data loaded successfully");
       } else {
         throw new Error(response.data.message || "Failed to fetch data");
       }
-      
     } catch (error) {
       console.error("Failed to fetch credit aging data:", error);
       toast.error("Failed to load data from API");
@@ -40,7 +44,7 @@ const CreditAgingReport = () => {
         totalCredit: 0,
         totalUnderCredit: 0,
         totalDue: 0,
-        totalOutstanding: 0
+        totalOutstanding: 0,
       });
     } finally {
       setLoading(false);
@@ -59,6 +63,15 @@ const CreditAgingReport = () => {
           <h1 className="text-2xl font-bold text-newPrimary">
             Credit Aging Report
           </h1>
+
+          {apiData.length > 0 && (
+            <button
+              onClick={() => handleCreditAgingPrint(apiData, totals)}
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+            >
+              <Printer size={18} />
+            </button>
+          )}
         </div>
 
         {/* 🔹 Credit Aging Report Table */}
@@ -105,7 +118,7 @@ const CreditAgingReport = () => {
                             : "-"}
                         </div>
                         <div className={`$ px-2 py-1 rounded`}>
-                         {row.due?.toLocaleString()}
+                          {row.due?.toLocaleString()}
                         </div>
                         <div className="text-blue-600 font-semibold">
                           {row.outstanding.toLocaleString()}

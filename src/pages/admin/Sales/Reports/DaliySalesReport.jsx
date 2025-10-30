@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { SquarePen, Trash2 } from "lucide-react";
+import { Printer, SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
@@ -8,6 +8,7 @@ import { api } from "../../../../context/ApiService";
 import ViewModal from "../../../../helper/ViewModel";
 import { ScaleLoader } from "react-spinners";
 import toast from "react-hot-toast";
+import { handleDailySalesPrint } from "../../../../helper/SalesPrintView";
 
 const DailySalesReport = () => {
   const [isView, setIsView] = useState(false);
@@ -35,9 +36,7 @@ const DailySalesReport = () => {
   const [newBalance, setNewBalance] = useState(0);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
 
-
-  const [customerId, setCustomerID] = useState("")
-
+  const [customerId, setCustomerID] = useState("");
 
   const staticInvoices = [
     { _id: "INV-001", customerId: "1", dueAmount: 30000 },
@@ -108,10 +107,9 @@ const DailySalesReport = () => {
       console.error(" Failed to fetch customers by salesman:", error);
       toast.error("Failed to load customers for this salesman");
     } finally {
-       setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setLoading(false), 2000);
     }
   };
-
 
   // ✅ Fetch Orders for Selected Pending Customer
   const fetchOrdersByCustomer = async (customerId) => {
@@ -123,7 +121,7 @@ const DailySalesReport = () => {
       console.error(" Failed to fetch orders by pending customer:", error);
       toast.error("Failed to load pending orders");
     } finally {
-       setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setLoading(false), 2000);
     }
   };
 
@@ -133,7 +131,7 @@ const DailySalesReport = () => {
     }
   }, [customersList]);
 
-console.log({filteredInvoices});
+  console.log({ filteredInvoices });
 
   useEffect(() => {
     if (selectedCustomer) {
@@ -149,13 +147,12 @@ console.log({filteredInvoices});
       const foundCustomer = customersList.find(
         (c) => c._id === selectedCustomer
       );
-      setCustomerID(foundCustomer._id)
+      setCustomerID(foundCustomer._id);
       setBalance(foundCustomer?.salesBalance);
     } else {
       setBalance(0);
     }
   }, [selectedCustomer, customersList]);
-
 
   // console.log("==== setCustomerID ===", customerId);
 
@@ -364,7 +361,6 @@ console.log({filteredInvoices});
       setEnterAmount("");
       setPaymentType("");
       resetForm();
-
     } catch (error) {
       console.error("❌ Error saving receivable:", error);
       const message =
@@ -376,7 +372,6 @@ console.log({filteredInvoices});
     }
   };
 
-
   const resetForm = () => {
     setIsSliderOpen(false);
     setSelectedCustomer("");
@@ -386,7 +381,6 @@ console.log({filteredInvoices});
     setEnterAmount("");
     setNewBalance(0);
     setPaymentType("Cash");
-
   };
   console.log({ salesmanList });
 
@@ -415,6 +409,7 @@ console.log({filteredInvoices});
     selectedCustomer &&
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
+  console.log({ salesmanList });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -424,19 +419,39 @@ console.log({filteredInvoices});
           <h1 className="text-2xl font-bold text-newPrimary">
             Daily Sales Report
           </h1>
-          <button
-            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-            onClick={() => {
-              if (!selectedSalesman) {
-                toast.error("Please select a salesman first");
-                return;
-              }
-              setIsSliderOpen(true);
-              fetchCustomersBySalesman(selectedSalesman);
-            }}
-          >
-            + Add Receivable
-          </button>
+          <div className="flex items-center gap-4">
+            {selectedSalesman &&
+              (salesmanList?.salesItems?.length > 0 ||
+                salesmanList?.paymentReceived?.length > 0 ||
+                salesmanList?.recoveries?.length > 0) && (
+                <button
+                  onClick={() =>
+                    handleDailySalesPrint(
+                      salesmanList,
+                      salesman.find((s) => s._id === selectedSalesman)
+                        ?.employeeName
+                    )
+                  }
+                  className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+                >
+                  <Printer size={18} />
+                </button>
+              )}
+
+            <button
+              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+              onClick={() => {
+                if (!selectedSalesman) {
+                  toast.error("Please select a salesman first");
+                  return;
+                }
+                setIsSliderOpen(true);
+                fetchCustomersBySalesman(selectedSalesman);
+              }}
+            >
+              + Add Receivable
+            </button>
+          </div>
         </div>
         <div className="flex justify-start gap-[40rem] w-full mt-4">
           {/* ===== Left Section ===== */}
@@ -555,148 +570,146 @@ console.log({filteredInvoices});
 
               {/* Payment Received Table */}
               <div className="">
-               <h1 className="text-xl font-bold py-2">Payment Received</h1>
-              <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
-                 
-                <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
-                  <div className="min-w-full custom-scrollbar">
-                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                      <div>Customer</div>
-                      <div>Total</div>
-                      <div>Received</div>
-                      <div>Balance</div>
-                    </div>
-                    <div className="flex flex-col divide-y divide-gray-100">
-                      {loading ? (
-                        <TableSkeleton
-                          rows={currentPaymentReceived.length || 5}
-                          cols={4}
-                        />
-                      ) : currentPaymentReceived.length === 0 ? (
-                        <div className="text-center py-4 text-gray-500 bg-white">
-                          No records found.
-                        </div>
-                      ) : (
-                        <>
-                          {currentPaymentReceived.map((item, index) => (
-                            <div
-                              key={index}
-                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                            >
-                              <div>{item?.customerName}</div>
-                              <div>{item?.total || "-"}</div>
-                              <div>{item?.received}</div>
+                <h1 className="text-xl font-bold py-2">Payment Received</h1>
+                <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+                  <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
+                    <div className="min-w-full custom-scrollbar">
+                      <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                        <div>Customer</div>
+                        <div>Total</div>
+                        <div>Received</div>
+                        <div>Balance</div>
+                      </div>
+                      <div className="flex flex-col divide-y divide-gray-100">
+                        {loading ? (
+                          <TableSkeleton
+                            rows={currentPaymentReceived.length || 5}
+                            cols={4}
+                          />
+                        ) : currentPaymentReceived.length === 0 ? (
+                          <div className="text-center py-4 text-gray-500 bg-white">
+                            No records found.
+                          </div>
+                        ) : (
+                          <>
+                            {currentPaymentReceived.map((item, index) => (
+                              <div
+                                key={index}
+                                className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                              >
+                                <div>{item?.customerName}</div>
+                                <div>{item?.total || "-"}</div>
+                                <div>{item?.received}</div>
+                                <div
+                                  className={
+                                    item.balance < 0
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                  }
+                                >
+                                  {item.balance || "-"}
+                                </div>
+                              </div>
+                            ))}
+                            {/* Total Row with Colors */}
+                            <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                              <div></div>
+                              <div className="text-blue-600">
+                                Total:{" "}
+                                {currentPaymentReceived
+                                  .reduce((sum, item) => sum + item.total, 0)
+                                  .toLocaleString()}
+                              </div>
+                              <div className="text-green-600">
+                                Total Rec:{" "}
+                                {currentPaymentReceived
+                                  .reduce((sum, item) => sum + item.received, 0)
+                                  .toLocaleString()}
+                              </div>
                               <div
                                 className={
-                                  item.balance < 0
+                                  currentPaymentReceived.reduce(
+                                    (sum, item) => sum + item.balance,
+                                    0
+                                  ) < 0
                                     ? "text-red-600"
-                                    : "text-gray-700"
+                                    : "text-blue-800"
                                 }
                               >
-                                {item.balance || "-"}
+                                Total Bal:{" "}
+                                {currentPaymentReceived
+                                  .reduce((sum, item) => sum + item.balance, 0)
+                                  .toLocaleString()}
                               </div>
                             </div>
-                          ))}
-                          {/* Total Row with Colors */}
-                          <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                            <div></div>
-                            <div className="text-blue-600">
-                              Total:{" "}
-                              {currentPaymentReceived
-                                .reduce((sum, item) => sum + item.total, 0)
-                                .toLocaleString()}
-                            </div>
-                            <div className="text-green-600">
-                              Total Rec:{" "}
-                              {currentPaymentReceived
-                                .reduce((sum, item) => sum + item.received, 0)
-                                .toLocaleString()}
-                            </div>
-                            <div
-                              className={
-                                currentPaymentReceived.reduce(
-                                  (sum, item) => sum + item.balance,
-                                  0
-                                ) < 0
-                                  ? "text-red-600"
-                                  : "text-blue-800"
-                              }
-                            >
-                              Total Bal:{" "}
-                              {currentPaymentReceived
-                                .reduce((sum, item) => sum + item.balance, 0)
-                                .toLocaleString()}
-                            </div>
-                          </div>
-                        </>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-                      </div>
               {/* Recoveries Table */}
               <div className="">
-                  <h1 className="text-xl font-bold py-2">Recovery</h1>
-              <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-               
-                <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
-                  <div className="min-w-full custom-scrollbar">
-                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                      <div>Customer</div>
-                      <div>Due Recovery</div>
-                      <div>Sales Invoices</div>
-                      <div>Recovery</div>
-                    </div>
-                    <div className="flex flex-col divide-y divide-gray-100">
-                      {loading ? (
-                        <TableSkeleton
-                          rows={currentRecoveries.length || 5}
-                          cols={4}
-                        />
-                      ) : currentRecoveries.length === 0 ? (
-                        <div className="text-center py-4 text-gray-500 bg-white">
-                          No records found.
-                        </div>
-                      ) : (
-                        <>
-                          {currentRecoveries.map((item, index) => (
-                            <div
-                              key={index}
-                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                            >
-                              <div>{item?.customerName}</div>
-                              <div>{item?.dueRecovery || "-"}</div>
-                              <div>{item?.invoiceNo}</div>
-                              <div>{item?.recovery || "-"}</div>
-                            </div>
-                          ))}
-                          {/* Total Row with Colors */}
-                          <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                            <div></div>
-                            <div className="text-blue-600">
-                              Total Due:{" "}
-                              {currentRecoveries
-                                .reduce(
-                                  (sum, item) => sum + item.dueRecovery,
-                                  0
-                                )
-                                .toLocaleString()}
-                            </div>
-                            <div></div>
-                            {/* <div className="text-green-600">
+                <h1 className="text-xl font-bold py-2">Recovery</h1>
+                <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
+                  <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
+                    <div className="min-w-full custom-scrollbar">
+                      <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                        <div>Customer</div>
+                        <div>Due Recovery</div>
+                        <div>Sales Invoices</div>
+                        <div>Recovery</div>
+                      </div>
+                      <div className="flex flex-col divide-y divide-gray-100">
+                        {loading ? (
+                          <TableSkeleton
+                            rows={currentRecoveries.length || 5}
+                            cols={4}
+                          />
+                        ) : currentRecoveries.length === 0 ? (
+                          <div className="text-center py-4 text-gray-500 bg-white">
+                            No records found.
+                          </div>
+                        ) : (
+                          <>
+                            {currentRecoveries.map((item, index) => (
+                              <div
+                                key={index}
+                                className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                              >
+                                <div>{item?.customerName}</div>
+                                <div>{item?.dueRecovery || "-"}</div>
+                                <div>{item?.invoiceNo}</div>
+                                <div>{item?.recovery || "-"}</div>
+                              </div>
+                            ))}
+                            {/* Total Row with Colors */}
+                            <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                              <div></div>
+                              <div className="text-blue-600">
+                                Total Due:{" "}
+                                {currentRecoveries
+                                  .reduce(
+                                    (sum, item) => sum + item.dueRecovery,
+                                    0
+                                  )
+                                  .toLocaleString()}
+                              </div>
+                              <div></div>
+                              {/* <div className="text-green-600">
                               Total Rec:{" "}
                               {currentRecoveries
                                 .reduce((sum, item) => sum + item.recovery, 0)
                                 .toLocaleString() || "-"}
                             </div> */}
-                          </div>
-                        </>
-                      )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </div>
             </div>
           )}
@@ -758,11 +771,12 @@ console.log({filteredInvoices});
                 {/* Conditional Fields */}
                 {(paymentType === "Cash" || paymentType === "Recovery") && (
                   <div className="space-y-4">
-
                     {/* ✅ If multiple customers -> show dropdown */}
                     {customersList.length > 1 ? (
                       <div className="w-[400px]">
-                        <label className="block text-gray-700 mb-2">Select Customer</label>
+                        <label className="block text-gray-700 mb-2">
+                          Select Customer
+                        </label>
                         <select
                           value={selectedCustomer}
                           onChange={(e) => setSelectedCustomer(e.target.value)}
@@ -779,13 +793,14 @@ console.log({filteredInvoices});
                     ) : customersList.length === 1 ? (
                       // ✅ If only one customer, show directly
                       <div className="w-[400px]">
-                        <label className="block text-gray-700 mb-2">Customer</label>
+                        <label className="block text-gray-700 mb-2">
+                          Customer
+                        </label>
                         <p className="p-3 border border-gray-300 rounded-md bg-gray-50">
                           {customersList[0].customerName}
                         </p>
                       </div>
                     ) : null}
-
 
                     {/* Checkbox-based Invoice Selection */}
                     {selectedCustomer && (
@@ -838,10 +853,11 @@ console.log({filteredInvoices});
                                   </span>
                                 </div>
                                 <span
-                                  className={`font-medium ${invoice.totalAmount < 0
-                                    ? "text-red-600"
-                                    : "text-gray-700"
-                                    }`}
+                                  className={`font-medium ${
+                                    invoice.totalAmount < 0
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                  }`}
                                 >
                                   {invoice.totalAmount.toLocaleString()}
                                 </span>
@@ -882,10 +898,11 @@ console.log({filteredInvoices});
                                 </span>
                                 <div className="flex items-center space-x-2">
                                   <span
-                                    className={`font-medium ${invoice.dueAmount < 0
-                                      ? "text-red-600"
-                                      : "text-gray-700"
-                                      }`}
+                                    className={`font-medium ${
+                                      invoice.dueAmount < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                    }`}
                                   >
                                     {invoice.dueAmount.toLocaleString()}
                                   </span>
