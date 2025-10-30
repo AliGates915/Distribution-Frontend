@@ -53,11 +53,11 @@ const salesChildren = [
   //   label: "Load Sheet",
   //   icon: <FileSpreadsheet strokeWidth={3} size={40} />,
   // },
-  {
-    to: "/admin/sales/sales-invoice",
-    label: "Sales Invoice",
-    icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
-  },
+  // {
+  //   to: "/admin/sales/sales-invoice",
+  //   label: "Sales Invoice",
+  //   icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
+  // },
   {
     to: "/admin/sales/sales",
     label: "Sales",
@@ -109,8 +109,8 @@ const setupChildren = [
     icon: <FaUsers />,
   },
   {
-    to: "/admin/employee-information",
-    label: "Employee Information",
+    to: "/admin/salesman-information",
+    label: "Salesman Information",
     icon: <FaUser />,
   },
   {

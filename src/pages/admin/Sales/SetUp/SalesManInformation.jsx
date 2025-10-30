@@ -8,7 +8,7 @@ import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
 import { ScaleLoader } from "react-spinners";
 
-const EmployeeInformation = () => {
+const SalesManInformation = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [employeeList, setEmployeeList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -243,14 +243,14 @@ const EmployeeInformation = () => {
       <CommanHeader />
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Employees</h1>
-          <p className="text-gray-500 text-sm">Manage your employee details</p>
+          <h1 className="text-2xl font-bold text-newPrimary">Salesman Information</h1>
+          <p className="text-gray-500 text-sm">Manage your salesman details</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
           onClick={handleAddEmployee}
         >
-          + Add Employee
+          + Add Salesman
         </button>
       </div>
 
@@ -259,9 +259,8 @@ const EmployeeInformation = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* ✅ Table Header */}
-            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>Sr</div>
-              <div>ID</div>
               <div>Name</div>
               <div>Department</div>
               <div>Phone</div>
@@ -269,7 +268,7 @@ const EmployeeInformation = () => {
               <div>DOB</div>
               <div>Qualification</div>
               <div>Status</div>
-              <div className="text-right">Actions</div>
+              <div className={`${loading ? "":"text-right"}`}>Actions</div>
             </div>
 
             {/* ✅ Table Body */}
@@ -277,8 +276,8 @@ const EmployeeInformation = () => {
               {loading ? (
                 <TableSkeleton
                   rows={employeeList.length > 0 ? employeeList.length : 5}
-                  cols={10}
-                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  cols={9}
+                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : employeeList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -288,14 +287,12 @@ const EmployeeInformation = () => {
                 currentRecords.map((emp, index) => (
                   <div
                     key={emp._id}
-                    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                   >
                     <div className="text-gray-900">
                       {indexOfFirstRecord + index + 1}
                     </div>
-                    <div className="font-medium text-gray-900">
-                      {emp._id?.slice(0, 6)}
-                    </div>
+                  
                     <div className="text-gray-700">{emp?.employeeName}</div>
                     <div className="text-gray-600">
                       {emp?.departmentName || "-"}
@@ -389,7 +386,7 @@ const EmployeeInformation = () => {
             )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
-                {isEdit ? "Update Employee" : "Add a New Employee"}
+                {isEdit ? "Update Salesman" : "Add a New Salesman"}
               </h2>
               <button
                 className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
@@ -571,7 +568,7 @@ const EmployeeInformation = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Employee
+                Save Salesman
               </button>
             </div>
           </div>
@@ -581,4 +578,4 @@ const EmployeeInformation = () => {
   );
 };
 
-export default EmployeeInformation;
+export default SalesManInformation;
