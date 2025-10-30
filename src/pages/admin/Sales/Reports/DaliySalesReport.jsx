@@ -108,7 +108,7 @@ const DailySalesReport = () => {
       console.error("❌ Failed to fetch customers by salesman:", error);
       toast.error("Failed to load customers for this salesman");
     } finally {
-      setLoading(false);
+       setTimeout(() => setLoading(false), 2000);
     }
   };
 
@@ -123,7 +123,7 @@ const DailySalesReport = () => {
       console.error("❌ Failed to fetch orders by pending customer:", error);
       toast.error("Failed to load pending orders");
     } finally {
-      setLoading(false);
+       setTimeout(() => setLoading(false), 2000);
     }
   };
 
@@ -133,6 +133,7 @@ const DailySalesReport = () => {
     }
   }, [customersList]);
 
+console.log({filteredInvoices});
 
   useEffect(() => {
     if (selectedCustomer) {
@@ -149,7 +150,6 @@ const DailySalesReport = () => {
         (c) => c._id === selectedCustomer
       );
       setCustomerID(foundCustomer._id)
-      console.log("✅ Found Customer:", foundCustomer); // check in console
       setBalance(foundCustomer?.salesBalance);
     } else {
       setBalance(0);
