@@ -48,11 +48,11 @@ const salesChildren = [
     label: "Order Taking",
     icon: <CalendarArrowDown strokeWidth={3} size={40} />,
   },
-  {
-    to: "/admin/sales/load-sheet",
-    label: "Load Sheet",
-    icon: <FileSpreadsheet strokeWidth={3} size={40} />,
-  },
+  // {
+  //   to: "/admin/sales/load-sheet",
+  //   label: "Load Sheet",
+  //   icon: <FileSpreadsheet strokeWidth={3} size={40} />,
+  // },
   {
     to: "/admin/sales/sales-invoice",
     label: "Sales Invoice",
@@ -61,19 +61,18 @@ const salesChildren = [
   {
     to: "/admin/sales/sales",
     label: "Sales",
-    icon: <FileSpreadsheetIcon  strokeWidth={3} size={40} />,
+    icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
   },
-  {
-    
-    to: "/admin/sales/cash-deposite",
-    label: "Cash Deposit",
-    icon: <Banknote strokeWidth={3} size={40} />,
-  },
-  {
-    to: "/admin/sales/load-return",
-    label: "Load Return",
-    icon: <Undo2 strokeWidth={3} size={40} />,
-  },
+  // {
+  //   to: "/admin/sales/cash-deposite",
+  //   label: "Cash Deposit",
+  //   icon: <Banknote strokeWidth={3} size={40} />,
+  // },
+  // {
+  //   to: "/admin/sales/load-return",
+  //   label: "Load Return",
+  //   icon: <Undo2 strokeWidth={3} size={40} />,
+  // },
 ];
 
 // setupChildren
@@ -82,6 +81,22 @@ const setupChildren = [
     to: "/admin/sales-area",
     label: "Sales Area",
     icon: <FaMapMarkerAlt />,
+  },
+  {
+    to: "/admin/item-category",
+    label: "Item Category",
+    icon: <FaThList />,
+  },
+  { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
+    {
+    to: "/admin/manufacture",
+    label: "Manufacture",
+    icon: <FaIndustry />,
+  },
+   {
+    to: "/admin/shelve-location",
+    label: "Shelve Location",
+    icon: <FaWarehouse />,
   },
   {
     to: "/admin/list-of-items",
@@ -142,7 +157,7 @@ const reportsChildren = [
     label: "Customerwise Orders",
     icon: <FaUsers />,
   },
-    {
+  {
     to: "/admin/report/daily-sales-report",
     label: "Daily Sales Report",
     icon: <FaCalendarAlt />,
