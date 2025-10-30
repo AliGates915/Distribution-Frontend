@@ -109,8 +109,8 @@ const setupChildren = [
     icon: <FaUsers />,
   },
   {
-    to: "/admin/employee-information",
-    label: "Employee Information",
+    to: "/admin/salesman-information",
+    label: "Salesman Information",
     icon: <FaUser />,
   },
   {

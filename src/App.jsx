@@ -42,7 +42,7 @@ import AmountReceivales from "./pages/admin/Sales/Reports/AmountReceivales.jsx";
 import ListOfItems from "./pages/admin/Sales/SetUp/ListOfItems.jsx";
 import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
 import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
-import EmployeeInformation from "./pages/admin/Sales/SetUp/EmployeeInformation.jsx";
+import EmployeeInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
 import SalesArea from "./pages/admin/Sales/SetUp/SalesArea.jsx";
 
 // =================== ACCOUNTS SECTION IMPORTS
@@ -65,6 +65,7 @@ import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
 import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
 import ManufactureList from "./pages/admin/Sales/SetUp/ManufacturerList.jsx";
 import ShelveLocationList from "./pages/admin/Sales/SetUp/ShelveLoactionList.jsx";
+import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
 
 function AppContent() {
   return (
@@ -133,8 +134,8 @@ function AppContent() {
             <Route path="shelve-location" element={<ShelveLocationList />} />
             <Route path="list-of-items" element={<ListOfItems />} />
             <Route
-              path="employee-information"
-              element={<EmployeeInformation />}
+              path="salesman-information"
+              element={<SalesManInformation />}
             />
             <Route
               path="vehicle-information"
