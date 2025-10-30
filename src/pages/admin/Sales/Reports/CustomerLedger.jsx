@@ -6,6 +6,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import TableSkeleton from "../../Components/Skeleton";
 
 const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
@@ -37,11 +38,14 @@ const CustomerLedger = () => {
 
   // 2. FETCH CUSTOMER LEDGER ENTRIES (uses From & To directly)
   const fetchCustomerLedger = useCallback(async () => {
-    if (!selectedCustomer || !dateFrom || !dateTo) return;
+   if (!selectedCustomer) return;
 
     try {
       setLoading(true);
-      const query = `/customer-ledger?customer=${selectedCustomer}&from=${dateFrom}&to=${dateTo}`;
+      let query = `/customer-ledger?customer=${selectedCustomer}`;
+      if (dateFrom && dateTo) {
+        query += `&from=${dateFrom}&to=${dateTo}`;
+      }
 
       const response = await api.get(query);
 
@@ -147,7 +151,7 @@ const CustomerLedger = () => {
           )}
         </div>
 
-        {/* Filters - Only Customer + From + To */}
+        {/* Filters */}
         <div className="flex flex-wrap gap-5 mb-6">
           {/* 1. Customer Selection */}
           <div className="w-[300px]">
@@ -198,14 +202,14 @@ const CustomerLedger = () => {
         {/* Ledger Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           {loading ? (
-            <div className="text-center py-6 text-gray-500">Loading...</div>
+             <TableSkeleton
+                    rows={ledgerEntries.length > 0 ? ledgerEntries.length : 5}
+                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
+                    className="lg:grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr]"
+                  />
           ) : !selectedCustomer ? (
             <div className="text-center py-6 text-gray-500">
               Please select a customer to view ledger entries.
-            </div>
-          ) : !dateFrom || !dateTo ? (
-            <div className="text-center py-6 text-gray-500">
-              Please select both From and To dates.
             </div>
           ) : ledgerEntries.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
@@ -249,9 +253,7 @@ const CustomerLedger = () => {
                 <div className="text-green-600">
                   Total Credit: {totalCredit.toLocaleString()}
                 </div>
-                <div className="text-blue-600">
-                  Total Balance: {totalBalance.toLocaleString()}
-                </div>
+              
               </div>
             </>
           )}
