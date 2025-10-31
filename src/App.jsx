@@ -66,6 +66,8 @@ import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
 import ManufactureList from "./pages/admin/Sales/SetUp/ManufacturerList.jsx";
 import ShelveLocationList from "./pages/admin/Sales/SetUp/ShelveLoactionList.jsx";
 import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
+import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
+import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 
 function AppContent() {
   return (
@@ -116,7 +118,7 @@ function AppContent() {
               path="report/productwise-orders"
               element={<ProductWiseOrder />}
             />
-
+ <Route path="report/opening-stock" element={<OpeningStock />} />
             <Route
               path="report/customerwise-orders"
               element={<CustomerwiseOrders />}
@@ -133,6 +135,8 @@ function AppContent() {
             <Route path="manufacture" element={<ManufactureList />} />
             <Route path="shelve-location" element={<ShelveLocationList />} />
             <Route path="list-of-items" element={<ListOfItems />} />
+            <Route path="supplier" element={<SupplierList />} />
+            <Route path="item-unit" element={<ItemUnit />} />
             <Route
               path="salesman-information"
               element={<SalesManInformation />}
@@ -191,7 +195,7 @@ function AppContent() {
               path="accounts/expense-voucher"
               element={<ExpenseVoucher />}
             />
-            <Route path="accounts/opening-stock" element={<OpeningStock />} />
+           
 
             {/* Reports */}
             <Route path="accounts/bank-ledger" element={<BankLedger />} />
