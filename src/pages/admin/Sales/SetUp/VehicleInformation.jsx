@@ -35,6 +35,9 @@ const VehicleInformation = () => {
     setCurrentPage(pageNumber);
     setTimeout(() => setLoading(false), 300);
   };
+useEffect(() => {
+  setCurrentPage(1);
+}, [vehicles]);
 
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vehicles`;
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -343,7 +346,7 @@ const VehicleInformation = () => {
               className="relative w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
              {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full h-screen bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -455,7 +458,7 @@ const VehicleInformation = () => {
                   disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 disabled:bg-newPrimary/50"
                 >
-                  {loading ? "Saving..." : "Save Vehicle"}
+                  {editingVehicle ? "Update Vehicle" : "Save Vehicle"}
                 </button>
               </form>
             </div>
