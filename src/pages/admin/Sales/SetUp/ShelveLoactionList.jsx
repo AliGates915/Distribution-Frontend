@@ -258,8 +258,8 @@ useEffect(() => {
                       className="hidden lg:grid grid-cols-[0.2fr_1fr_2fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                      <div className="text-gray-600">{indexOfFirstRecord + index + 1}</div>
-                      <div className="text-gray-900">{s.shelfNameCode}</div>
-                      <div className="text-gray-600">{s.description}</div>
+                      <div className="text-gray-900">{s.shelfNameCode || "-"}</div>
+                      <div className="text-gray-600">{s.description || "-"}</div>
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-3">
                           <button
@@ -284,9 +284,9 @@ useEffect(() => {
                       className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
                     >
                       <h3 className="font-semibold text-gray-800">
-                        {s.shelfNameCode}
+                        {s.shelfNameCode || "-"}
                       </h3>
-                      <p className="text-sm text-gray-600">{s.description}</p>
+                      <p className="text-sm text-gray-600">{s.description || "-"}</p>
 
                       {userInfo?.isAdmin && (
                         <div className="mt-3 flex justify-end gap-3">

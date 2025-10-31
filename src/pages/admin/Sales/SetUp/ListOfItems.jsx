@@ -617,26 +617,26 @@ const ListOfItems = () => {
                           className="w-7 h-7 object-cover rounded-full"
                         />
                         <span className="font-medium text-gray-900">
-                          {item?.itemType?.itemTypeName}
+                          {item?.itemType?.itemTypeName || "-"}
                         </span>
                       </div>
 
                       {/* Item Name */}
-                      <div className="text-gray-600">{item.itemName}</div>
+                      <div className="text-gray-600">{item.itemName || "-"}</div>
 
                       {/* Purchase */}
                       <div className="font-semibold text-gray-600">
-                        {item.purchase}
+                        {item.purchase || "-"}
                       </div>
 
                       {/* Sales */}
                       <div className="font-semibold text-gray-600">
-                        {item.price}
+                        {item.price || "-"}
                       </div>
 
                       {/* Stock */}
                       <div className="font-semibold text-gray-600">
-                        {item.stock}
+                        {item.stock || "-"}
                       </div>
 
                       {/* Actions */}

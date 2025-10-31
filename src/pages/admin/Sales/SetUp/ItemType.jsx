@@ -152,7 +152,7 @@ const ItemType = () => {
       fetchItemtypeList();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item type failed`);
+      toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false);
     }
@@ -298,9 +298,9 @@ const ItemType = () => {
                       </div>
 
                       <div className="text-gray-900">
-                        {item?.category?.categoryName}
+                        {item?.category?.categoryName || "-"}
                       </div>
-                      <div className="text-gray-600">{item.itemTypeName}</div>
+                      <div className="text-gray-600">{item.itemTypeName || "-"}</div>
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-4">
                           <button
@@ -326,10 +326,10 @@ const ItemType = () => {
                     >
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-semibold text-gray-700">
-                          {item.itemTypeName}
+                          {item.itemTypeName || "-"}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {item?.category?.categoryName}
+                          {item?.category?.categoryName || "-"}
                         </span>
                       </div>
 
