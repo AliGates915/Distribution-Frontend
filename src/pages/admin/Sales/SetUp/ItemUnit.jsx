@@ -226,9 +226,8 @@ const ItemUnit = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[600px]">
             {/* ✅ Table Header */}
-            <div className="hidden lg:grid grid-cols-[0.2fr_150px_1fr_2fr_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[0.2fr_1fr_2fr_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>SR</div>
-              <div>Unit Item ID</div>
               <div>Name</div>
               <div>Description</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
@@ -240,8 +239,8 @@ const ItemUnit = () => {
                 // Skeleton shown while loading
                 <TableSkeleton
                   rows={itemUnitList.length > 0 ? itemUnitList.length : 5}
-                  cols={userInfo?.isAdmin ? 5 : 6}
-                  className="lg:grid-cols-[0.2fr_150px_1fr_2fr_auto]"
+                  cols={userInfo?.isAdmin ? 4 : 5}
+                  className="lg:grid-cols-[0.2fr_1fr_2fr_auto]"
                 />
               ) : itemUnitList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -251,13 +250,10 @@ const ItemUnit = () => {
                 itemUnitList.map((manufacturer, index) => (
                   <div
                     key={manufacturer._id || `temp-${manufacturer}`}
-                    className="grid grid-cols-[0.2fr_150px_1fr_2fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                    className="grid grid-cols-[0.2fr_1fr_2fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                   >
                     <div className="text-gray-600">{index + 1}</div>
-                    {/* Unit Item ID */}
-                    <div className="text-gray-900">
-                      {manufacturer._id?.slice(0, 5) || "N/A"}
-                    </div>
+                   
 
                     {/* Name */}
                     <div className="text-gray-600">{manufacturer.unitName}</div>

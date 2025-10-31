@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
 import { ScaleLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const SalesManInformation = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -109,11 +110,30 @@ const SalesManInformation = () => {
     setEnable(true);
   };
 
+  // ✅ Salesman Form Validation
+const validateSalesmanForm = () => {
+  const errors = [];
+
+  if (!employeeName) errors.push("Employee Name is required");
+ 
+  if (!address) errors.push("Address is required");
+  if (!city) errors.push("City is required");
+ if (!gender) errors.push("Gender is required");
+
+  return errors;
+};
+
+
   const handleSave = async () => {
-    if (!employeeName || !department) {
-      toast.error("❌ Employee name and department are required");
-      return;
-    }
+    const errors = validateSalesmanForm();
+  if (errors.length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Validation Error",
+      html: errors.join("<br/>"),
+    });
+    return;
+  }
     const { token } = userInfo || {};
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -426,7 +446,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Department <span className="text-red-500">*</span>
+                    Department 
                   </label>
                   <input
                     type="text"
@@ -463,7 +483,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Gender <span className="text-red-500">*</span>
+                    Gender <span className="text-red-500">*</span>{" "}
                   </label>
                   <select
                     value={gender}
@@ -478,7 +498,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Phone Number <span className="text-red-500">*</span>
+                    Phone Number 
                   </label>
                   <input
                     type="text"
@@ -491,7 +511,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    NIC <span className="text-red-500">*</span>
+                    NIC 
                   </label>
                   <input
                     type="text"
@@ -511,7 +531,7 @@ const SalesManInformation = () => {
 
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Date of Birth <span className="text-red-500">*</span>
+                    Date of Birth 
                   </label>
                   <input
                     type="date"
@@ -524,7 +544,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Qualification <span className="text-red-500">*</span>
+                    Qualification 
                   </label>
                   <input
                     type="text"
@@ -535,7 +555,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Blood Group <span className="text-red-500">*</span>
+                    Blood Group 
                   </label>
                   <input
                     type="text"

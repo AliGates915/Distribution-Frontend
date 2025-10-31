@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HashLoader, ScaleLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 const DefineCustomers = () => {
   const [customerList, setCustomerList] = useState([]);
@@ -142,8 +143,39 @@ const DefineCustomers = () => {
     return re.test(email);
   };
 
+  // ✅ Customer Form Validation
+const validateCustomerForm = () => {
+  const errors = [];
+
+  if (!areaName) errors.push("Area Name is required");
+  if (!customerName) errors.push("Customer Name is required");
+  if (!address) errors.push("Address is required");
+  if (!phoneNumber) errors.push("Phone Number is required");
+  if (!openingBalanceDate) errors.push("Opening Balance Date is required");
+  if (!balanceReceived) errors.push("Opening Balance is required");
+  // ✅ Credit fields (only when Payment Terms = Credit)
+  if (paymentTerms === "Credit") {
+    if (!creditTime) errors.push("Credit Days Limit is required");
+    if (!creditLimit) errors.push("Credit Cash Limit is required");
+  }
+
+  return errors;
+};
+
+
+
+
   // Save or Update Customer
   const handleSave = async () => {
+    const errors = validateCustomerForm();
+  if (errors.length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Validation Error",
+      html: errors.join("<br/>"),
+    });
+    return;
+  }
     if (
       paymentTerms === "Credit" &&
       status &&
@@ -155,10 +187,6 @@ const DefineCustomers = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
     setIsSaving(true);
 
     const formData = {
@@ -584,7 +612,7 @@ console.log({formData});
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Mobile Number <span className="text-red-500">*</span>
+                    Mobile Number 
                   </label>
                   <input
                     type="text"
@@ -597,7 +625,7 @@ console.log({formData});
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address 
                   </label>
                   <input
                     type="email"
@@ -611,7 +639,7 @@ console.log({formData});
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Contact Person <span className="text-red-500">*</span>
+                    Contact Person 
                   </label>
                   <input
                     type="text"
@@ -623,7 +651,7 @@ console.log({formData});
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Designation <span className="text-red-500">*</span>
+                    Designation 
                   </label>
                   <input
                     type="text"
@@ -650,7 +678,7 @@ console.log({formData});
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    NTN <span className="text-red-500">*</span>
+                    NTN 
                   </label>
                   <input
                     type="text"
@@ -663,7 +691,7 @@ console.log({formData});
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    GST <span className="text-red-500">*</span>
+                    GST 
                   </label>
                   <input
                     type="text"
