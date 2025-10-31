@@ -1,21 +1,22 @@
-import { SaveIcon, Search } from "lucide-react";
+import { SaveIcon, Search, XCircle } from "lucide-react";
 import React, { useState, useCallback, useEffect, useRef } from "react";
 
 import CommanHeader from "../../Components/CommanHeader";
 import axios from "axios";
 import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
+import { set } from "date-fns";
 
 const OpeningStock = () => {
   const [itemCategory, setItemCategory] = useState("");
   const [itemType, setItemType] = useState("");
   const [showRate, setShowRate] = useState(true);
-
+  const [isClearing, setIsClearing] = useState(false);
   const [categoryList, setCategoryList] = useState([]);
   const [itemNameList, setItemNameList] = useState([]);
   const [itemTypeList, setItemTypeList] = useState([]);
   const [editingStockIndex, setEditingStockIndex] = useState(null);
-const tableRef = useRef(null);
+  const tableRef = useRef(null);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [loading, setLoading] = useState(true);
@@ -27,8 +28,10 @@ const tableRef = useRef(null);
   });
 
   // Refresh the Page called api
+  // Refresh the Page called api
   useEffect(() => {
     const fetchAllItems = async () => {
+      setLoading(true);
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/item-details`
@@ -37,12 +40,12 @@ const tableRef = useRef(null);
       } catch (error) {
         console.error("Failed to fetch all items", error);
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 1000);
       }
     };
 
     fetchAllItems();
-  }, []);
+  }, [isClearing]); // ✅ Add this dependency
 
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
@@ -64,9 +67,10 @@ const tableRef = useRef(null);
 
   // Fetch itemTypes when category changes
   useEffect(() => {
-    if (!itemCategory) return; // only call when category selected
+    if (!itemCategory || isClearing) return; // only call when category selected
 
     const fetchItemTypes = async () => {
+      setLoading(true);
       try {
         const res = await axios.get(
           `${
@@ -76,17 +80,20 @@ const tableRef = useRef(null);
         setItemTypeList(res.data);
       } catch (error) {
         console.error("Failed to fetch item types", error);
+      } finally {
+        setTimeout(() => setLoading(false), 1000);
       }
     };
 
     fetchItemTypes();
-  }, [itemCategory]);
+  }, [itemCategory, isClearing]);
 
   // when itemType Select then Table repaint according api response
   useEffect(() => {
-    if (!itemType) return;
+    if (!itemType || isClearing) return;
 
     const fetchItems = async () => {
+      setLoading(true);
       try {
         const res = await axios.get(
           `${
@@ -97,11 +104,13 @@ const tableRef = useRef(null);
         setItemNameList(res.data);
       } catch (error) {
         console.error("Failed to fetch items", error);
+      } finally {
+        setTimeout(() => setLoading(false), 1000);
       }
     };
 
     fetchItems();
-  }, [itemType]);
+  }, [itemType, isClearing]);
 
   // Track editing state per cell
   const [editing, setEditing] = useState({});
@@ -120,27 +129,21 @@ const tableRef = useRef(null);
     setEditing((prev) => ({ ...prev, [`${index}-${field}`]: true }));
   };
 
-  setTimeout(() => {
-    setLoading(false);
-  }, 2000);
-
   // ✅ Hide Action when clicking outside the table
-useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (tableRef.current && !tableRef.current.contains(event.target)) {
-      setEditingStockIndex(null);
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (tableRef.current && !tableRef.current.contains(event.target)) {
+        setEditingStockIndex(null);
+      }
+    };
 
-  // ✅ use capture phase so it triggers before React bubbling
-  document.addEventListener("click", handleClickOutside, true);
+    // ✅ use capture phase so it triggers before React bubbling
+    document.addEventListener("click", handleClickOutside, true);
 
-  return () => {
-    document.removeEventListener("click", handleClickOutside, true);
-  };
-}, []);
-
-
+    return () => {
+      document.removeEventListener("click", handleClickOutside, true);
+    };
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -179,9 +182,9 @@ useEffect(() => {
             <select
               value={itemType}
               onChange={(e) => setItemType(e.target.value)}
-              disabled={!itemCategory} // ✅ disable when itemCategory is null/undefined/empty
+              disabled={!itemCategory}
               className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-      ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`} // ✅ add style when disabled
+      ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
             >
               <option value="">Select Item Type</option>
               {itemTypeList.map((type) => (
@@ -205,6 +208,25 @@ useEffect(() => {
                 {showRate ? "With Rate" : "Without Rate"}
               </span>
             </label>
+
+            {/* ✅ Clear All Button */}
+            {(itemCategory || itemType) && (
+              <button
+                onClick={() => {
+                  setIsClearing(true);
+                  setItemCategory("");
+                  setItemType("");
+                  setShowRate(true);
+                  setForm({ category: "", itemType: "", itemSearch: "" });
+                  toast.success("Filters cleared");
+                  setTimeout(() => setIsClearing(false), 1000);
+                }}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-md px-3 py-1 transition"
+              >
+                <XCircle size={18} />
+                <span className="font-medium">Filter</span>
+              </button>
+            )}
           </div>
 
           {/* Search bar with icon (no label) */}
@@ -237,7 +259,10 @@ useEffect(() => {
 
       {/* TABLE / CARDS */}
 
-      <div  ref={tableRef} className="rounded-xl shadow border border-gray-200 overflow-hidden">
+      <div
+        ref={tableRef}
+        className="rounded-xl shadow border border-gray-200 overflow-hidden"
+      >
         <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
           <div className="min-w-[1000px]">
             {/* ✅ Table Header */}

@@ -141,6 +141,24 @@ const ListOfItems = () => {
   useEffect(() => {
     fetchCategoryList();
   }, [fetchCategoryList]);
+// item Unit
+  const fetchItemUnitList = useCallback(async () => {
+    try {
+      setIsSaving(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/categories`
+      );
+      setCategoryList(res.data); // store actual categories array
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    } finally {
+      setTimeout(() => setIsSaving(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchItemUnitList();
+  }, [fetchItemUnitList]);
+
 
   // Fetch itemTypes when category changes
   useEffect(() => {
@@ -163,7 +181,7 @@ const ListOfItems = () => {
   }, [itemCategory]);
 
   // Item Unit List Fetch
-  const fetchItemUnitList = useCallback(async () => {
+  const fetchItemUnitsList = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(
@@ -177,8 +195,8 @@ const ListOfItems = () => {
     }
   }, []);
   useEffect(() => {
-    fetchItemUnitList();
-  }, [fetchItemUnitList]);
+    fetchItemUnitsList();
+  }, [fetchItemUnitsList]);
 
   // Manufacturer List Fetch
   const fetchManufacturerList = useCallback(async () => {
@@ -269,15 +287,12 @@ const ListOfItems = () => {
     if (!itemCategory.id) errors.push("Item Category is required");
     if (!itemType) errors.push("Item Type is required");
     if (!itemKind) errors.push("Item Kind is required");
-    if (!manufacture) errors.push("Manufacturer is required");
-    if (!supplier) errors.push("Supplier is required");
-    if (!shelveLocation) errors.push("Shelf Location is required");
     if (!itemName) errors.push("Item Name is required");
     if (!itemUnit) errors.push("Item Unit is required");
+    if (!perUnit) errors.push("Per Unit is required");
     if (!purchase) errors.push("Purchase is required");
     if (!sales) errors.push("Sales is required");
     if (!stock) errors.push("Stock is required");
-    if (!barcode) errors.push("Barcode is required");
     if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
@@ -406,7 +421,7 @@ const ListOfItems = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit || "");
+    setItemUnit(item?.itemUnit  || "");
     setItemType(item?.itemType?._id || "");
     setItemCategoryId(item.itemId);
     // Normal fields
@@ -539,6 +554,7 @@ const ListOfItems = () => {
     setCurrentPage(pageNumber);
   };
 
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Coomon header */}
@@ -561,13 +577,13 @@ const ListOfItems = () => {
           <div className="max-h-screen overflow-y-auto custom-scrollbar">
             <div className="inline-block w-full align-middle">
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-7 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div>Sr</div>
                 <div>Item Category</div>
                 <div>Item Name</div>
                 <div>Purchase</div>
                 <div>Sales</div>
                 <div>Stock</div>
-                <div>Barcode</div>
                 {userInfo?.isAdmin && <div className="">Actions</div>}
               </div>
 
@@ -577,7 +593,7 @@ const ListOfItems = () => {
                   <TableSkeleton
                     rows={itemList.length || 5}
                     cols={userInfo?.isAdmin ? 7 : 6}
-                    className="lg:grid-cols-7"
+                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                   />
                 ) : itemList.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -587,8 +603,11 @@ const ListOfItems = () => {
                   currentRecords.map((item, index) => (
                     <div
                       key={item._id}
-                      className="grid grid-cols-1 lg:grid-cols-7 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
+                      {
+                        indexOfFirstRecord + index + 1
+                      }
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
                         <img
@@ -617,11 +636,6 @@ const ListOfItems = () => {
                       {/* Stock */}
                       <div className="font-semibold text-gray-600">
                         {item.stock}
-                      </div>
-
-                      {/* Barcode */}
-                      <div className="font-semibold text-gray-600">
-                        {item.secondaryBarcode || "N/A"}
                       </div>
 
                       {/* Actions */}
@@ -838,7 +852,7 @@ const ListOfItems = () => {
                     {/* Manufacture */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Manufacture <span className="text-red-500">*</span>
+                        Manufacture 
                       </label>
                       <select
                         value={manufacture}
@@ -857,7 +871,7 @@ const ListOfItems = () => {
                     {/* Supplier */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Supplier <span className="text-red-500">*</span>
+                        Supplier 
                       </label>
                       <select
                         value={supplier}
@@ -876,7 +890,7 @@ const ListOfItems = () => {
                     {/* Shelve Location */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Shelve Location <span className="text-red-500">*</span>
+                        Shelve Location 
                       </label>
                       <select
                         value={shelveLocation}
@@ -924,17 +938,20 @@ const ListOfItems = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                        <option value="Kg">Kg</option>
-                        <option value="Piece">Piece</option>
-                        <option value="Bag">Bag</option>
-                        <option value="Cotton">Cotton</option>
+                       {
+                        itemUnitList.map((unit) => (
+                          <option key={unit._id} value={unit._id}>
+                            {unit.unitName}
+                          </option>
+                        ))
+                       }
                       </select>
                     </div>
 
                     {/* Per Unit */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Per Unit
+                        Per Unit <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"

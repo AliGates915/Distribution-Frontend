@@ -298,8 +298,8 @@ const SupplierList = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1100px]">
             {/* ✅ Table Header (desktop only) */}
-            <div className="hidden lg:grid grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-              <div>ID</div>
+            <div className="hidden lg:grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div>Sr</div>
               <div>Name</div>
               <div>Contact</div>
               <div>Email</div>
@@ -316,22 +316,22 @@ const SupplierList = () => {
                 <TableSkeleton
                   rows={supplierList.length > 0 ? supplierList.length : 5}
                   cols={userInfo?.isAdmin ? 9 : 8}
-                  className="lg:grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto]"
+                  className="lg:grid-cols-[0.2fr_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto]"
                 />
               ) : supplierList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
                   No suppliers found.
                 </div>
               ) : (
-                supplierList?.map((s) => (
+                supplierList?.map((s,idx) => (
                   <>
                     {/* ✅ Desktop Row */}
                     <div
                       key={s._id}
-                      className="hidden lg:grid grid-cols-[100px_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="hidden lg:grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="font-medium text-gray-900">
-                        {s._id?.slice(0, 6)}
+                      <div className=" text-gray-900">
+                        {idx+1}
                       </div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactPerson}</div>
