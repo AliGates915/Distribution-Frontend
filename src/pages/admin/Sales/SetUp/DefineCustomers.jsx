@@ -145,7 +145,7 @@ const DefineCustomers = () => {
   // Save or Update Customer
   const handleSave = async () => {
     if (
-      paymentTerms === "Credit" &&
+      paymentTerms === "Credit" &&  
       status &&
       (!balanceReceived || parseFloat(balanceReceived) <= 0)
     ) {
