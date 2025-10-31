@@ -1,5 +1,5 @@
 import { SaveIcon, Search } from "lucide-react";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 import CommanHeader from "../../Components/CommanHeader";
 import axios from "axios";
@@ -9,10 +9,13 @@ import toast from "react-hot-toast";
 const OpeningStock = () => {
   const [itemCategory, setItemCategory] = useState("");
   const [itemType, setItemType] = useState("");
+  const [showRate, setShowRate] = useState(true);
+
   const [categoryList, setCategoryList] = useState([]);
   const [itemNameList, setItemNameList] = useState([]);
   const [itemTypeList, setItemTypeList] = useState([]);
   const [editingStockIndex, setEditingStockIndex] = useState(null);
+const tableRef = useRef(null);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [loading, setLoading] = useState(true);
@@ -100,19 +103,6 @@ const OpeningStock = () => {
     fetchItems();
   }, [itemType]);
 
-  // Static 25 Records
-  const [records, setRecords] = useState(
-    Array.from({ length: 25 }, (_, i) => ({
-      sr: i + 1,
-      code: `ITM${String(i + 1).padStart(3, "0")}`,
-      type: i % 2 === 0 ? "Type 1" : "Type 2",
-      item: i % 2 === 0 ? `Nike Shoes ${i + 1}` : `Adidas Shoes ${i + 1}`,
-      purchase: 5 + i,
-      sales: 2 + (i % 5),
-      stock: 20 + i,
-    }))
-  );
-
   // Track editing state per cell
   const [editing, setEditing] = useState({});
 
@@ -133,6 +123,25 @@ const OpeningStock = () => {
   setTimeout(() => {
     setLoading(false);
   }, 2000);
+
+  // ✅ Hide Action when clicking outside the table
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (tableRef.current && !tableRef.current.contains(event.target)) {
+      setEditingStockIndex(null);
+    }
+  };
+
+  // ✅ use capture phase so it triggers before React bubbling
+  document.addEventListener("click", handleClickOutside, true);
+
+  return () => {
+    document.removeEventListener("click", handleClickOutside, true);
+  };
+}, []);
+
+
+
   return (
     <div className="p-6 space-y-6">
       {/* Heading */}
@@ -183,6 +192,21 @@ const OpeningStock = () => {
             </select>
           </div>
 
+          {/* With/Without Rate Toggle */}
+          <div className="flex items-center gap-4 mt-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={showRate}
+                onChange={() => setShowRate(!showRate)}
+                className="w-4 h-4 accent-newPrimary cursor-pointer"
+              />
+              <span className="text-gray-700 font-medium">
+                {showRate ? "With Rate" : "Without Rate"}
+              </span>
+            </label>
+          </div>
+
           {/* Search bar with icon (no label) */}
 
           {itemNameList.length > 10 && (
@@ -213,170 +237,189 @@ const OpeningStock = () => {
 
       {/* TABLE / CARDS */}
 
-      <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-  <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
-    <div className="min-w-[1000px]">
-      {/* ✅ Table Header */}
-      <div
-        className={`hidden lg:grid ${
-          editingStockIndex !== null
-            ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-            : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
-        } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
-      >
-        <div>Sr</div>
-        <div>Category</div>
-        <div>Type</div>
-        <div>Item</div>
-        <div>Purchase</div>
-        <div>Sales</div>
-        <div>Stock</div>
-        {editingStockIndex !== null && <div>Action</div>}
-      </div>
-
-      {/* ✅ Table Body */}
-      <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
-        {loading ? (
-          <TableSkeleton
-            rows={itemNameList.length > 0 ? itemNameList.length : 5}
-            cols={editingStockIndex !== null? 8:7}
-            className={`${editingStockIndex !== null ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]" : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"}`}
-          />
-        ) : itemNameList.length === 0 ? (
-          <div className="text-center py-4 text-gray-500 bg-white">
-            No items found.
-          </div>
-        ) : (
-          itemNameList.map((rec, index) => (
+      <div  ref={tableRef} className="rounded-xl shadow border border-gray-200 overflow-hidden">
+        <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
+          <div className="min-w-[1000px]">
+            {/* ✅ Table Header */}
             <div
-              key={rec.code}
-              className={`grid ${
+              className={`hidden lg:grid ${
                 editingStockIndex !== null
                   ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
                   : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
-              } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
+              } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
             >
-              <div>{index + 1}</div>
-              <div>{rec?.itemCategory?.categoryName}</div>
-              <div>{rec?.itemType?.itemTypeName}</div>
-              <div className="font-medium text-gray-900">{rec.itemName}</div>
+              <div>Sr</div>
+              <div>Category</div>
+              <div>Type</div>
+              <div>Item</div>
+              {showRate && (
+                <>
+                  <div>Purchase</div>
+                  <div>Sales</div>
+                </>
+              )}
 
-              {/* Editable Purchase */}
-              <div className="text-gray-600">
-                {editing[`${index}-purchase`] ? (
-                  <input
-                    type="number"
-                    value={rec.purchase}
-                    onChange={(e) =>
-                      handleChange(index, "purchase", e.target.value)
-                    }
-                    onBlur={() => handleBlur(index, "purchase")}
-                    autoFocus
-                    className="w-20 border rounded p-1"
-                  />
-                ) : (
-                  <span
-                    onClick={() => handleFocus(index, "purchase")}
-                    className="cursor-pointer"
-                  >
-                    {rec.purchase}
-                  </span>
-                )}
-              </div>
+              <div>Stock</div>
+              {editingStockIndex !== null && <div>Action</div>}
+            </div>
 
-              {/* Editable Sales */}
-              <div className="text-gray-600">
-                {editing[`${index}-sales`] ? (
-                  <input
-                    type="number"
-                    value={rec.price}
-                    onChange={(e) =>
-                      handleChange(index, "sales", e.target.value)
-                    }
-                    onBlur={() => handleBlur(index, "sales")}
-                    autoFocus
-                    className="w-20 border rounded p-1"
-                  />
-                ) : (
-                  <span
-                    onClick={() => handleFocus(index, "sales")}
-                    className="cursor-pointer"
-                  >
-                    {rec.price}
-                  </span>
-                )}
-              </div>
-
-              {/* Editable Stock */}
-              <div className="text-gray-600">
-                {editing[`${index}-stock`] ? (
-                  <input
-                    type="number"
-                    value={rec.stock}
-                    onChange={(e) =>
-                      handleChange(index, "stock", e.target.value)
-                    }
-                    onBlur={() => {
-                      handleBlur(index, "stock");
-                      setEditingStockIndex(index);
-                    }}
-                    autoFocus
-                    className="w-20 border rounded p-1"
-                  />
-                ) : (
-                  <span
-                    onClick={() => {
-                      handleFocus(index, "stock");
-                      setEditingStockIndex(index);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    {rec.stock}
-                  </span>
-                )}
-              </div>
-
-              {/* Action Button */}
-              {editingStockIndex === index && (
-                <div className="flex gap-3 justify-end">
-                  <button
-                    className="text-newPrimary hover:bg-green-50 rounded p-1"
-                    onClick={async () => {
-                      try {
-                        await axios.put(
-                          `${import.meta.env.VITE_API_BASE_URL}/item-details/${rec._id}/stock`,
-                          { stock: rec.stock },
-                          {
-                            headers: {
-                              Authorization: `Bearer ${userInfo?.token}`,
-                            },
-                          }
-                        );
-                        console.log(
-                          "✅ Stock updated successfully:",
-                          rec.itemName,
-                          rec.stock
-                        );
-                        setEditingStockIndex(null);
-                        toast.success("Stock updated successfully");
-                      } catch (error) {
-                         toast.success(error.response?.data?.message || "Failed to update stock");
-                        console.error("Failed to update stock:", error);
-                      }
-                    }}
-                  >
-                    <SaveIcon size={18} />
-                  </button>
+            {/* ✅ Table Body */}
+            <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
+              {loading ? (
+                <TableSkeleton
+                  rows={itemNameList.length > 0 ? itemNameList.length : 5}
+                  cols={editingStockIndex !== null ? 8 : 7}
+                  className={`${
+                    editingStockIndex !== null
+                      ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                      : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                  }`}
+                />
+              ) : itemNameList.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 bg-white">
+                  No items found.
                 </div>
+              ) : (
+                itemNameList.map((rec, index) => (
+                  <div
+                    key={rec.code}
+                    className={`grid ${
+                      editingStockIndex !== null
+                        ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                        : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                    } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
+                  >
+                    <div>{index + 1}</div>
+                    <div>{rec?.itemCategory?.categoryName}</div>
+                    <div>{rec?.itemType?.itemTypeName}</div>
+                    <div className="font-medium text-gray-900">
+                      {rec.itemName}
+                    </div>
+
+                    {showRate && (
+                      <>
+                        {/* Editable Purchase */}
+                        <div className="text-gray-600">
+                          {editing[`${index}-purchase`] ? (
+                            <input
+                              type="number"
+                              value={rec.purchase}
+                              onChange={(e) =>
+                                handleChange(index, "purchase", e.target.value)
+                              }
+                              onBlur={() => handleBlur(index, "purchase")}
+                              autoFocus
+                              className="w-20 border rounded p-1"
+                            />
+                          ) : (
+                            <span
+                              onClick={() => handleFocus(index, "purchase")}
+                              className="cursor-pointer"
+                            >
+                              {rec.purchase}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Editable Sales */}
+                        <div className="text-gray-600">
+                          {editing[`${index}-sales`] ? (
+                            <input
+                              type="number"
+                              value={rec.price}
+                              onChange={(e) =>
+                                handleChange(index, "sales", e.target.value)
+                              }
+                              onBlur={() => handleBlur(index, "sales")}
+                              autoFocus
+                              className="w-20 border rounded p-1"
+                            />
+                          ) : (
+                            <span
+                              onClick={() => handleFocus(index, "sales")}
+                              className="cursor-pointer"
+                            >
+                              {rec.price}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Editable Stock */}
+                    <div className="text-gray-600">
+                      {editing[`${index}-stock`] ? (
+                        <input
+                          type="number"
+                          value={rec.stock}
+                          onChange={(e) =>
+                            handleChange(index, "stock", e.target.value)
+                          }
+                          onBlur={() => {
+                            handleBlur(index, "stock");
+                            setEditingStockIndex(index);
+                          }}
+                          autoFocus
+                          className="w-20 border rounded p-1"
+                        />
+                      ) : (
+                        <span
+                          onClick={() => {
+                            handleFocus(index, "stock");
+                            setEditingStockIndex(index);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {rec.stock}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Action Button */}
+                    {editingStockIndex === index && (
+                      <div className="flex gap-3 justify-end">
+                        <button
+                          className="text-newPrimary hover:bg-green-50 rounded p-1"
+                          onClick={async () => {
+                            try {
+                              await axios.put(
+                                `${
+                                  import.meta.env.VITE_API_BASE_URL
+                                }/item-details/${rec._id}/stock`,
+                                { stock: rec.stock },
+                                {
+                                  headers: {
+                                    Authorization: `Bearer ${userInfo?.token}`,
+                                  },
+                                }
+                              );
+                              console.log(
+                                "✅ Stock updated successfully:",
+                                rec.itemName,
+                                rec.stock
+                              );
+                              setEditingStockIndex(null);
+                              toast.success("Stock updated successfully");
+                            } catch (error) {
+                              toast.success(
+                                error.response?.data?.message ||
+                                  "Failed to update stock"
+                              );
+                              console.error("Failed to update stock:", error);
+                            }
+                          }}
+                        >
+                          <SaveIcon size={18} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
               )}
             </div>
-          ))
-        )}
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
     </div>
   );
 };
