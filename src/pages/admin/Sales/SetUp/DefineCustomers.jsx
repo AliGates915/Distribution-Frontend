@@ -155,7 +155,10 @@ const DefineCustomers = () => {
     if (!address) errors.push("Address is required");
     if (!phoneNumber) errors.push("Phone Number is required");
     if (!openingBalanceDate) errors.push("Opening Balance Date is required");
-    if (!balanceReceived) errors.push("Opening Balance is required");
+ if (balanceReceived === "" || balanceReceived === null)
+  errors.push("Opening Balance is required");
+
+
     // ✅ Credit fields (only when Payment Terms = Credit)
     if (paymentTerms === "Credit") {
       if (!creditTime) errors.push("Credit Days Limit is required");
@@ -176,16 +179,7 @@ const DefineCustomers = () => {
       });
       return;
     }
-    if (
-      paymentTerms === "Credit" &&
-      status &&
-      (!balanceReceived || parseFloat(balanceReceived) <= 0)
-    ) {
-      toast.error(
-        "❌ Balance Received is required and must be a positive number for Credit payment terms"
-      );
-      return;
-    }
+ 
 
     setIsSaving(true);
 
@@ -252,6 +246,8 @@ const DefineCustomers = () => {
 
   // Edit Customer
   const handleEdit = (customer) => {
+    console.log({customer});
+    
     setIsEdit(true);
     setEditId(customer._id);
     setAreaName(customer.salesArea || "");
@@ -270,7 +266,11 @@ const DefineCustomers = () => {
       : "";
     setOpeningBalanceDate(formattedDate);
 
-    setBalanceReceived(customer.salesBalance || ""); // Added balance received
+   setBalanceReceived(
+  customer.salesBalance !== undefined && customer.salesBalance !== null
+    ? customer.salesBalance
+    : ""
+);
     setPaymentTerms(customer.paymentTerms || "");
     setCreditTime(customer.creditTime || "");
     setCreditLimit(customer.creditLimit || "");
@@ -544,7 +544,7 @@ const DefineCustomers = () => {
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
             {isSaving && (
-              <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              <div className="absolute top-0 left-0 w-full h-[120vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" size={60} />
               </div>
             )}
