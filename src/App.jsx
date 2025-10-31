@@ -42,14 +42,14 @@ import AmountReceivales from "./pages/admin/Sales/Reports/AmountReceivales.jsx";
 import ListOfItems from "./pages/admin/Sales/SetUp/ListOfItems.jsx";
 import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
 import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
-import EmployeeInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
+
 import SalesArea from "./pages/admin/Sales/SetUp/SalesArea.jsx";
 
 // =================== ACCOUNTS SECTION IMPORTS
 
 import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
 import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
-import OpeningStock from "./pages/admin/Accounts/Functionalities/OpeningStock.jsx";
+
 
 import BankLedger from "./pages/admin/Accounts/Reports/BankLedger.jsx";
 import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
@@ -68,6 +68,7 @@ import ShelveLocationList from "./pages/admin/Sales/SetUp/ShelveLoactionList.jsx
 import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
 import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
+import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
 
 function AppContent() {
   return (

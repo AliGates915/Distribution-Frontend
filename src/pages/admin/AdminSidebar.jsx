@@ -41,11 +41,11 @@ const links = [
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
-  {
-    to: "/admin/accounts",
-    label: "Accounts ",
-    icon: <MdOutlineAccountBalanceWallet />,
-  },
+  // {
+  //   to: "/admin/accounts",
+  //   label: "Accounts ",
+  //   icon: <MdOutlineAccountBalanceWallet />,
+  // },
   
   // {
   //   label: "Security",
