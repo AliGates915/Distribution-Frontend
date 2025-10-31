@@ -189,7 +189,7 @@ const ItemCategory = () => {
             );
           } catch (error) {
             console.error(error);
-            toast.error("Failed to update status.");
+            toast.error(error.response?.data?.message || "An error occurred");
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(

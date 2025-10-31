@@ -132,18 +132,19 @@ useEffect(() => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !vehicleNo ||
-      !make ||
-      !model ||
-      !registrationNo ||
-      !startingDate ||
-      !vehicleType
-    ) {
-      toast.error(" All fields are required.");
-      return;
-    }
+  if(!vehicleNo ){
+    toast.error(" Vehicle No. is required.");
+    return;
+  }
+  if (!registrationNo) {
+    toast.error(" Registration Number is required.");
+    return;
+  }
+  if ( !vehicleType) {
+    toast.error(" Vehicle Type is required.");
+    return;
+  }
+  
 
     setIsSaving(true);
 
@@ -266,16 +267,16 @@ useEffect(() => {
                       <div className=" text-gray-600">
                         {indexOfFirstRecord + index + 1}
                       </div>
-                      <div className="text-gray-700">{vehicle.vehicleNo}</div>
-                      <div className="text-gray-700">{vehicle.make}</div>
-                      <div className="text-gray-700">{vehicle.model}</div>
+                      <div className="text-gray-700">{vehicle.vehicleNo || "-"}</div>
+                      <div className="text-gray-700">{vehicle.make || "-"}</div>
+                      <div className="text-gray-700">{vehicle.model || "-"}</div>
                       <div className="text-gray-700">
-                        {vehicle.registrationNumber}
+                        {vehicle.registrationNumber || "-"}
                       </div>
                       <div className="text-gray-700">
                         {vehicle.startingDate
                           ? new Date(vehicle.startingDate).toLocaleDateString()
-                          : "—"}
+                          : "-"}
                       </div>
 
                       <div className="text-center flex justify-center gap-2">
@@ -365,7 +366,7 @@ useEffect(() => {
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Vehicle No.
+                    Vehicle No. <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -377,7 +378,7 @@ useEffect(() => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Make <span className="text-red-500">*</span>
+                    Make 
                   </label>
                   <input
                     type="text"
@@ -390,7 +391,7 @@ useEffect(() => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Model <span className="text-red-500">*</span>
+                    Model 
                   </label>
                   <input
                     type="text"
@@ -416,7 +417,7 @@ useEffect(() => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Starting Date <span className="text-red-500">*</span>
+                    Starting Date 
                   </label>
                   <input
                     type="date"

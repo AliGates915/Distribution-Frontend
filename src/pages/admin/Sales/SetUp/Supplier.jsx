@@ -2,17 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HashLoader, ScaleLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
-
 import Swal from "sweetalert2";
-
 import { SquarePen, Trash2 } from "lucide-react";
-
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
 
 const SupplierList = () => {
-   const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [supplierList, setSupplierList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [supplierName, setSupplierName] = useState("");
@@ -20,7 +17,7 @@ const SupplierList = () => {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [productsSupplied, setProductsSupplied] = useState("");
-  const [paymentTerms, setPaymentTerms] = useState("");
+  const [paymentTerms, setPaymentTerms] = useState("CreditCard");
   const [status, setStatus] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [designation, setDesignation] = useState("");
@@ -90,14 +87,14 @@ const SupplierList = () => {
     setEmail("");
     setAddress("");
     setProductsSupplied("");
-    setPaymentTerms("");
+    setPaymentTerms("CreditCard");
     setPhoneNumber("");
     setMobileNumber("");
     setDesignation("");
     setNtn("");
     setGst("");
     setCreditLimit("");
-
+    setCreditTime(30);
     setStatus(true);
   };
 
@@ -107,13 +104,43 @@ const SupplierList = () => {
   };
 
   // Save or Update Supplier
+  // ✅ Supplier Form Validation
+  const validateSupplierForm = () => {
+    const errors = [];
+
+    if (!supplierName) errors.push("Supplier Name is required");
+
+    if (!address) errors.push("Address is required");
+    if (!phoneNumber) errors.push("Phone Number is required");
+
+    // ✅ Payment Terms Validation
+    if (!paymentTerms) errors.push("Payment Terms selection is required");
+
+    // ✅ Credit-only fields
+    if (paymentTerms === "CreditCard") {
+      if (!creditTime) errors.push("Credit Time Limit is required");
+      if (!creditLimit) errors.push("Credit Cash Limit is required");
+    }
+
+    return errors;
+  };
+
   const handleSave = async () => {
+    const errors = validateSupplierForm();
+    if (errors.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        html: errors.join("<br/>"),
+      });
+      return;
+    }
     if (
       paymentTerms === "CreditCard" &&
       status &&
       (!creditLimit || creditLimit > 5000000)
     ) {
-      toast.error("❌ Credit limit is required and must not exceed 50 lac");
+      toast.error("Credit limit is required and must not exceed 50 lac");
       return;
     }
 
@@ -121,7 +148,7 @@ const SupplierList = () => {
     //   toast.error("Please enter a valid email address");
     //   return;
     // }
-setIsSaving(true);
+    setIsSaving(true);
     const formData = {
       supplierName,
       email,
@@ -176,7 +203,7 @@ setIsSaving(true);
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Something went wrong");
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -336,11 +363,19 @@ setIsSaving(true);
                       <div className=" text-gray-900">
                         {indexOfFirstRecord + idx + 1}
                       </div>
-                      <div className="text-gray-700">{s.supplierName}</div>
-                      <div className="text-gray-600">{s.contactPerson}</div>
-                      <div className="text-gray-600">{s.email}</div>
-                      <div className="text-gray-600 truncate">{s.address}</div>
-                      <div className="text-gray-600">{s.phoneNumber}</div>
+                      <div className="text-gray-700">
+                        {s.supplierName || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {s.contactPerson || "-"}
+                      </div>
+                      <div className="text-gray-600">{s.email || "-"}</div>
+                      <div className="text-gray-600 truncate">
+                        {s.address || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {s.phoneNumber || "-"}
+                      </div>
                       <div className="text-gray-600">
                         {s.paymentTerms}
                         {s.paymentTerms === "CreditCard" && s.creditLimit
@@ -382,13 +417,17 @@ setIsSaving(true);
                       className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
                     >
                       <h3 className="font-semibold text-gray-800">
-                        {s.supplierName}
+                        {s.supplierName || "-"}
                       </h3>
-                      <p className="text-sm text-gray-600">{s.contactPerson}</p>
-                      <p className="text-sm text-gray-600">{s.email}</p>
-                      <p className="text-sm text-gray-600">{s.phoneNumber}</p>
+                      <p className="text-sm text-gray-600">
+                        {s.contactPerson || "-"}
+                      </p>
+                      <p className="text-sm text-gray-600">{s.email || "-"}</p>
+                      <p className="text-sm text-gray-600">
+                        {s.phoneNumber || "-"}
+                      </p>
                       <p className="text-sm text-gray-600 truncate">
-                        {s.address}
+                        {s.address || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
                         {s.paymentTerms}{" "}
@@ -531,7 +570,13 @@ setIsSaving(true);
                     type="text"
                     value={phoneNumber}
                     required
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // ✅ Allow only digits and '+' sign at start
+                      if (/^[0-9+]*$/.test(value)) {
+                        setPhoneNumber(value);
+                      }
+                    }}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. +1-212-555-1234"
                   />
@@ -540,13 +585,19 @@ setIsSaving(true);
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Mobile Number <span className="text-red-500">*</span>
+                    Mobile Number
                   </label>
                   <input
                     type="text"
                     value={mobileNumber}
                     required
-                    onChange={(e) => setMobileNumber(e.target.value)}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                      // ✅ Allow only digits and '+' sign at start
+                      if (/^[0-9+]*$/.test(value)) {
+                         setMobileNumber(value)
+                      }
+                     }}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. 03001234567"
                   />
@@ -554,7 +605,7 @@ setIsSaving(true);
 
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address
                   </label>
                   <input
                     type="email"
@@ -568,7 +619,7 @@ setIsSaving(true);
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Contact Person <span className="text-red-500">*</span>
+                    Contact Person
                   </label>
                   <input
                     type="text"
@@ -581,7 +632,7 @@ setIsSaving(true);
 
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Designation <span className="text-red-500">*</span>
+                    Designation
                   </label>
                   <input
                     type="text"
@@ -607,9 +658,7 @@ setIsSaving(true);
               </div>
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    NTN <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-gray-700 font-medium">NTN</label>
                   <input
                     type="text"
                     value={ntn}
@@ -621,9 +670,7 @@ setIsSaving(true);
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    GST <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-gray-700 font-medium">GST</label>
                   <input
                     type="text"
                     value={gst}
@@ -719,7 +766,7 @@ setIsSaving(true);
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-              {isEdit?"Update Supplier":"Save Supplier"}  
+                {isEdit ? "Update Supplier" : "Save Supplier"}
               </button>
             </div>
           </div>

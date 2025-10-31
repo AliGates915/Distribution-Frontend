@@ -289,7 +289,7 @@ const validateSalesmanForm = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* ✅ Table Header */}
-            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>Sr</div>
               <div>Name</div>
               <div>Department</div>
@@ -307,7 +307,7 @@ const validateSalesmanForm = () => {
                 <TableSkeleton
                   rows={employeeList.length > 0 ? employeeList.length : 5}
                   cols={9}
-                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : employeeList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -317,20 +317,20 @@ const validateSalesmanForm = () => {
                 currentRecords.map((emp, index) => (
                   <div
                     key={emp._id}
-                    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                    className="grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                   >
                     <div className="text-gray-900">
                       {indexOfFirstRecord + index + 1}
                     </div>
                   
-                    <div className="text-gray-700">{emp?.employeeName}</div>
+                    <div className="text-gray-700">{emp?.employeeName || "-"}</div>
                     <div className="text-gray-600">
                       {emp?.departmentName || "-"}
                     </div>
-                    <div className="text-gray-600">{emp?.mobile}</div>
-                    <div className="text-gray-600">{emp?.nicNo}</div>
-                    <div className="text-gray-600">{formatDate(emp.dob)}</div>
-                    <div className="text-gray-600">{emp?.qualification}</div>
+                    <div className="text-gray-600">{emp?.mobile || "-"}</div>
+                    <div className="text-gray-600">{emp?.nicNo || "-"}</div>
+                    <div className="text-gray-600">{formatDate(emp.dob) || "-"}</div>
+                    <div className="text-gray-600">{emp?.qualification || "-"}</div>
                     <div className="font-semibold">
                       {emp?.isEnable ? (
                         <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">

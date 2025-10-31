@@ -260,11 +260,11 @@ const ItemUnit = () => {
                    
 
                     {/* Name */}
-                    <div className="text-gray-600">{manufacturer.unitName}</div>
+                    <div className="text-gray-600">{manufacturer.unitName || "-"}</div>
 
                     {/* Description */}
                     <div className="text-gray-600">
-                      {manufacturer.description}
+                      {manufacturer.description || "-"}
                     </div>
 
                     {/* Actions */}

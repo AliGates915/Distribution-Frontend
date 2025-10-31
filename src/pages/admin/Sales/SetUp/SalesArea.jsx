@@ -5,6 +5,7 @@ import { api } from "../../../../context/ApiService";
 import TableSkeleton from "../../Components/Skeleton";
 import { ScaleLoader } from "react-spinners";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
 const AreaPage = () => {
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -73,7 +74,7 @@ const AreaPage = () => {
       resetForm(); // close slider & reset form
     } catch (error) {
       console.error("Failed to save area", error);
-      alert("Error saving area. Please try again.");
+     toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false); // stop saving
     }
@@ -190,8 +191,8 @@ const AreaPage = () => {
                         <div className="text-gray-600">
                           {indexOfFirstRecord + idx + 1}
                         </div>
-                        <div className="text-gray-600">{area?.salesArea}</div>
-                        <div className="text-gray-600">{area?.description}</div>
+                        <div className="text-gray-600">{area?.salesArea || "-"}</div>
+                        <div className="text-gray-600">{area?.description || "-"}</div>
                         <div className="flex justify-end gap-3">
                           <button
                             onClick={() => handleEditClick(area)}

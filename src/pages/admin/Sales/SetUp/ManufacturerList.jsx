@@ -141,7 +141,7 @@ const ManufactureList = () => {
       fetchManufacturersList();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
+      toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false);
     }
@@ -475,19 +475,22 @@ const ManufactureList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700 font-medium">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  required
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="e.g. +82-2-1234-5678"
-                />
-              </div>
+
+              <input
+                type="text"
+                value={phoneNumber}
+                required
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // ✅ Allow only digits and '+' sign at start
+                  if (/^[0-9+]*$/.test(value)) {
+                    setPhoneNumber(value);
+                  }
+                }}
+                className="w-full p-2 border rounded"
+                placeholder="e.g. +923001234567"
+              />
+
               <div>
                 <label className="block text-gray-700 font-medium">
                   Email Address <span className="text-red-500">*</span>

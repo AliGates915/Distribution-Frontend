@@ -99,10 +99,12 @@ const DefineCustomers = () => {
     fetchCustomersList();
   }, [fetchCustomersList]);
 
-   const fetchSalesAreaList = useCallback(async () => {
+  const fetchSalesAreaList = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/sales-area`);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/sales-area`
+      );
       setAreaNameList(res.data);
     } catch (error) {
       console.error("Failed to fetch Customers", error);
@@ -128,12 +130,12 @@ const DefineCustomers = () => {
     setPhoneNumber("");
     setMobileNumber("");
     setDesignation("");
-    setAreaName("")
+    setAreaName("");
     setDepartment(""); // Reset department
     setNtn("");
     setGst("");
-    setOpeningBalanceDate(""); // Reset opening balance date
-    setBalanceReceived(""); // Reset balance received
+    setOpeningBalanceDate(new Date().toISOString().split("T")[0]); // Reset opening balance date
+    setBalanceReceived(0); // Reset balance received
     setStatus(true);
     setCreditTime(30);
     setCreditLimit("");
@@ -145,38 +147,35 @@ const DefineCustomers = () => {
   };
 
   // ✅ Customer Form Validation
-const validateCustomerForm = () => {
-  const errors = [];
+  const validateCustomerForm = () => {
+    const errors = [];
 
-  if (!areaName) errors.push("Area Name is required");
-  if (!customerName) errors.push("Customer Name is required");
-  if (!address) errors.push("Address is required");
-  if (!phoneNumber) errors.push("Phone Number is required");
-  if (!openingBalanceDate) errors.push("Opening Balance Date is required");
-  if (!balanceReceived) errors.push("Opening Balance is required");
-  // ✅ Credit fields (only when Payment Terms = Credit)
-  if (paymentTerms === "Credit") {
-    if (!creditTime) errors.push("Credit Days Limit is required");
-    if (!creditLimit) errors.push("Credit Cash Limit is required");
-  }
+    if (!areaName) errors.push("Area Name is required");
+    if (!customerName) errors.push("Customer Name is required");
+    if (!address) errors.push("Address is required");
+    if (!phoneNumber) errors.push("Phone Number is required");
+    if (!openingBalanceDate) errors.push("Opening Balance Date is required");
+    if (!balanceReceived) errors.push("Opening Balance is required");
+    // ✅ Credit fields (only when Payment Terms = Credit)
+    if (paymentTerms === "Credit") {
+      if (!creditTime) errors.push("Credit Days Limit is required");
+      if (!creditLimit) errors.push("Credit Cash Limit is required");
+    }
 
-  return errors;
-};
-
-
-
+    return errors;
+  };
 
   // Save or Update Customer
   const handleSave = async () => {
     const errors = validateCustomerForm();
-  if (errors.length > 0) {
-    Swal.fire({
-      icon: "error",
-      title: "Validation Error",
-      html: errors.join("<br/>"),
-    });
-    return;
-  }
+    if (errors.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        html: errors.join("<br/>"),
+      });
+      return;
+    }
     if (
       paymentTerms === "Credit" &&
       status &&
@@ -208,8 +207,7 @@ const validateCustomerForm = () => {
       openingBalanceDate,
       salesBalance: balanceReceived,
     };
-console.log({formData});
-
+    console.log({ formData });
 
     try {
       const { token } = userInfo || {};
@@ -334,9 +332,9 @@ console.log({formData});
         }
       });
   };
-useEffect(() => {
-  setCurrentPage(1);
-}, [customerList]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [customerList]);
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -390,13 +388,27 @@ useEffect(() => {
                       <div className="text-gray-900">
                         {indexOfFirstRecord + index + 1}
                       </div>
-                      <div className="text-gray-700">{c.customerName}</div>
-                      <div className="text-gray-600 truncate">{c.address}</div>
-                      <div className="text-gray-600">{c.phoneNumber}</div>
-                      <div className="text-gray-600">{c.contactPerson}</div>
-                      <div className="text-gray-600">{c.designation}</div>
-                      <div className="text-gray-600">{c.mobileNumber}</div>
-                      <div className="text-gray-600">{c.salesBalance || "0"}</div>
+                      <div className="text-gray-700">
+                        {c.customerName || "-"}
+                      </div>
+                      <div className="text-gray-600 truncate">
+                        {c.address || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {c.phoneNumber || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {c.contactPerson || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {c.designation || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {c.mobileNumber || "-"}
+                      </div>
+                      <div className="text-gray-600">
+                        {c.salesBalance || "0"}
+                      </div>
                       <div className="font-semibold">
                         {c.status ? (
                           <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
@@ -431,26 +443,26 @@ useEffect(() => {
                       className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
                     >
                       <h3 className="font-semibold text-gray-800">
-                        {c.customerName}
+                        {c.customerName || "-"}
                       </h3>
                       <p className="text-sm text-gray-600">SR#: {index + 1}</p>
                       <p className="text-sm text-gray-600">
-                        Address: {c.address}
+                        Address: {c.address || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Phone: {c.phoneNumber}
+                        Phone: {c.phoneNumber || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Person: {c.contactPerson}
+                        Person: {c.contactPerson || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Designation: {c.designation}
+                        Designation: {c.designation || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Department: {c.department}
+                        Department: {c.department || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Mobile: {c.mobileNumber}
+                        Mobile: {c.mobileNumber || "-"}
                       </p>
                       <p className="text-sm text-gray-600">
                         Balance: {c.balanceReceived || "0"}
@@ -578,11 +590,11 @@ useEffect(() => {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select Area</option>
-                 {
-                  areaNameList.map((area)=> (
-                    <option key={area._id} value={area._id}>{area.salesArea}</option>
-                  ))
-                 }
+                  {areaNameList.map((area) => (
+                    <option key={area._id} value={area._id}>
+                      {area.salesArea}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-4">
@@ -606,7 +618,13 @@ useEffect(() => {
                     type="text"
                     value={phoneNumber}
                     required
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // ✅ Allow only digits and '+' sign at start
+                      if (/^[0-9+]*$/.test(value)) {
+                        setPhoneNumber(value);
+                      }
+                    }}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. +1-213-555-9876"
                   />
@@ -615,7 +633,7 @@ useEffect(() => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Mobile Number 
+                    Mobile Number
                   </label>
                   <input
                     type="text"
@@ -628,7 +646,7 @@ useEffect(() => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Email Address 
+                    Email Address
                   </label>
                   <input
                     type="email"
@@ -642,7 +660,7 @@ useEffect(() => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Contact Person 
+                    Contact Person
                   </label>
                   <input
                     type="text"
@@ -654,7 +672,7 @@ useEffect(() => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Designation 
+                    Designation
                   </label>
                   <input
                     type="text"
@@ -680,9 +698,7 @@ useEffect(() => {
               </div>
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    NTN 
-                  </label>
+                  <label className="block text-gray-700 font-medium">NTN</label>
                   <input
                     type="text"
                     value={ntn}
@@ -693,9 +709,7 @@ useEffect(() => {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    GST 
-                  </label>
+                  <label className="block text-gray-700 font-medium">GST</label>
                   <input
                     type="text"
                     value={gst}
