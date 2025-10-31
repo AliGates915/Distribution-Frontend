@@ -118,6 +118,12 @@ const setupChildren = [
     label: "Vehicle Information",
     icon: <FaCar />,
   },
+  {
+    to: "/admin/supplier",
+    label: "Supplier",
+    icon: <FaTruck />,
+  },
+   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 ];
 
 // reportsChildren
@@ -137,30 +143,35 @@ const reportsChildren = [
     label: "Credit Aging",
     icon: <FaRegCreditCard />,
   },
-  {
-    to: "/admin/report/datewise-orders",
-    label: "Datewise Orders",
-    icon: <FaCalendarAlt />,
-  },
-  {
-    to: "/admin/report/productwise-orders",
-    label: "Productwise Orders",
-    icon: <FaShoppingCart />,
-  },
-  {
-    to: "/admin/report/salesmanwise-orders",
-    label: "Salesmanwise Orders",
-    icon: <FaUserTie />,
-  },
-  {
-    to: "/admin/report/customerwise-orders",
-    label: "Customerwise Orders",
-    icon: <FaUsers />,
-  },
+  // {
+  //   to: "/admin/report/datewise-orders",
+  //   label: "Datewise Orders",
+  //   icon: <FaCalendarAlt />,
+  // },
+  // {
+  //   to: "/admin/report/productwise-orders",
+  //   label: "Productwise Orders",
+  //   icon: <FaShoppingCart />,
+  // },
+  // {
+  //   to: "/admin/report/salesmanwise-orders",
+  //   label: "Salesmanwise Orders",
+  //   icon: <FaUserTie />,
+  // },
+  // {
+  //   to: "/admin/report/customerwise-orders",
+  //   label: "Customerwise Orders",
+  //   icon: <FaUsers />,
+  // },
   {
     to: "/admin/report/daily-sales-report",
     label: "Daily Sales Report",
     icon: <FaCalendarAlt />,
+  },
+  {
+    to: "/admin/report/opening-stock",
+    label: "Opening Stock",
+    icon: <Scale strokeWidth={3} size={40} />,
   },
 ];
 
