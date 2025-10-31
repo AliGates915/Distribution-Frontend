@@ -124,8 +124,8 @@ const validateSalesmanForm = () => {
 };
 
 
-  const handleSave = async () => {
-    const errors = validateSalesmanForm();
+ const handleSave = async () => {
+  const errors = validateSalesmanForm();
   if (errors.length > 0) {
     Swal.fire({
       icon: "error",
@@ -134,41 +134,48 @@ const validateSalesmanForm = () => {
     });
     return;
   }
-    const { token } = userInfo || {};
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+
+  const { token } = userInfo || {};
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const newEmployee = {
+    departmentName: department,
+    employeeName,
+    address,
+    city,
+    gender,
+    mobile: phoneNumber,
+    nicNo: nic,
+    dob,
+    qualification,
+    bloodGroup,
+    isEnable: enable,
+  };
+
+  try {
     setIsSaving(true);
-    const newEmployee = {
-      departmentName: department,
-      employeeName,
-      address,
-      city,
-      gender,
-      mobile: phoneNumber,
-      nicNo: nic,
-      dob,
-      qualification,
-      bloodGroup,
-      isEnable: enable,
-    };
 
     if (isEdit && editId) {
-      const res = await axios.put(`${API_URL}/${editId}`, newEmployee, {
-        headers,
-      });
-      toast.success(" Employee updated successfully");
+      await axios.put(`${API_URL}/${editId}`, newEmployee, { headers });
+      toast.success("Employee updated successfully");
     } else {
-      const res = await axios.post(API_URL, newEmployee, {
-        headers,
-      });
-      toast.success(" Employee added successfully");
+      await axios.post(API_URL, newEmployee, { headers });
+      toast.success("Employee added successfully");
     }
-    setIsSaving(false);
+
     fetchDepartmentTableList();
     setIsSliderOpen(false);
-  };
+  } catch (error) {
+    console.error("Error saving employee:", error);
+    toast.error(error.response?.data?.message || "Failed to save employee");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   const handleEdit = (emp) => {
     setIsEdit(true);
@@ -255,7 +262,10 @@ const validateSalesmanForm = () => {
         }
       });
   };
-  console.log({ employeeList });
+ useEffect(() => {
+  setCurrentPage(1);
+}, [employeeList]);
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

@@ -128,6 +128,7 @@ const DefineCustomers = () => {
     setPhoneNumber("");
     setMobileNumber("");
     setDesignation("");
+    setAreaName("")
     setDepartment(""); // Reset department
     setNtn("");
     setGst("");
@@ -333,7 +334,9 @@ console.log({formData});
         }
       });
   };
-
+useEffect(() => {
+  setCurrentPage(1);
+}, [customerList]);
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <CommanHeader />

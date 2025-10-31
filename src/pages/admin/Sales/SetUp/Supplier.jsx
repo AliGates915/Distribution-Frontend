@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { HashLoader } from "react-spinners";
+import { HashLoader, ScaleLoader } from "react-spinners";
 import gsap from "gsap";
 import axios from "axios";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 
 import { SquarePen, Trash2 } from "lucide-react";
 
-import { set } from "date-fns";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 const SupplierList = () => {
+   const [isSaving, setIsSaving] = useState(false);
   const [supplierList, setSupplierList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [supplierName, setSupplierName] = useState("");
@@ -69,7 +70,6 @@ const SupplierList = () => {
       setLoading(true);
       const res = await axios.get(`${API_URL}`);
       setSupplierList(res.data); // store actual categories array
-    
     } catch (error) {
       console.error("Failed to fetch Supplier", error);
     } finally {
@@ -102,8 +102,6 @@ const SupplierList = () => {
   };
 
   const validateEmail = (email) => {
-   
-
     const re = /^\S+@\S+\.\S+$/;
     return re.test(email);
   };
@@ -119,11 +117,11 @@ const SupplierList = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
+    // if (!validateEmail(email)) {
+    //   toast.error("Please enter a valid email address");
+    //   return;
+    // }
+setIsSaving(true);
     const formData = {
       supplierName,
       email,
@@ -139,8 +137,6 @@ const SupplierList = () => {
       creditLimit: paymentTerms === "CreditCard" ? creditLimit : undefined,
       status,
     };
-
- 
 
     try {
       const { token } = userInfo || {};
@@ -180,6 +176,8 @@ const SupplierList = () => {
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Something went wrong");
+    }finally {
+      setIsSaving(false);
     }
   };
 
@@ -263,17 +261,22 @@ const SupplierList = () => {
       });
   };
 
-  // Show loading spinner
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
- 
+  // ✅ Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  // ✅ Derived Pagination Data
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = supplierList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(supplierList.length / recordsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [supplierList]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -323,7 +326,7 @@ const SupplierList = () => {
                   No suppliers found.
                 </div>
               ) : (
-                supplierList?.map((s,idx) => (
+                currentRecords?.map((s, idx) => (
                   <>
                     {/* ✅ Desktop Row */}
                     <div
@@ -331,7 +334,7 @@ const SupplierList = () => {
                       className="hidden lg:grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_2fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div className=" text-gray-900">
-                        {idx+1}
+                        {indexOfFirstRecord + idx + 1}
                       </div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactPerson}</div>
@@ -422,6 +425,45 @@ const SupplierList = () => {
                 ))
               )}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, supplierList.length)} of{" "}
+                  {supplierList.length} records
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -433,6 +475,11 @@ const SupplierList = () => {
             ref={sliderRef}
             className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
+            {isSaving && (
+              <div className="absolute top-0 left-0 w-full !h-screen bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <ScaleLoader color="#1E93AB" size={60} />
+              </div>
+            )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Supplier" : "Add a New Supplier"}
@@ -672,7 +719,7 @@ const SupplierList = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Supplier
+              {isEdit?"Update Supplier":"Save Supplier"}  
               </button>
             </div>
           </div>

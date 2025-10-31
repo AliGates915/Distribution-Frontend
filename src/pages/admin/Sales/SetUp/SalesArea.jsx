@@ -26,6 +26,9 @@ const AreaPage = () => {
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = areas.slice(indexOfFirstRecord, indexOfLastRecord);
+  useEffect(() => {
+  setCurrentPage(1);
+}, [areas]);
   const [isSaving, setIsSaving] = useState(false);
 
   // ✅ Fetch Sales Areas

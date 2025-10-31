@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HashLoader } from "react-spinners";
 import gsap from "gsap";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import { ScaleLoader } from "react-spinners";
 import axios from "axios";
@@ -10,6 +10,7 @@ import { SquarePen, Trash2 } from "lucide-react";
 
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 const ListOfItems = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -373,7 +374,7 @@ const ListOfItems = () => {
       fetchData();
     } catch (error) {
       console.error(error);
-      toast.error(" Failed to save Item List.");
+      toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false);
     }

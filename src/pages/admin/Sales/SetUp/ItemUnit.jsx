@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { HashLoader } from "react-spinners";
+import { HashLoader, ScaleLoader } from "react-spinners";
 import gsap from "gsap";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -11,6 +11,7 @@ import TableSkeleton from "../../Components/Skeleton";
 
 
 const ItemUnit = () => {
+   const [isSaving, setIsSaving] = useState(false);
   const [itemUnitList, setItemUnitList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [manufacturerName, setManufacturerName] = useState("");
@@ -88,6 +89,7 @@ const ItemUnit = () => {
 
   // Save or Update Manufacturer
   const handleSave = async () => {
+    setIsSaving(true);
     const formData = {
       unitName: manufacturerName,
       description: address,
@@ -132,6 +134,8 @@ const ItemUnit = () => {
     } catch (error) {
       console.error(error);
       toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
+    }finally{
+      setIsSaving(false);
     }
   };
 
@@ -298,9 +302,14 @@ const ItemUnit = () => {
             ref={sliderRef}
             className="w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
+             {isSaving && (
+              <div className="absolute top-0 left-0 w-full !h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <ScaleLoader color="#1E93AB" size={60} />
+              </div>
+            )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
-                {isEdit ? "Edit Right" : "Add a New Item Unit"}
+                {isEdit ? "Edit Item Unit" : "Add a New Item Unit"}
               </h2>
               <button
                 className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
@@ -344,7 +353,7 @@ const ItemUnit = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Item Unit
+               {isEdit?"Update Item Unit":"Save"}  
               </button>
             </div>
           </div>
