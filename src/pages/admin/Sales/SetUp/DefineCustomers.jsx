@@ -639,7 +639,13 @@ const DefineCustomers = () => {
                     type="text"
                     value={mobileNumber}
                     required
-                    onChange={(e) => setMobileNumber(e.target.value)}
+                     onChange={(e) => {
+                      const value = e.target.value;
+                      // ✅ Allow only digits and '+' sign at start
+                      if (/^[0-9+]*$/.test(value)) {
+                       setMobileNumber(value)
+                      }
+                    }}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. 03005678901"
                   />

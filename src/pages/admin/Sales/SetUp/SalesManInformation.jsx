@@ -196,7 +196,7 @@ const validateSalesmanForm = () => {
 
   // Date formating
   const formatDate = (date) => {
-    if (!date) return "N/A";
+    if (!date) return "-";
 
     const parsed = new Date(date);
     if (isNaN(parsed.getTime())) return "Invalid Date";
