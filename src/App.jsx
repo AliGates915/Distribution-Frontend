@@ -69,6 +69,7 @@ import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.j
 import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
+import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 
 function AppContent() {
   return (
@@ -99,6 +100,7 @@ function AppContent() {
             <Route path="sales/order-taking" element={<OrderTaking />} />
             <Route path="sales/load-sheet" element={<LoadSheet />} />
             <Route path="sales/sales-invoice" element={<SalesInvoice />} />
+            <Route path="sales/recovery" element={<Recovery />} />
             <Route path="sales/sales" element={<Sales />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />

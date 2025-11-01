@@ -253,7 +253,7 @@ useEffect(() => {
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
-                  <TableSkeleton rows={vehicles.length || 5} cols={7} />
+                  <TableSkeleton rows={vehicles.length || 5} cols={7} className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_120px]"/>
                 ) : vehicles.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No vehicles found.

@@ -38,6 +38,7 @@ import {
   Scale,
   Tickets,
   FileSpreadsheetIcon,
+  FileMinus,
 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 
@@ -53,16 +54,22 @@ const salesChildren = [
   //   label: "Load Sheet",
   //   icon: <FileSpreadsheet strokeWidth={3} size={40} />,
   // },
-  // {
-  //   to: "/admin/sales/sales-invoice",
-  //   label: "Sales Invoice",
-  //   icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
-  // },
+  
   {
-    to: "/admin/sales/sales",
-    label: "Sales",
-    icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+    to: "/admin/sales/sales-invoice",
+    label: "Sales Invoice",
+    icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
   },
+   {
+    to: "/admin/sales/recovery",
+    label: "Recovery",
+    icon: <FileMinus  strokeWidth={3} size={40} />,
+  },
+  //  {
+  //   to: "/admin/sales/sales",
+  //   label: "Sales",
+  //   icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+  // },
   // {
   //   to: "/admin/sales/cash-deposite",
   //   label: "Cash Deposit",
