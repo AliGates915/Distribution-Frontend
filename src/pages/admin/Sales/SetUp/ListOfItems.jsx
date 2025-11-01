@@ -429,7 +429,7 @@ const ListOfItems = () => {
     setItemName(item.itemName || "");
     setPerUnit(item.perUnit ? item.perUnit.toString() : "");
     setPurchase(item.purchase ? item.purchase.toString() : "");
-    setSales(item.price ? item.price.toString() : "");
+    setSales(item.price.toString() ?? "");
     setStock(item.stock ? item.stock.toString() : "");
     setBarcode(item.secondaryBarcode || "");
     setReorder(item.reorder ? item.reorder.toString() : "");

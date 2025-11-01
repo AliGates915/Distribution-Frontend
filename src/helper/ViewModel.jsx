@@ -180,16 +180,16 @@ const ViewModal = ({ type, data, onClose }) => {
                 </div>
                 <div>
                   <strong>Date:</strong>{" "}
-                  {new Date(data.date).toLocaleDateString()}
+                  {new Date(data.date).toLocaleDateString() || '-'}
                 </div>
                 <div>
-                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName || '-'}
                 </div>
                 <div>
-                  <strong>Customer:</strong> {data.customerId?.customerName}
+                  <strong>Customer:</strong> {data.customerId?.customerName || '-'}
                 </div>
                 <div>
-                  <strong>Phone:</strong> {data.customerId?.phoneNumber}
+                  <strong>Phone:</strong> {data.customerId?.phoneNumber || '-'}
                 </div>
                 <div>
                   <strong>Address:</strong> {data.customerId?.address}

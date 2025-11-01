@@ -95,7 +95,6 @@ const OrderTaking = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
       );
       setProductsList(res.data);
-      
     } catch (error) {
       console.error("Failed to fetch Employees", error);
     } finally {
@@ -128,17 +127,16 @@ const OrderTaking = () => {
   }, []);
 
   // 🗓️ Auto calculate Due Date based on today's date and Credit Limit
-useEffect(() => {
-  if (creditsDays) {
-    const today = new Date(); // current date
-    today.setDate(today.getDate() + Number(creditsDays)); // add credit limit days
-    const formattedDueDate = today.toISOString().split("T")[0]; // format YYYY-MM-DD
-    setDueDate(formattedDueDate);
-  } else {
-    setDueDate("");
-  }
-}, [creditsDays]);
-
+  useEffect(() => {
+    if (creditsDays) {
+      const today = new Date(); // current date
+      today.setDate(today.getDate() + Number(creditsDays)); // add credit limit days
+      const formattedDueDate = today.toISOString().split("T")[0]; // format YYYY-MM-DD
+      setDueDate(formattedDueDate);
+    } else {
+      setDueDate("");
+    }
+  }, [creditsDays]);
 
   // Auto-generate Order ID and Date (based on highest existing number)
   useEffect(() => {
@@ -218,7 +216,7 @@ useEffect(() => {
         totalAmount: Number(it.total),
       })),
     };
- 
+
     try {
       if (editingOrder) {
         // ✅ UPDATE EXISTING ORDER (PUT)
@@ -313,8 +311,8 @@ useEffect(() => {
     setRate("");
     setTotal("");
     setItems([]);
-    setCreditsDays("")
-    setDueDate("")
+    setCreditsDays("");
+    setDueDate("");
     setBalance("");
     setIsSliderOpen(false);
   };
@@ -413,7 +411,9 @@ useEffect(() => {
                     >
                       <div>{indexOfFirstRecord + i + 1}</div>
                       <div>{order.orderId || "-"}</div>
-                      <div>{new Date(order.date).toLocaleDateString() || "-"}</div>
+                      <div>
+                        {new Date(order.date).toLocaleDateString() || "-"}
+                      </div>
                       <div>{order.salesmanId?.employeeName || "-"}</div>
                       <div>{order.customerId?.customerName || "-"}</div>
                       <div>{order.customerId?.phoneNumber || "-"}</div>
@@ -617,8 +617,8 @@ useEffect(() => {
                       />
                     </div>
                   </div>
-                        {/* Crdits Days and Due date */}
-                   <div className="flex gap-2">
+                  {/* Crdits Days and Due date */}
+                  <div className="flex gap-2">
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">
                         Credits Days
@@ -633,7 +633,9 @@ useEffect(() => {
 
                     {/* Due Dates */}
                     <div className="flex-1">
-                      <label className="block text-gray-700 mb-2">Due Date</label>
+                      <label className="block text-gray-700 mb-2">
+                        Due Date
+                      </label>
                       <input
                         type="date"
                         value={dueDate}
@@ -655,10 +657,11 @@ useEffect(() => {
                           const selected = productsList.find(
                             (p) => p.itemName === e.target.value
                           );
+                          console.log({ selected });
+
                           setProduct(e.target.value);
-                          setRate(selected?.price || "");
-                          setUnit(selected?.itemUnit|| "");
-                          
+                          setRate(selected?.price ?? "");
+                          setUnit(selected?.itemUnit || "");
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
@@ -683,7 +686,6 @@ useEffect(() => {
                         type="text"
                         value={unit}
                         disabled
-                      
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                       {/* <select
@@ -703,7 +705,6 @@ useEffect(() => {
                       <input
                         type="number"
                         value={rate}
-                        disabled
                         onChange={(e) => setRate(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
