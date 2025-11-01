@@ -199,6 +199,9 @@ const ListOfItems = () => {
     fetchItemUnitsList();
   }, [fetchItemUnitsList]);
 
+  console.log({itemUnitList});
+  
+
   // Manufacturer List Fetch
   const fetchManufacturerList = useCallback(async () => {
     try {
@@ -422,14 +425,14 @@ const ListOfItems = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit  || "");
+    setItemUnit(item?.itemUnit._id  || "");
     setItemType(item?.itemType?._id || "");
     setItemCategoryId(item.itemId);
     // Normal fields
     setItemName(item.itemName || "");
     setPerUnit(item.perUnit ? item.perUnit.toString() : "");
     setPurchase(item.purchase ? item.purchase.toString() : "");
-    setSales(item.price ? item.price.toString() : "");
+    setSales(item.price.toString() ?? "");
     setStock(item.stock ? item.stock.toString() : "");
     setBarcode(item.secondaryBarcode || "");
     setReorder(item.reorder ? item.reorder.toString() : "");
@@ -631,7 +634,7 @@ const ListOfItems = () => {
 
                       {/* Sales */}
                       <div className="font-semibold text-gray-600">
-                        {item.price || "-"}
+                        {item.price ?? "-"}
                       </div>
 
                       {/* Stock */}
@@ -711,7 +714,7 @@ const ListOfItems = () => {
             className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
             {isSaving && (
-              <div className="absolute h-full inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              <div className="absolute h-[150vh] inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" height={60} />
               </div>
             )}
