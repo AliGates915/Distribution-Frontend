@@ -412,11 +412,11 @@ useEffect(() => {
                       className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + i + 1}</div>
-                      <div>{order.orderId}</div>
-                      <div>{new Date(order.date).toLocaleDateString()}</div>
-                      <div>{order.salesmanId?.employeeName}</div>
-                      <div>{order.customerId?.customerName}</div>
-                      <div>{order.customerId?.phoneNumber}</div>
+                      <div>{order.orderId || "-"}</div>
+                      <div>{new Date(order.date).toLocaleDateString() || "-"}</div>
+                      <div>{order.salesmanId?.employeeName || "-"}</div>
+                      <div>{order.customerId?.customerName || "-"}</div>
+                      <div>{order.customerId?.phoneNumber || "-"}</div>
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleEdit(order)}

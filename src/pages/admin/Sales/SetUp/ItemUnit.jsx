@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { HashLoader, ScaleLoader } from "react-spinners";
 import gsap from "gsap";
-import { toast } from "react-toastify";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 import { SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 
 const ItemUnit = () => {
@@ -133,7 +133,7 @@ const ItemUnit = () => {
       fetchItemUnitList();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
+      toast.error(error.response?.data?.message || "Failed to save Item Unit");
     }finally{
       setIsSaving(false);
     }
@@ -323,7 +323,7 @@ const ItemUnit = () => {
               {/* Unit Name */}
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Unit Name
+                  Unit Name <span className="text-red-500">*</span>{" "}
                 </label>
                 <input
                   type="text"

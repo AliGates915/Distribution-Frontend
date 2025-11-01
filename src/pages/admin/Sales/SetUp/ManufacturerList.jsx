@@ -91,15 +91,27 @@ const ManufactureList = () => {
   };
 
   const handleSave = async () => {
+    if (!personName) {
+      return toast.error("Please enter Contact Person Name");
+    }
+    if (!manufacturerName) {
+      return toast.error("Please enter Manufacturer Name");
+    }
+     if (!address) {
+      return toast.error("Please enter Address");
+    }
+     if (!phoneNumber) {
+      return toast.error("Please enter phone Number");
+    }
+     if (!email) {
+      return toast.error("Please enter Email Address");
+    }
     setIsSaving(true);
     const formData = {
       manufacturerName: manufacturerName,
-
       address,
       phoneNumber,
       personName,
-      mobileNumber,
-      designation,
       email,
       status,
     };
@@ -475,7 +487,10 @@ const ManufactureList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-
+             <div className="">
+                <label className="block text-gray-700 font-medium">
+                  Phone No <span className="text-red-500">*</span>
+                </label>
               <input
                 type="text"
                 value={phoneNumber}
@@ -490,7 +505,7 @@ const ManufactureList = () => {
                 className="w-full p-2 border rounded"
                 placeholder="e.g. +923001234567"
               />
-
+        </div>
               <div>
                 <label className="block text-gray-700 font-medium">
                   Email Address <span className="text-red-500">*</span>
