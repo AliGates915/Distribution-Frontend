@@ -19,6 +19,8 @@ const OrderTaking = () => {
   const [balance, setBalance] = useState(null);
   const [creditsDays, setCreditsDays] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [totalQty, setTotalQty] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -137,6 +139,21 @@ const OrderTaking = () => {
       setDueDate("");
     }
   }, [creditsDays]);
+  // summ of total and qty
+  useEffect(() => {
+    if (items.length > 0) {
+      const qtySum = items.reduce((sum, it) => sum + Number(it.qty || 0), 0);
+      const totalSum = items.reduce(
+        (sum, it) => sum + Number(it.total || 0),
+        0
+      );
+      setTotalQty(qtySum);
+      setGrandTotal(totalSum);
+    } else {
+      setTotalQty(0);
+      setGrandTotal(0);
+    }
+  }, [items]);
 
   // Auto-generate Order ID and Date (based on highest existing number)
   useEffect(() => {
@@ -363,7 +380,12 @@ const OrderTaking = () => {
     setItems(updatedItems);
   };
   console.log({ productsList });
-
+ const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
+  };
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -412,7 +434,7 @@ const OrderTaking = () => {
                       <div>{indexOfFirstRecord + i + 1}</div>
                       <div>{order.orderId || "-"}</div>
                       <div>
-                        {new Date(order.date).toLocaleDateString() || "-"}
+                        {formatDate(order.date) || "-"}
                       </div>
                       <div>{order.salesmanId?.employeeName || "-"}</div>
                       <div>{order.customerId?.customerName || "-"}</div>
@@ -424,13 +446,8 @@ const OrderTaking = () => {
                         >
                           <SquarePen size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(order._id)}
-                          className="text-red-600 hover:bg-red-50  rounded"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                        <button
+
+                        {/* <button
                           onClick={() => {
                             setSelectedOrder(order);
                             setIsView(true);
@@ -438,7 +455,7 @@ const OrderTaking = () => {
                           className="text-amber-600 hover:bg-amber-50 rounded"
                         >
                           <Eye size={18} />
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   ))
@@ -706,6 +723,7 @@ const OrderTaking = () => {
                         type="number"
                         value={rate}
                         onChange={(e) => setRate(e.target.value)}
+                        disabled
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                     </div>
@@ -770,6 +788,22 @@ const OrderTaking = () => {
                       ))
                     )}
                   </div>
+                  {items.length > 0 && (
+                    <div className="flex flex-col gap-3 items-end mt-3 text-sm font-semibold text-gray-700 ">
+                      <div className="text-[18px]">
+                        Total Qty:{" "}
+                        <span className=" text-newPrimary">
+                          {totalQty}
+                        </span>
+                      </div>
+                      <div className="text-[18px]">
+                        Total:{" "}
+                        <span className=" text-newPrimary">
+                          {grandTotal}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <button
