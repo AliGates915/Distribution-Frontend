@@ -661,7 +661,7 @@ const OrderTaking = () => {
 
                           setProduct(e.target.value);
                           setRate(selected?.price ?? "");
-                          setUnit(selected?.itemUnit || "");
+                          setUnit(selected?.itemUnit.unitName || "");
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >

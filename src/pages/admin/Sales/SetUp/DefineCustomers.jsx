@@ -101,7 +101,7 @@ const DefineCustomers = () => {
 
   const fetchSalesAreaList = useCallback(async () => {
     try {
-      setLoading(true);
+      setIsSaving(true);
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/sales-area`
       );
@@ -109,7 +109,7 @@ const DefineCustomers = () => {
     } catch (error) {
       console.error("Failed to fetch Customers", error);
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setTimeout(() => setIsSaving(false), 1000);
     }
   }, []);
 
