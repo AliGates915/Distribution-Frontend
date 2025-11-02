@@ -155,7 +155,8 @@ const Recovery = () => {
         </div>
 
         {/* 🔹 Filter Fields */}
-        <div className="flex justify-start gap-[40rem] w-full mt-4">
+        <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4">
+          {/* Date + Invoice in left column */}
           <div className="flex flex-col space-y-2">
             <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
@@ -189,7 +190,8 @@ const Recovery = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          {/* Salesman dropdown on right side */}
+          <div className="flex items-center gap-6 ml-auto">
             <label className="text-gray-700 font-medium w-24">
               Salesman <span className="text-red-500">*</span>
             </label>
@@ -215,7 +217,7 @@ const Recovery = () => {
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
                 <div className="overflow-y-auto lg:overflow-x-auto max-h-[400px]">
                   <div className="min-w-full custom-scrollbar">
-                    <div className="hidden lg:grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                    <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs whitespace-nowrap font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                       <div>SR</div>
                       <div>Date</div>
                       <div>ID</div>
@@ -235,7 +237,7 @@ const Recovery = () => {
                         <TableSkeleton
                           rows={data.length}
                           cols={12}
-                          className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                          className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                         />
                       ) : data.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 bg-white">
@@ -245,7 +247,7 @@ const Recovery = () => {
                         data.map((item, index) => (
                           <div
                             key={item.invoiceId}
-                            className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                            className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 whitespace-nowrap px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                           >
                             <div>{index + 1}</div>
                             <div>{formatDate(item.date)}</div>
@@ -281,7 +283,8 @@ const Recovery = () => {
         {/* 🔹 Edit Form Modal (Full Functional Like SalesInvoice) */}
         {isSliderOpen && editingInvoice && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+           <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
+
               {isSaving && (
                 <div className="absolute top-0 left-0 w-full h-full bg-white/70 flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
