@@ -323,51 +323,8 @@ const OpeningStock = () => {
 
                     {showRate && (
                       <>
-                        {/* Editable Purchase */}
-                        <div className="text-gray-600">
-                          {editing[`${index}-purchase`] ? (
-                            <input
-                              type="number"
-                              value={rec.purchase}
-                              onChange={(e) =>
-                                handleChange(index, "purchase", e.target.value)
-                              }
-                              onBlur={() => handleBlur(index, "purchase")}
-                              autoFocus
-                              className="w-20 border rounded p-1"
-                            />
-                          ) : (
-                            <span
-                              onClick={() => handleFocus(index, "purchase")}
-                              className="cursor-pointer"
-                            >
-                              {rec.purchase}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Editable Sales */}
-                        <div className="text-gray-600">
-                          {editing[`${index}-sales`] ? (
-                            <input
-                              type="number"
-                              value={rec.price}
-                              onChange={(e) =>
-                                handleChange(index, "sales", e.target.value)
-                              }
-                              onBlur={() => handleBlur(index, "sales")}
-                              autoFocus
-                              className="w-20 border rounded p-1"
-                            />
-                          ) : (
-                            <span
-                              onClick={() => handleFocus(index, "sales")}
-                              className="cursor-pointer"
-                            >
-                              {rec.price}
-                            </span>
-                          )}
-                        </div>
+                        <div className="text-gray-600">{rec.purchase}</div>
+                        <div className="text-gray-600">{rec.price}</div>
                       </>
                     )}
 
