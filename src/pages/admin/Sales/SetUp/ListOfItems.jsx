@@ -27,7 +27,7 @@ const ListOfItems = () => {
   const [itemList, setItemList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [itemCategory, setItemCategory] = useState({ id: "", name: "" });
-  const [itemKind, setItemKind] = useState("");
+  const [itemKind, setItemKind] = useState("Finished Goods");
   const [itemType, setItemType] = useState("");
   const [itemName, setItemName] = useState("");
   const [itemCategoryId, setItemCategoryId] = useState("");
@@ -112,18 +112,15 @@ const ListOfItems = () => {
 
   // next gass pass id creation
   useEffect(() => {
-    if (itemList.length > 0) {
-      const maxNo = Math.max(
-        ...itemList.map((r) => {
-          const match = r.itemId?.match(/ITEM-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-      );
-      setNextItemCategoryId((maxNo + 1).toString().padStart(3, "0"));
+    if (Array.isArray(itemList)) {
+      const nextNo = (itemList.length + 1).toString().padStart(3, "0");
+      setNextItemCategoryId(`${nextNo}`);
     } else {
-      setNextItemCategoryId("001");
+      setNextItemCategoryId("ITEM-001");
     }
   }, [itemList]);
+
+
 
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
@@ -280,10 +277,10 @@ const ListOfItems = () => {
     setImagePreview(null);
     setExpiryOption("NoExpiry");
     setExpiryDay("");
-    setItemKind('')
     setPrimaryBarcode(generateRandomBarcode());
   };
   // form validation
+
   const validateForm = () => {
     let errors = [];
 
@@ -308,6 +305,8 @@ const ListOfItems = () => {
 
   // Save or Update Item
   const handleSave = async () => {
+
+    console.log("Item Kind ", itemKind);
     const errors = validateForm();
     if (errors.length > 0) {
       Swal.fire({
@@ -409,6 +408,9 @@ const ListOfItems = () => {
     setExpiryDay("");
     setItemKind("")
   };
+
+
+
   // Edit Item
   const handleEdit = (item) => {
     console.log({ item });
@@ -677,8 +679,8 @@ const ListOfItems = () => {
                       }
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded-md ${currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
                         }`}
                     >
                       Previous
@@ -689,8 +691,8 @@ const ListOfItems = () => {
                       }
                       disabled={currentPage === totalPages}
                       className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
                         }`}
                     >
                       Next
@@ -834,13 +836,19 @@ const ListOfItems = () => {
                       <label className="block text-gray-700 font-medium">
                         Item Kind <span className="text-red-500">*</span>
                       </label>
+
                       <select
-                        value="Finished Goods"
+                        value={itemKind}
                         disabled
+                        required
+                        onChange={(e) => setItemKind(e.target.value)}
                         className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed text-gray-700"
                       >
                         <option value="Finished Goods">Finished Goods</option>
                       </select>
+
+                      {/* Hidden input ensures value passes in form submission */}
+                      <input type="hidden" name="itemKind" value={itemKind} />
 
                     </div>
                   </div>
