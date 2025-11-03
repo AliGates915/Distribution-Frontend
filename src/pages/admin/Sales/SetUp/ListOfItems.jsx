@@ -833,7 +833,7 @@ const ListOfItems = () => {
                     </div>
                     {/* Item Kind */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
+                      <label className="block text-gray-400 font-medium">
                         Item Kind <span className="text-red-500">*</span>
                       </label>
 
@@ -894,12 +894,13 @@ const ListOfItems = () => {
                     </div>
                     {/* Shelve Location */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
+                      <label className="block text-gray-400 font-medium">
                         Shelve Location
                       </label>
                       <select
                         value={shelveLocation}
                         required
+                        disabled
                         onChange={(e) => setShelveLocation(e.target.value)}
                         className="w-full p-2 border rounded"
                       >
@@ -1027,13 +1028,13 @@ const ListOfItems = () => {
 
                     {/* Secandory Barcode */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
+                      <label className="block text-gray-400 font-medium">
                         Secondary Barcode
                       </label>
                       <input
                         type="text"
+                        disabled
                         value={barcode}
-                        required
                         onChange={(e) => setBarcode(e.target.value)}
                         className="w-full p-2 border rounded"
                         placeholder="e.g. BAR1234567890"

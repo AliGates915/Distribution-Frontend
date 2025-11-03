@@ -123,11 +123,11 @@ const setupChildren = [
     label: "Salesman Information",
     icon: <FaUser />,
   },
-  {
-    to: "/admin/vehicle-information",
-    label: "Vehicle Information",
-    icon: <FaCar />,
-  },
+  // {
+  //   to: "/admin/vehicle-information",
+  //   label: "Vehicle Information",
+  //   icon: <FaCar />,
+  // },
   {
     to: "/admin/supplier",
     label: "Supplier",

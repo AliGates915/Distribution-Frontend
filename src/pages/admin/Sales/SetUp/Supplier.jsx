@@ -564,7 +564,7 @@ const SupplierList = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Phone Number <span className="text-red-500">*</span>
+                    Phone Number 
                   </label>
                   <input
                     type="text"
@@ -658,11 +658,11 @@ const SupplierList = () => {
               </div>
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">NTN</label>
+                  <label className="block text-gray-400 font-medium">NTN</label>
                   <input
                     type="text"
                     value={ntn}
-                    required
+                    disabled
                     onChange={(e) => setNtn(e.target.value)}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. NTN123456789"
@@ -670,11 +670,11 @@ const SupplierList = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">GST</label>
+                  <label className="block text-gray-400 font-medium">GST</label>
                   <input
                     type="text"
                     value={gst}
-                    required
+                    disabled
                     onChange={(e) => setGst(e.target.value)}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. 27ABCDE1234F1Z5"
@@ -743,9 +743,10 @@ const SupplierList = () => {
               {/* Status */}
 
               <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Status</label>
+                <label className="text-gray-600 font-medium">Status</label>
                 <button
                   type="button"
+                  disabled
                   onClick={() => setStatus(!status)}
                   className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
                     status ? "bg-green-500" : "bg-gray-300"
@@ -757,7 +758,7 @@ const SupplierList = () => {
                     }`}
                   />
                 </button>
-                <span>{status ? "Active" : "Inactive"}</span>
+                <span className="text-gray-400">{status ? "Active" : "Inactive"}</span>
               </div>
 
               {/* Save Button */}

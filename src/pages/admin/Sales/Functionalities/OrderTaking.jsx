@@ -86,7 +86,7 @@ const OrderTaking = () => {
     fetchCustomers();
   }, []);
 
-  console.log({ customersList });
+  // console.log({ customersList });
 
   // fetch fished Goods
 
@@ -278,7 +278,7 @@ const OrderTaking = () => {
   };
 
   const handleEdit = (order) => {
-    console.log(order, "osder");
+    // console.log(order, "osder");
 
     setEditingOrder(order);
 
@@ -374,12 +374,12 @@ const OrderTaking = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = orders.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(orders.length / recordsPerPage);
-  console.log({ orders });
+  // console.log({ orders });
   const handleRemoveItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
   };
-  console.log({ productsList });
+  // console.log({ productsList });
  const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -674,7 +674,7 @@ const OrderTaking = () => {
                           const selected = productsList.find(
                             (p) => p.itemName === e.target.value
                           );
-                          console.log({ selected });
+                          // console.log({ selected });
 
                           setProduct(e.target.value);
                           setRate(selected?.price ?? "");
