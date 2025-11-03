@@ -144,6 +144,11 @@ const AreaPage = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
+      {isSaving && (
+              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+                <ScaleLoader color="#1E93AB" size={60} />
+              </div>
+            )}
       <div className="px-6 mx-auto max-w-full">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">Area Details</h1>
@@ -158,7 +163,7 @@ const AreaPage = () => {
         {/* Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="h-full overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[900px] w-full align-middle overflow-x-auto">
                 {/* Header */}
                 <div className="hidden lg:grid grid-cols-[20px_1fr_3fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
@@ -266,12 +271,7 @@ const AreaPage = () => {
               ref={sliderRef}
               className="relative w-full md:w-[600px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
-              {/* Loader inside slider */}
-              {isSaving && (
-                <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-50 rounded-2xl">
-                  <ScaleLoader color="#1E93AB" height={50} />
-                </div>
-              )}
+             
 
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">

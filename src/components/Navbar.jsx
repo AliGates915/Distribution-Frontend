@@ -76,6 +76,7 @@ const Navbar = () => {
     try {
       dispatch(logout());
       localStorage.removeItem("userInfo");
+      localStorage.removeItem("lastTokenCheck");
       setUserInfo(null);
       setShowDropdown(false);
       setIsMobileMenuOpen(false);

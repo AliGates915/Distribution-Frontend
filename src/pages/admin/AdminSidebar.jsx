@@ -84,6 +84,7 @@ const AdminSidebar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("lastTokenCheck");
     navigate("/");
   };
 
