@@ -195,7 +195,7 @@ const ListOfItems = () => {
     fetchItemUnitsList();
   }, [fetchItemUnitsList]);
 
-  console.log({ itemUnitList });
+  // console.log({ itemUnitList });
 
 
   // Manufacturer List Fetch
@@ -302,11 +302,12 @@ const ListOfItems = () => {
 
     return errors;
   };
+  // console.log("Item Kind ", itemKind);
 
   // Save or Update Item
   const handleSave = async () => {
 
-    console.log("Item Kind ", itemKind);
+    
     const errors = validateForm();
     if (errors.length > 0) {
       Swal.fire({
@@ -406,14 +407,13 @@ const ListOfItems = () => {
     setImage(null);
     setExpiryOption("NoExpiry");
     setExpiryDay("");
-    setItemKind("")
   };
 
 
 
   // Edit Item
   const handleEdit = (item) => {
-    console.log({ item });
+    // console.log({ item });
 
     setIsEdit(true);
     setEditId(item._id);

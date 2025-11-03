@@ -85,16 +85,14 @@ const salesChildren = [
 // setupChildren
 const setupChildren = [
   {
-    to: "/admin/sales-area",
-    label: "Sales Area",
-    icon: <FaMapMarkerAlt />,
-  },
-  {
     to: "/admin/item-category",
     label: "Item Category",
     icon: <FaThList />,
   },
   { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
+
+   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
+
     {
     to: "/admin/manufacture",
     label: "Manufacture",
@@ -109,6 +107,11 @@ const setupChildren = [
     to: "/admin/list-of-items",
     label: "List Of Items",
     icon: <AiOutlineProduct />,
+  },
+    {
+    to: "/admin/sales-area",
+    label: "Sales Area",
+    icon: <FaMapMarkerAlt />,
   },
   {
     to: "/admin/define-customers",
@@ -130,7 +133,6 @@ const setupChildren = [
     label: "Supplier",
     icon: <FaTruck />,
   },
-   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 ];
 
 // reportsChildren
