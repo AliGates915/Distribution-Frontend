@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen } from "lucide-react";
+import { Eye, Loader, SquarePen } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
@@ -44,34 +44,30 @@ const SalesInvoice = () => {
       Authorization: `Bearer ${userInfo?.token}`,
     },
   };
-  //  fetchSalesInvoiceList
-  //  fetchSalesInvoiceList
+ 
+// ✅ Fetch all or filtered pending orders
 async function fetchSalesInvoiceList() {
   try {
     setLoading(true);
 
-    if (!selectedSalesman || !date) {
-      console.warn("⏸ Please select a salesman and date first");
-      setInvoices([]);
-      return;
-    }
+    let url = `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`;
+    let config = { headers };
 
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`,
-      {
-        params: {
-          date: date,
-          salesmanId: selectedSalesman,
-        },
-        headers,
-      }
-    );
+    // If salesman is selected, apply filter query
+    if (selectedSalesman) {
+      config.params = {
+        date: date,
+        salesmanId: selectedSalesman,
+      };
+    } 
 
-    // ✅ Your backend returns: { success, count, date, data: [...] }
+    const res = await axios.get(url, config);
+
+    // ✅ Handle response
     setInvoices(res.data?.data || []);
     console.log("✅ Pending Orders Response:", res.data);
   } catch (error) {
-    console.error("❌ Failed to fetch SalesInvoice", error);
+    console.error("❌ Failed to fetch SalesInvoice:", error);
     toast.error("Failed to fetch pending orders");
   } finally {
     setTimeout(() => setLoading(false), 500);
@@ -79,11 +75,19 @@ async function fetchSalesInvoiceList() {
 }
 
 
-  useEffect(() => {
-  if (selectedSalesman && date) {
+
+// 🔹 Load all data initially
+useEffect(() => {
+  fetchSalesInvoiceList();
+}, []);
+
+// 🔹 Re-fetch when date or salesman changes
+useEffect(() => {
+  if (selectedSalesman || date) {
     fetchSalesInvoiceList();
   }
 }, [selectedSalesman, date]);
+
 
 
   // salesmanList
@@ -209,400 +213,150 @@ setSalesmanList(response.employees);
   const totalPages = Math.ceil(invoices.length / recordsPerPage);
 
   return (
-    <div className="p-4 bg-gray-50 min-h-screen">
+   <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="px-6 mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-newPrimary">Pending Orders</h1>
-        </div>
 
-        {/* 🔹 Filter Fields */}
-        <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-5">
-          {/* Date + Invoice in left column */}
-          <div className="flex gap-8 ">
-            <div className="flex items-center gap-6">
-              <label className="text-gray-700 font-medium w-24">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={date}
-                max={today}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              />
+      {loading ? (
+        <div className="w-full flex justify-center items-center h-screen">
+          <Loader size={70} className="animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* 🔹 Header and Filters */}
+          <div className="px-6 mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold text-newPrimary">
+                Pending Orders
+              </h1>
             </div>
 
-            {/* Salesman dropdown on right side */}
-            <div className="flex items-center gap-6 ">
-              <label className="text-gray-700 font-medium w-24">
-                Salesman <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedSalesman}
-                onChange={(e) => setSelectedSalesman(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Select Salesman</option>
-                {salesmanList.map((cust) => (
-                  <option key={cust._id} value={cust._id}>
-                    {cust.employeeName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* ✅ Table */}
-        <div className="rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
-            <div className="min-w-[1000px]">
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                <div>SR</div>
-                <div>Order ID</div>
-                <div>Order Date</div>
-                <div>Salesman</div>
-                <div>Customer</div>
-                <div>Amount</div>
-                <div>Action</div>
-              </div>
-
-              <div className="flex flex-col divide-y divide-gray-100">
-                {loading ? (
-                  <TableSkeleton
-                    rows={invoices.length > 0 ? invoices.length : 5}
-                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
-                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+            <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-5">
+              <div className="flex gap-8">
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    max={today}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                   />
-                ) : invoices.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 bg-white">
-                    No Sales Invoice Found
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Salesman <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedSalesman}
+                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesmanList.map((cust) => (
+                      <option key={cust._id} value={cust._id}>
+                        {cust.employeeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* ✅ Table */}
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
+                <div className="min-w-[1000px]">
+                  <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                    <div>SR</div>
+                    <div>Order ID</div>
+                    <div>Order Date</div>
+                    <div>Salesman</div>
+                    <div>Customer</div>
+                    <div>Amount</div>
+                    <div>Action</div>
                   </div>
-                ) : (
-                  currentRecords.map((invoice, index) => (
-                    <div
-                      key={invoice._id}
-                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                    >
-                      <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{invoice.orderId || "-"}</div>
-                      <div>{formDate(invoice.date) || "-"}</div>
-                      <div>{invoice.salesmanId.employeeName || "-"}</div>
-                      <div>{invoice.customerId.customerName || "-"}</div>
-                      <div>{invoice.customerId.salesBalance || "-"}</div>
-                      <div className="flex gap-3 justify-start">
-                        <button
-                          onClick={() => handleEdit(invoice)}
-                          className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
-                          title="Edit"
+
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {invoices.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500 bg-white">
+                        No Sales Invoice Found
+                      </div>
+                    ) : (
+                      currentRecords.map((invoice, index) => (
+                        <div
+                          key={invoice._id}
+                          className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                         >
-                          <SquarePen size={18} />
+                          <div>{indexOfFirstRecord + index + 1}</div>
+                          <div>{invoice.orderId || "-"}</div>
+                          <div>{formDate(invoice.date) || "-"}</div>
+                          <div>{invoice.salesmanId.employeeName || "-"}</div>
+                          <div>{invoice.customerId.customerName || "-"}</div>
+                          <div>{invoice.customerId.salesBalance || "-"}</div>
+                          <div className="flex gap-3 justify-start">
+                            <button
+                              onClick={() => handleEdit(invoice)}
+                              className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
+                              title="Edit"
+                            >
+                              <SquarePen size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                      <p className="text-sm text-gray-600">
+                        Showing {indexOfFirstRecord + 1} to{" "}
+                        {Math.min(indexOfLastRecord, invoices.length)} of{" "}
+                        {invoices.length} invoices
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
+                          disabled={currentPage === 1}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === 1
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
+                          }
+                          disabled={currentPage === totalPages}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === totalPages
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
+                        >
+                          Next
                         </button>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-              {totalPages > 1 && (
-                <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
-                  <p className="text-sm text-gray-600">
-                    Showing {indexOfFirstRecord + 1} to{" "}
-                    {Math.min(indexOfLastRecord, invoices.length)} of{" "}
-                    {invoices.length} invoices
-                  </p>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                      }
-                      disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        </>
+      )}
 
-        {/* ✅ Form slider */}
-        {isSliderOpen && (
-          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
-              {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
-                  <ScaleLoader color="#1E93AB" size={60} />
-                </div>
-              )}
-              <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
-                <h2 className="text-xl font-bold text-newPrimary">
-                  Edit Pending Orders
-                </h2>
-                <button
-                  className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={() => setIsSliderOpen(false)}
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* ✅ Form (same styling preserved) */}
-              <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-4 rounded-lg">
-                  <div className="flex gap-3">
-                    <label className="block text-gray-700 font-medium">
-                      Order No. :
-                    </label>
-                    <p>{invoiceId}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Order Date :
-                    </label>
-                    <p>{formDate(invoiceDate)}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Customer :
-                    </label>
-                    <p>{customer}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Salesman :
-                    </label>
-                    <p>{salesman}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Previous Balance :
-                    </label>
-                    <p>{previousBalance}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Delivery Date :
-                    </label>
-                    <input
-                      type="date"
-                      value={deliveryDate}
-                      onChange={(e) => setDeliveryDate(e.target.value)}
-                      className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    />
-                  </div>
-                </div>
-
-                {/* ✅ Items table */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-4">
-                    Items
-                  </h3>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] bg-gray-200 text-gray-600 text-sm font-semibold uppercase border-b border-gray-300">
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        SR#
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Item
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Rate
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Qty
-                      </div>
-                      <div className="px-4 py-2">Total</div>
-                    </div>
-
-                    {items.map((item, i) => (
-                      <div
-                        key={i}
-                        className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
-                      >
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          {i + 1}
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          {item.item}
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          <input
-                            type="number"
-                            value={item.rate}
-                            onChange={(e) => {
-                              const rate = parseFloat(e.target.value) || 0;
-                              setItems((prev) =>
-                                prev.map((it, idx) =>
-                                  idx === i
-                                    ? { ...it, rate, total: rate * it.qty }
-                                    : it
-                                )
-                              );
-                            }}
-                            className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                          />
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.qty}
-                            onChange={(e) => {
-                              const newQty = parseFloat(e.target.value) || 1;
-
-                              setItems((prev) =>
-                                prev.map((it, idx) => {
-                                  if (idx === i) {
-                                    // 🧠 Store original qty (first time only)
-                                    if (!it.originalQty)
-                                      it.originalQty = it.qty;
-
-                                    // 🧩 Allow only between 1 and originalQty
-                                    const updatedQty = Math.min(
-                                      Math.max(newQty, 1),
-                                      it.originalQty
-                                    );
-
-                                    return {
-                                      ...it,
-                                      qty: updatedQty,
-                                      total: updatedQty * it.rate,
-                                    };
-                                  }
-                                  return it;
-                                })
-                              );
-                            }}
-                            className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                          />
-                        </div>
-                        <div className="px-4 py-2">{item.total}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ✅ Totals */}
-                <div className="flex flex-col w-full items-end gap-4 mt-4">
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Total Price :
-                    </label>
-                    <input
-                      type="number"
-                      value={totalPrice}
-                      disabled
-                      readOnly
-                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Discount :
-                    </label>
-                    <input
-                      type="number"
-                      value={discountAmount}
-                      onChange={(e) => setDiscountAmount(e.target.value)}
-                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
-                       placeholder="Enter Discount"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Receivable :
-                    </label>
-                    <input
-                      type="number"
-                      value={receivable}
-                      disabled
-                      readOnly
-                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Received :
-                    </label>
-                    <input
-                      type="number"
-                      value={received}
-                      onChange={(e) => setReceived(e.target.value)}
-                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
-                      placeholder="Enter Recived"
-                    />
-                  </div>
-
-                  <div className="flex w-full  ">
-                    <div className="flex-1 gap-2 flex min-w-0">
-                      <label className="block text-gray-700 font-medium mb-1">
-                        Aging Date :
-                      </label>
-                      <input
-                        type="date"
-                        value={receivingDate}
-                        onChange={(e) => setReceivingDate(e.target.value)}
-                        className="w-[150px]  h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      />
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Balance :
-                      </label>
-                      <input
-                        type="number"
-                        value={balance}
-                        disabled
-                        readOnly
-                        className="w-[150px] cursor-not-allowed  h-[40px] bg-gray-100 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Balance amount"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors"
-                >
-                  Update Pending Orders
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
-
+      {/* 🧾 Invoice View Modal */}
       {isView && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-y-auto p-5 relative shadow-lg">
