@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen } from "lucide-react";
+import { Eye, Loader, SquarePen } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
@@ -44,34 +44,31 @@ const SalesInvoice = () => {
       Authorization: `Bearer ${userInfo?.token}`,
     },
   };
-  //  fetchSalesInvoiceList
-  //  fetchSalesInvoiceList
+ 
+// ✅ Fetch all or filtered pending orders
 async function fetchSalesInvoiceList() {
   try {
     setLoading(true);
 
-    if (!selectedSalesman || !date) {
-      console.warn("⏸ Please select a salesman and date first");
-      setInvoices([]);
-      return;
+    let url = `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`;
+    let params = {}; // ✅ declare params first
+
+    // If salesman is selected, apply filter query
+    if (selectedSalesman) {
+      params = {
+        date: date,
+        salesmanId: selectedSalesman,
+      };
     }
 
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`,
-      {
-        params: {
-          date: date,
-          salesmanId: selectedSalesman,
-        },
-        headers,
-      }
-    );
+    // ✅ include params only if needed
+    const res = await axios.get(url, { params });
 
-    // ✅ Your backend returns: { success, count, date, data: [...] }
+    // ✅ Handle response
     setInvoices(res.data?.data || []);
     console.log("✅ Pending Orders Response:", res.data);
   } catch (error) {
-    console.error("❌ Failed to fetch SalesInvoice", error);
+    console.error("❌ Failed to fetch SalesInvoice:", error);
     toast.error("Failed to fetch pending orders");
   } finally {
     setTimeout(() => setLoading(false), 500);
@@ -79,11 +76,19 @@ async function fetchSalesInvoiceList() {
 }
 
 
-  useEffect(() => {
-  if (selectedSalesman && date) {
+
+// 🔹 Load all data initially
+useEffect(() => {
+  fetchSalesInvoiceList();
+}, []);
+
+// 🔹 Re-fetch when date or salesman changes
+useEffect(() => {
+  if (selectedSalesman || date) {
     fetchSalesInvoiceList();
   }
 }, [selectedSalesman, date]);
+
 
 
   // salesmanList
@@ -175,6 +180,7 @@ setSalesmanList(response.employees);
         receivable: receivable,
         received: parseFloat(received) || 0,
         deliveryDate: deliveryDate,
+        agingDate: receivingDate,
         status: "Pending", // default
       };
       console.log("🧾 Payload to send:", payload);
@@ -211,7 +217,10 @@ setSalesmanList(response.employees);
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="px-6 mx-auto">
+      {
+        loading? <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  className=" animate-spin"/></div>:
+        (
+ <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">Pending Orders</h1>
         </div>
@@ -602,23 +611,11 @@ setSalesmanList(response.employees);
           </div>
         )}
       </div>
+        )
+      }
+     
 
-      {isView && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-y-auto p-5 relative shadow-lg">
-            <button
-              onClick={() => setIsView(false)}
-              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-semibold text-center mb-4">
-              Invoice Details
-            </h2>
-            <InvoiceTemplate invoice={selectedInvoice} />
-          </div>
-        </div>
-      )}
+    
     </div>
   );
 };
