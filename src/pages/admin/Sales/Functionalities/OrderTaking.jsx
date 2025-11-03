@@ -509,7 +509,7 @@ const OrderTaking = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full min-h-[150vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full h-screen bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -749,7 +749,7 @@ const OrderTaking = () => {
 
                   {/* Items Table */}
                   <div className="mt-4 border border-gray-200 rounded-lg">
-                    <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
+                    <div className="grid grid-cols-[0.2fr_2.3fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
                       <div className="px-4 py-2">SR</div>
                       <div className="px-4 py-2">Product</div>
                       <div className="px-4 py-2">Qty</div>
@@ -766,7 +766,7 @@ const OrderTaking = () => {
                       items.map((it, i) => (
                         <div
                           key={i}
-                          className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
+                          className="grid grid-cols-[0.2fr_2.3fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
                         >
                           <div className="px-4 py-2">{i + 1}</div>
                           <div className="px-4 py-2">{it.product}</div>
