@@ -189,7 +189,7 @@ const ItemCategory = () => {
             );
           } catch (error) {
             console.error(error);
-            toast.error("Failed to update status.");
+            toast.error(error.response?.data?.message || "An error occurred");
           }
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
@@ -255,16 +255,18 @@ const ItemCategory = () => {
       });
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+  const totalPages = Math.ceil(categories.length / recordsPerPage);
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = categories.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categories]);
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="px-6 mx-auto">
@@ -313,14 +315,14 @@ const ItemCategory = () => {
                     No categories found.
                   </div>
                 ) : (
-                  categories.map((category, index) => (
+                  currentRecords.map((category, index) => (
                     <div
                       key={category._id}
                       className="grid grid-cols-1 lg:grid-cols-[80px_1fr_150px_150px_200px] gap-4 lg:gap-6 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       {/* S.No */}
-                      <div className="font-medium text-gray-700">
-                        {index + 1}
+                      <div className="text-gray-700">
+                        {indexOfFirstRecord + index + 1}
                       </div>
 
                       {/* Name */}
@@ -371,6 +373,44 @@ const ItemCategory = () => {
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, categories.length)} of{" "}
+                    {categories.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

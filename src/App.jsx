@@ -42,14 +42,14 @@ import AmountReceivales from "./pages/admin/Sales/Reports/AmountReceivales.jsx";
 import ListOfItems from "./pages/admin/Sales/SetUp/ListOfItems.jsx";
 import DefineCustomers from "./pages/admin/Sales/SetUp/DefineCustomers.jsx";
 import VehicleInformation from "./pages/admin/Sales/SetUp/VehicleInformation.jsx";
-import EmployeeInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
+
 import SalesArea from "./pages/admin/Sales/SetUp/SalesArea.jsx";
 
 // =================== ACCOUNTS SECTION IMPORTS
 
 import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
 import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
-import OpeningStock from "./pages/admin/Accounts/Functionalities/OpeningStock.jsx";
+
 
 import BankLedger from "./pages/admin/Accounts/Reports/BankLedger.jsx";
 import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
@@ -66,6 +66,10 @@ import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";
 import ManufactureList from "./pages/admin/Sales/SetUp/ManufacturerList.jsx";
 import ShelveLocationList from "./pages/admin/Sales/SetUp/ShelveLoactionList.jsx";
 import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.jsx";
+import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
+import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
+import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
+import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 
 function AppContent() {
   return (
@@ -96,6 +100,7 @@ function AppContent() {
             <Route path="sales/order-taking" element={<OrderTaking />} />
             <Route path="sales/load-sheet" element={<LoadSheet />} />
             <Route path="sales/sales-invoice" element={<SalesInvoice />} />
+            <Route path="sales/recovery" element={<Recovery />} />
             <Route path="sales/sales" element={<Sales />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />
@@ -116,7 +121,7 @@ function AppContent() {
               path="report/productwise-orders"
               element={<ProductWiseOrder />}
             />
-
+ <Route path="report/opening-stock" element={<OpeningStock />} />
             <Route
               path="report/customerwise-orders"
               element={<CustomerwiseOrders />}
@@ -133,6 +138,8 @@ function AppContent() {
             <Route path="manufacture" element={<ManufactureList />} />
             <Route path="shelve-location" element={<ShelveLocationList />} />
             <Route path="list-of-items" element={<ListOfItems />} />
+            <Route path="supplier" element={<SupplierList />} />
+            <Route path="item-unit" element={<ItemUnit />} />
             <Route
               path="salesman-information"
               element={<SalesManInformation />}
@@ -191,7 +198,7 @@ function AppContent() {
               path="accounts/expense-voucher"
               element={<ExpenseVoucher />}
             />
-            <Route path="accounts/opening-stock" element={<OpeningStock />} />
+           
 
             {/* Reports */}
             <Route path="accounts/bank-ledger" element={<BankLedger />} />

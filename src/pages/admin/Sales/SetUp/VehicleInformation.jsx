@@ -35,6 +35,9 @@ const VehicleInformation = () => {
     setCurrentPage(pageNumber);
     setTimeout(() => setLoading(false), 300);
   };
+useEffect(() => {
+  setCurrentPage(1);
+}, [vehicles]);
 
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/vehicles`;
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -129,18 +132,19 @@ const VehicleInformation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !vehicleNo ||
-      !make ||
-      !model ||
-      !registrationNo ||
-      !startingDate ||
-      !vehicleType
-    ) {
-      toast.error(" All fields are required.");
-      return;
-    }
+  if(!vehicleNo ){
+    toast.error(" Vehicle No. is required.");
+    return;
+  }
+  if (!registrationNo) {
+    toast.error(" Registration Number is required.");
+    return;
+  }
+  if ( !vehicleType) {
+    toast.error(" Vehicle Type is required.");
+    return;
+  }
+  
 
     setIsSaving(true);
 
@@ -249,7 +253,7 @@ const VehicleInformation = () => {
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
                 {loading ? (
-                  <TableSkeleton rows={vehicles.length || 5} cols={7} />
+                  <TableSkeleton rows={vehicles.length || 5} cols={7} className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_120px]"/>
                 ) : vehicles.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No vehicles found.
@@ -263,16 +267,16 @@ const VehicleInformation = () => {
                       <div className=" text-gray-600">
                         {indexOfFirstRecord + index + 1}
                       </div>
-                      <div className="text-gray-700">{vehicle.vehicleNo}</div>
-                      <div className="text-gray-700">{vehicle.make}</div>
-                      <div className="text-gray-700">{vehicle.model}</div>
+                      <div className="text-gray-700">{vehicle.vehicleNo || "-"}</div>
+                      <div className="text-gray-700">{vehicle.make || "-"}</div>
+                      <div className="text-gray-700">{vehicle.model || "-"}</div>
                       <div className="text-gray-700">
-                        {vehicle.registrationNumber}
+                        {vehicle.registrationNumber || "-"}
                       </div>
                       <div className="text-gray-700">
                         {vehicle.startingDate
                           ? new Date(vehicle.startingDate).toLocaleDateString()
-                          : "—"}
+                          : "-"}
                       </div>
 
                       <div className="text-center flex justify-center gap-2">
@@ -343,7 +347,7 @@ const VehicleInformation = () => {
               className="relative w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
              {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full h-screen bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -362,7 +366,7 @@ const VehicleInformation = () => {
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Vehicle No.
+                    Vehicle No. <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -374,7 +378,7 @@ const VehicleInformation = () => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Make <span className="text-red-500">*</span>
+                    Make 
                   </label>
                   <input
                     type="text"
@@ -387,7 +391,7 @@ const VehicleInformation = () => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Model <span className="text-red-500">*</span>
+                    Model 
                   </label>
                   <input
                     type="text"
@@ -413,7 +417,7 @@ const VehicleInformation = () => {
 
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Starting Date <span className="text-red-500">*</span>
+                    Starting Date 
                   </label>
                   <input
                     type="date"
@@ -455,7 +459,7 @@ const VehicleInformation = () => {
                   disabled={loading}
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 disabled:bg-newPrimary/50"
                 >
-                  {loading ? "Saving..." : "Save Vehicle"}
+                  {editingVehicle ? "Update Vehicle" : "Save Vehicle"}
                 </button>
               </form>
             </div>

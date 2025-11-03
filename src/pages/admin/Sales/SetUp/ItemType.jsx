@@ -152,7 +152,7 @@ const ItemType = () => {
       fetchItemtypeList();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} Item type failed`);
+      toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false);
     }
@@ -225,16 +225,23 @@ const ItemType = () => {
       });
   };
 
-  // Show loading spinner
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // ✅ Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  // ✅ Derived Pagination Data
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = itemTypeList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(itemTypeList.length / recordsPerPage);
+
+  // ✅ Reset to page 1 whenever list updates
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemTypeList]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -279,18 +286,21 @@ const ItemType = () => {
                   No item types found.
                 </div>
               ) : (
-                itemTypeList.map((item, index) => (
+                currentRecords.map((item, index) => (
                   <>
                     {/* ✅ Desktop Grid */}
                     <div
                       key={item._id}
                       className="hidden lg:grid grid-cols-[0.1fr_1fr_1fr_auto] gap-6 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-600">{index + 1}</div>
-                      <div className="text-gray-900">
-                        {item?.category?.categoryName}
+                      <div className="text-gray-600">
+                        {indexOfFirstRecord + index + 1}
                       </div>
-                      <div className="text-gray-600">{item.itemTypeName}</div>
+
+                      <div className="text-gray-900">
+                        {item?.category?.categoryName || "-"}
+                      </div>
+                      <div className="text-gray-600">{item.itemTypeName || "-"}</div>
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-4">
                           <button
@@ -316,10 +326,10 @@ const ItemType = () => {
                     >
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-semibold text-gray-700">
-                          {item.itemTypeName}
+                          {item.itemTypeName || "-"}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {item?.category?.categoryName}
+                          {item?.category?.categoryName || "-"}
                         </span>
                       </div>
 
@@ -344,6 +354,44 @@ const ItemType = () => {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, itemTypeList.length)} of{" "}
+                  {itemTypeList.length} records
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

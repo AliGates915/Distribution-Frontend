@@ -41,8 +41,19 @@ const ViewModal = ({ type, data, onClose }) => {
         </button>
 
         <div ref={printRef}>
+          <div className="text-center mb-6  pb-3">
+            <h1 className="text-2xl font-extrabold text-newPrimary tracking-wide">
+              Distribution System Pvt. Ltd.
+            </h1>
+            <p className="text-gray-700 text-sm mt-1">Mall of Lahore, Cantt</p>
+            <p className="text-gray-700 text-sm">
+              Phone: <span className="font-medium">0318-4486979</span>
+            </p>
+          </div>
+
           {/* 🔹 Dynamic Heading */}
-          <h2 className="text-2xl font-bold mb-6 text-center border-b pb-2">
+
+          <h2 className="text-2xl font-bold mb-6  pb-2">
             {type === "loadsheet"
               ? "Loadsheet Details"
               : type === "order"
@@ -63,84 +74,196 @@ const ViewModal = ({ type, data, onClose }) => {
             {/* ✅ Productwise Report Header */}
             {type === "productwise" && (
               <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
+                <div>
+                  <strong>Invoice No:</strong> {data.invoiceNo}
+                </div>
+                <div>
+                  <strong>Invoice Date:</strong>{" "}
+                  {new Date(data.invoiceDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Order ID:</strong> {data.orderTakingId?.orderId}
+                </div>
+                <div>
+                  <strong>Customer:</strong>{" "}
+                  {data.orderTakingId?.customerId?.customerName}
+                </div>
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                </div>
+                <div>
+                  <strong>Total Quantity:</strong> {data.totalQty}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> Rs.{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Status:</strong> {data.status}
+                </div>
               </>
             )}
 
             {/* ✅ Customer-wise existing section */}
             {type === "customerwise" && (
               <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Customer Phone:</strong> {data.orderTakingId?.customerId?.phoneNumber}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
+                <div>
+                  <strong>Invoice No:</strong> {data.invoiceNo}
+                </div>
+                <div>
+                  <strong>Invoice Date:</strong>{" "}
+                  {new Date(data.invoiceDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Customer:</strong>{" "}
+                  {data.orderTakingId?.customerId?.customerName}
+                </div>
+                <div>
+                  <strong>Customer Phone:</strong>{" "}
+                  {data.orderTakingId?.customerId?.phoneNumber}
+                </div>
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                </div>
+                <div>
+                  <strong>Order ID:</strong> {data.orderTakingId?.orderId}
+                </div>
+                <div>
+                  <strong>Total Quantity:</strong> {data.totalQty}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> Rs.{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Status:</strong> {data.status}
+                </div>
               </>
             )}
 
             {/* ✅ Salesman-wise Report Header */}
             {type === "salesmanwise" && (
               <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId || "N/A"}</div>
-              
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
+                <div>
+                  <strong>Invoice No:</strong> {data.invoiceNo}
+                </div>
+                <div>
+                  <strong>Invoice Date:</strong>{" "}
+                  {new Date(data.invoiceDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Order ID:</strong>{" "}
+                  {data.orderTakingId?.orderId || "N/A"}
+                </div>
+
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                </div>
+                <div>
+                  <strong>Total Quantity:</strong> {data.totalQty}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> Rs.{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Status:</strong> {data.status}
+                </div>
               </>
             )}
 
             {/* ✅ Order Details Section */}
             {type === "order" && (
               <>
-                <div><strong>Order ID:</strong> {data.orderId}</div>
-                <div><strong>Date:</strong> {new Date(data.date).toLocaleDateString()}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Customer:</strong> {data.customerId?.customerName}</div>
-                <div><strong>Phone:</strong> {data.customerId?.phoneNumber}</div>
-                <div><strong>Address:</strong> {data.customerId?.address}</div>
-                <div><strong>Status:</strong> {data.status}</div>
+                <div>
+                  <strong>Order ID:</strong> {data.orderId}
+                </div>
+                <div>
+                  <strong>Date:</strong>{" "}
+                  {new Date(data.date).toLocaleDateString() || '-'}
+                </div>
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName || '-'}
+                </div>
+                <div>
+                  <strong>Customer:</strong> {data.customerId?.customerName || '-'}
+                </div>
+                <div>
+                  <strong>Phone:</strong> {data.customerId?.phoneNumber || '-'}
+                </div>
+                <div>
+                  <strong>Address:</strong> {data.customerId?.address}
+                </div>
+                <div>
+                  <strong>Status:</strong> {data.status}
+                </div>
               </>
             )}
 
             {/* ✅ Loadsheet Details Section */}
             {type === "loadsheet" && (
               <>
-                <div><strong>Load No:</strong> {data.loadNo}</div>
-                <div><strong>Load Date:</strong> {new Date(data.loadDate).toLocaleDateString()}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Vehicle No:</strong> {data.vehicleNo}</div>
-                <div><strong>Pre-Balance:</strong> Rs. {data.salesmanId?.preBalance?.toLocaleString()}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Created At:</strong> {new Date(data.createdAt).toLocaleString()}</div>
+                <div>
+                  <strong>Load No:</strong> {data.loadNo}
+                </div>
+                <div>
+                  <strong>Load Date:</strong>{" "}
+                  {new Date(data.loadDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                </div>
+                <div>
+                  <strong>Vehicle No:</strong> {data.vehicleNo}
+                </div>
+                <div>
+                  <strong>Pre-Balance:</strong> Rs.{" "}
+                  {data.salesmanId?.preBalance?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Total Quantity:</strong> {data.totalQty}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> Rs.{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Created At:</strong>{" "}
+                  {new Date(data.createdAt).toLocaleString()}
+                </div>
               </>
             )}
 
             {/* ✅ Invoice Details Section */}
             {type === "DateWise-Sales" && (
               <>
-                <div><strong>Invoice No:</strong> {data.invoiceNo}</div>
-                <div><strong>Invoice Date:</strong> {new Date(data.invoiceDate).toLocaleDateString()}</div>
-                <div><strong>Order ID:</strong> {data.orderTakingId?.orderId}</div>
-                <div><strong>Customer:</strong> {data.orderTakingId?.customerId?.customerName}</div>
-                <div><strong>Salesman:</strong> {data.salesmanId?.employeeName}</div>
-                <div><strong>Total Quantity:</strong> {data.totalQty}</div>
-                <div><strong>Total Amount:</strong> Rs. {data.totalAmount?.toLocaleString()}</div>
-                <div><strong>Status:</strong> {data.status}</div>
+                <div>
+                  <strong>Invoice No:</strong> {data.invoiceNo}
+                </div>
+                <div>
+                  <strong>Invoice Date:</strong>{" "}
+                  {new Date(data.invoiceDate).toLocaleDateString()}
+                </div>
+                <div>
+                  <strong>Order ID:</strong> {data.orderTakingId?.orderId}
+                </div>
+                <div>
+                  <strong>Customer:</strong>{" "}
+                  {data.orderTakingId?.customerId?.customerName}
+                </div>
+                <div>
+                  <strong>Salesman:</strong> {data.salesmanId?.employeeName}
+                </div>
+                <div>
+                  <strong>Total Quantity:</strong> {data.totalQty}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong> Rs.{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+                <div>
+                  <strong>Status:</strong> {data.status}
+                </div>
               </>
             )}
           </div>
@@ -198,7 +321,9 @@ const ViewModal = ({ type, data, onClose }) => {
                     type === "salesmanwise" ||
                     type === "customerwise") && (
                     <>
-                      <td className="text-center">{item.categoryName || "-"}</td>
+                      <td className="text-center">
+                        {item.categoryName || "-"}
+                      </td>
                       <td className="text-center">{item.itemName || "-"}</td>
                       <td className="text-center">{item.issue || 0}</td>
                       <td className="text-center">{item.sold || 0}</td>

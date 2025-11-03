@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import CommanHeader from "../../Components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
 import { ScaleLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const SalesManInformation = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -109,46 +110,72 @@ const SalesManInformation = () => {
     setEnable(true);
   };
 
-  const handleSave = async () => {
-    if (!employeeName || !department) {
-      toast.error("❌ Employee name and department are required");
-      return;
-    }
-    const { token } = userInfo || {};
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
+  // ✅ Salesman Form Validation
+const validateSalesmanForm = () => {
+  const errors = [];
+
+  if (!employeeName) errors.push("Employee Name is required");
+ 
+  if (!address) errors.push("Address is required");
+  if (!city) errors.push("City is required");
+ if (!gender) errors.push("Gender is required");
+
+  return errors;
+};
+
+
+ const handleSave = async () => {
+  const errors = validateSalesmanForm();
+  if (errors.length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Validation Error",
+      html: errors.join("<br/>"),
+    });
+    return;
+  }
+
+  const { token } = userInfo || {};
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
+  const newEmployee = {
+    departmentName: department,
+    employeeName,
+    address,
+    city,
+    gender,
+    mobile: phoneNumber,
+    nicNo: nic,
+    dob,
+    qualification,
+    bloodGroup,
+    isEnable: enable,
+  };
+
+  try {
     setIsSaving(true);
-    const newEmployee = {
-      departmentName: department,
-      employeeName,
-      address,
-      city,
-      gender,
-      mobile: phoneNumber,
-      nicNo: nic,
-      dob,
-      qualification,
-      bloodGroup,
-      isEnable: enable,
-    };
 
     if (isEdit && editId) {
-      const res = await axios.put(`${API_URL}/${editId}`, newEmployee, {
-        headers,
-      });
-      toast.success(" Employee updated successfully");
+      await axios.put(`${API_URL}/${editId}`, newEmployee, { headers });
+      toast.success("Employee updated successfully");
     } else {
-      const res = await axios.post(API_URL, newEmployee, {
-        headers,
-      });
-      toast.success(" Employee added successfully");
+      await axios.post(API_URL, newEmployee, { headers });
+      toast.success("Employee added successfully");
     }
-    setIsSaving(false);
+
     fetchDepartmentTableList();
     setIsSliderOpen(false);
-  };
+  } catch (error) {
+    console.error("Error saving employee:", error);
+    toast.error(error.response?.data?.message || "Failed to save employee");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   const handleEdit = (emp) => {
     setIsEdit(true);
@@ -169,7 +196,7 @@ const SalesManInformation = () => {
 
   // Date formating
   const formatDate = (date) => {
-    if (!date) return "N/A";
+    if (!date) return "-";
 
     const parsed = new Date(date);
     if (isNaN(parsed.getTime())) return "Invalid Date";
@@ -235,7 +262,10 @@ const SalesManInformation = () => {
         }
       });
   };
-  console.log({ employeeList });
+ useEffect(() => {
+  setCurrentPage(1);
+}, [employeeList]);
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -259,7 +289,7 @@ const SalesManInformation = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1200px]">
             {/* ✅ Table Header */}
-            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>Sr</div>
               <div>Name</div>
               <div>Department</div>
@@ -277,7 +307,7 @@ const SalesManInformation = () => {
                 <TableSkeleton
                   rows={employeeList.length > 0 ? employeeList.length : 5}
                   cols={9}
-                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : employeeList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -287,20 +317,20 @@ const SalesManInformation = () => {
                 currentRecords.map((emp, index) => (
                   <div
                     key={emp._id}
-                    className="grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                    className="grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                   >
                     <div className="text-gray-900">
                       {indexOfFirstRecord + index + 1}
                     </div>
                   
-                    <div className="text-gray-700">{emp?.employeeName}</div>
+                    <div className="text-gray-700">{emp?.employeeName || "-"}</div>
                     <div className="text-gray-600">
                       {emp?.departmentName || "-"}
                     </div>
-                    <div className="text-gray-600">{emp?.mobile}</div>
-                    <div className="text-gray-600">{emp?.nicNo}</div>
-                    <div className="text-gray-600">{formatDate(emp.dob)}</div>
-                    <div className="text-gray-600">{emp?.qualification}</div>
+                    <div className="text-gray-600">{emp?.mobile || "-"}</div>
+                    <div className="text-gray-600">{emp?.nicNo || "-"}</div>
+                    <div className="text-gray-600">{formatDate(emp.dob) || "-"}</div>
+                    <div className="text-gray-600">{emp?.qualification || "-"}</div>
                     <div className="font-semibold">
                       {emp?.isEnable ? (
                         <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
@@ -426,7 +456,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Department <span className="text-red-500">*</span>
+                    Department 
                   </label>
                   <input
                     type="text"
@@ -463,7 +493,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Gender <span className="text-red-500">*</span>
+                    Gender <span className="text-red-500">*</span>{" "}
                   </label>
                   <select
                     value={gender}
@@ -478,7 +508,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Phone Number <span className="text-red-500">*</span>
+                    Phone Number 
                   </label>
                   <input
                     type="text"
@@ -491,7 +521,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    NIC <span className="text-red-500">*</span>
+                    NIC 
                   </label>
                   <input
                     type="text"
@@ -511,7 +541,7 @@ const SalesManInformation = () => {
 
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Date of Birth <span className="text-red-500">*</span>
+                    Date of Birth 
                   </label>
                   <input
                     type="date"
@@ -524,7 +554,7 @@ const SalesManInformation = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Qualification <span className="text-red-500">*</span>
+                    Qualification 
                   </label>
                   <input
                     type="text"
@@ -535,7 +565,7 @@ const SalesManInformation = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Blood Group <span className="text-red-500">*</span>
+                    Blood Group 
                   </label>
                   <input
                     type="text"

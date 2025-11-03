@@ -41,37 +41,37 @@ const links = [
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
-  {
-    to: "/admin/accounts",
-    label: "Accounts ",
-    icon: <MdOutlineAccountBalanceWallet />,
-  },
+  // {
+  //   to: "/admin/accounts",
+  //   label: "Accounts ",
+  //   icon: <MdOutlineAccountBalanceWallet />,
+  // },
   
-  {
-    label: "Security",
-    key: "isSecurity",
-    icon: <FaUserShield />,
-    children: [
-      {
-        to: "/admin/groups",
-        label: "Group Management",
-        icon: <FaUsersCog />,
-        key: "isGroupManagement",
-      },
-      {
-        to: "/admin/users",
-        label: "Users",
-        icon: <FaUserCog />,
-        key: "isUsers",
-      },
-      {
-        to: "/admin/access-rights",
-        label: "Access Control",
-        icon: <FaUserShield />,
-        key: "isAccessControl",
-      },
-    ],
-  },
+  // {
+  //   label: "Security",
+  //   key: "isSecurity",
+  //   icon: <FaUserShield />,
+  //   children: [
+  //     {
+  //       to: "/admin/groups",
+  //       label: "Group Management",
+  //       icon: <FaUsersCog />,
+  //       key: "isGroupManagement",
+  //     },
+  //     {
+  //       to: "/admin/users",
+  //       label: "Users",
+  //       icon: <FaUserCog />,
+  //       key: "isUsers",
+  //     },
+  //     {
+  //       to: "/admin/access-rights",
+  //       label: "Access Control",
+  //       icon: <FaUserShield />,
+  //       key: "isAccessControl",
+  //     },
+  //   ],
+  // },
 ];
 
 const AdminSidebar = () => {

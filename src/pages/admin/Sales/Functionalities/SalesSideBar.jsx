@@ -38,6 +38,7 @@ import {
   Scale,
   Tickets,
   FileSpreadsheetIcon,
+  FileMinus,
 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 
@@ -53,16 +54,22 @@ const salesChildren = [
   //   label: "Load Sheet",
   //   icon: <FileSpreadsheet strokeWidth={3} size={40} />,
   // },
-  // {
-  //   to: "/admin/sales/sales-invoice",
-  //   label: "Sales Invoice",
-  //   icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
-  // },
+  
   {
-    to: "/admin/sales/sales",
-    label: "Sales",
-    icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+    to: "/admin/sales/sales-invoice",
+    label: "Sales Invoice",
+    icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
   },
+   {
+    to: "/admin/sales/recovery",
+    label: "Recovery",
+    icon: <FileMinus  strokeWidth={3} size={40} />,
+  },
+  //  {
+  //   to: "/admin/sales/sales",
+  //   label: "Sales",
+  //   icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+  // },
   // {
   //   to: "/admin/sales/cash-deposite",
   //   label: "Cash Deposit",
@@ -118,6 +125,12 @@ const setupChildren = [
     label: "Vehicle Information",
     icon: <FaCar />,
   },
+  {
+    to: "/admin/supplier",
+    label: "Supplier",
+    icon: <FaTruck />,
+  },
+   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 ];
 
 // reportsChildren
@@ -137,30 +150,35 @@ const reportsChildren = [
     label: "Credit Aging",
     icon: <FaRegCreditCard />,
   },
-  {
-    to: "/admin/report/datewise-orders",
-    label: "Datewise Orders",
-    icon: <FaCalendarAlt />,
-  },
-  {
-    to: "/admin/report/productwise-orders",
-    label: "Productwise Orders",
-    icon: <FaShoppingCart />,
-  },
-  {
-    to: "/admin/report/salesmanwise-orders",
-    label: "Salesmanwise Orders",
-    icon: <FaUserTie />,
-  },
-  {
-    to: "/admin/report/customerwise-orders",
-    label: "Customerwise Orders",
-    icon: <FaUsers />,
-  },
+  // {
+  //   to: "/admin/report/datewise-orders",
+  //   label: "Datewise Orders",
+  //   icon: <FaCalendarAlt />,
+  // },
+  // {
+  //   to: "/admin/report/productwise-orders",
+  //   label: "Productwise Orders",
+  //   icon: <FaShoppingCart />,
+  // },
+  // {
+  //   to: "/admin/report/salesmanwise-orders",
+  //   label: "Salesmanwise Orders",
+  //   icon: <FaUserTie />,
+  // },
+  // {
+  //   to: "/admin/report/customerwise-orders",
+  //   label: "Customerwise Orders",
+  //   icon: <FaUsers />,
+  // },
   {
     to: "/admin/report/daily-sales-report",
     label: "Daily Sales Report",
     icon: <FaCalendarAlt />,
+  },
+  {
+    to: "/admin/report/opening-stock",
+    label: "Opening Stock",
+    icon: <Scale strokeWidth={3} size={40} />,
   },
 ];
 

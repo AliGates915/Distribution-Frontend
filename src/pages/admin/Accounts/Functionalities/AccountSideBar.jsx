@@ -23,11 +23,7 @@ const accountFunctionalities = [
     label: "Expense Voucher",
     icon: <DollarSign strokeWidth={3} size={40} />,
   },
-  {
-    to: "/admin/accounts/opening-stock",
-    label: "Opening Stock",
-    icon: <Scale strokeWidth={3} size={40} />,
-  },
+  
 ];
 
 // 🔹 Reports

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HashLoader } from "react-spinners";
 import gsap from "gsap";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import { ScaleLoader } from "react-spinners";
 import axios from "axios";
@@ -10,6 +10,7 @@ import { SquarePen, Trash2 } from "lucide-react";
 
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
 
 const ListOfItems = () => {
   const [isSaving, setIsSaving] = useState(false);
@@ -141,6 +142,24 @@ const ListOfItems = () => {
   useEffect(() => {
     fetchCategoryList();
   }, [fetchCategoryList]);
+// item Unit
+  const fetchItemUnitList = useCallback(async () => {
+    try {
+      setIsSaving(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/categories`
+      );
+      setCategoryList(res.data); // store actual categories array
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    } finally {
+      setTimeout(() => setIsSaving(false), 1000);
+    }
+  }, []);
+  useEffect(() => {
+    fetchItemUnitList();
+  }, [fetchItemUnitList]);
+
 
   // Fetch itemTypes when category changes
   useEffect(() => {
@@ -163,7 +182,7 @@ const ListOfItems = () => {
   }, [itemCategory]);
 
   // Item Unit List Fetch
-  const fetchItemUnitList = useCallback(async () => {
+  const fetchItemUnitsList = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(
@@ -177,8 +196,11 @@ const ListOfItems = () => {
     }
   }, []);
   useEffect(() => {
-    fetchItemUnitList();
-  }, [fetchItemUnitList]);
+    fetchItemUnitsList();
+  }, [fetchItemUnitsList]);
+
+  console.log({itemUnitList});
+  
 
   // Manufacturer List Fetch
   const fetchManufacturerList = useCallback(async () => {
@@ -269,15 +291,12 @@ const ListOfItems = () => {
     if (!itemCategory.id) errors.push("Item Category is required");
     if (!itemType) errors.push("Item Type is required");
     if (!itemKind) errors.push("Item Kind is required");
-    if (!manufacture) errors.push("Manufacturer is required");
-    if (!supplier) errors.push("Supplier is required");
-    if (!shelveLocation) errors.push("Shelf Location is required");
     if (!itemName) errors.push("Item Name is required");
     if (!itemUnit) errors.push("Item Unit is required");
+    if (!perUnit) errors.push("Per Unit is required");
     if (!purchase) errors.push("Purchase is required");
     if (!sales) errors.push("Sales is required");
     if (!stock) errors.push("Stock is required");
-    if (!barcode) errors.push("Barcode is required");
     if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
@@ -358,7 +377,7 @@ const ListOfItems = () => {
       fetchData();
     } catch (error) {
       console.error(error);
-      toast.error(" Failed to save Item List.");
+      toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setIsSaving(false);
     }
@@ -406,14 +425,14 @@ const ListOfItems = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit || "");
+    setItemUnit(item?.itemUnit._id  || "");
     setItemType(item?.itemType?._id || "");
     setItemCategoryId(item.itemId);
     // Normal fields
     setItemName(item.itemName || "");
     setPerUnit(item.perUnit ? item.perUnit.toString() : "");
     setPurchase(item.purchase ? item.purchase.toString() : "");
-    setSales(item.price ? item.price.toString() : "");
+    setSales(item.price.toString() ?? "");
     setStock(item.stock ? item.stock.toString() : "");
     setBarcode(item.secondaryBarcode || "");
     setReorder(item.reorder ? item.reorder.toString() : "");
@@ -539,6 +558,7 @@ const ListOfItems = () => {
     setCurrentPage(pageNumber);
   };
 
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Coomon header */}
@@ -561,13 +581,13 @@ const ListOfItems = () => {
           <div className="max-h-screen overflow-y-auto custom-scrollbar">
             <div className="inline-block w-full align-middle">
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-7 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div>Sr</div>
                 <div>Item Category</div>
                 <div>Item Name</div>
                 <div>Purchase</div>
                 <div>Sales</div>
                 <div>Stock</div>
-                <div>Barcode</div>
                 {userInfo?.isAdmin && <div className="">Actions</div>}
               </div>
 
@@ -577,7 +597,7 @@ const ListOfItems = () => {
                   <TableSkeleton
                     rows={itemList.length || 5}
                     cols={userInfo?.isAdmin ? 7 : 6}
-                    className="lg:grid-cols-7"
+                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                   />
                 ) : itemList.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -587,8 +607,11 @@ const ListOfItems = () => {
                   currentRecords.map((item, index) => (
                     <div
                       key={item._id}
-                      className="grid grid-cols-1 lg:grid-cols-7 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
+                      {
+                        indexOfFirstRecord + index + 1
+                      }
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
                         <img
@@ -597,31 +620,26 @@ const ListOfItems = () => {
                           className="w-7 h-7 object-cover rounded-full"
                         />
                         <span className="font-medium text-gray-900">
-                          {item?.itemType?.itemTypeName}
+                          {item?.itemType?.itemTypeName || "-"}
                         </span>
                       </div>
 
                       {/* Item Name */}
-                      <div className="text-gray-600">{item.itemName}</div>
+                      <div className="text-gray-600">{item.itemName || "-"}</div>
 
                       {/* Purchase */}
                       <div className="font-semibold text-gray-600">
-                        {item.purchase}
+                        {item.purchase || "-"}
                       </div>
 
                       {/* Sales */}
                       <div className="font-semibold text-gray-600">
-                        {item.price}
+                        {item.price ?? "-"}
                       </div>
 
                       {/* Stock */}
                       <div className="font-semibold text-gray-600">
-                        {item.stock}
-                      </div>
-
-                      {/* Barcode */}
-                      <div className="font-semibold text-gray-600">
-                        {item.secondaryBarcode || "N/A"}
+                        {item.stock || "-"}
                       </div>
 
                       {/* Actions */}
@@ -696,7 +714,7 @@ const ListOfItems = () => {
             className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
             {isSaving && (
-              <div className="absolute h-full inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+              <div className="absolute h-[150vh] inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" height={60} />
               </div>
             )}
@@ -838,7 +856,7 @@ const ListOfItems = () => {
                     {/* Manufacture */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Manufacture <span className="text-red-500">*</span>
+                        Manufacture 
                       </label>
                       <select
                         value={manufacture}
@@ -857,7 +875,7 @@ const ListOfItems = () => {
                     {/* Supplier */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Supplier <span className="text-red-500">*</span>
+                        Supplier 
                       </label>
                       <select
                         value={supplier}
@@ -876,7 +894,7 @@ const ListOfItems = () => {
                     {/* Shelve Location */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Shelve Location <span className="text-red-500">*</span>
+                        Shelve Location 
                       </label>
                       <select
                         value={shelveLocation}
@@ -924,17 +942,20 @@ const ListOfItems = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                        <option value="Kg">Kg</option>
-                        <option value="Piece">Piece</option>
-                        <option value="Bag">Bag</option>
-                        <option value="Cotton">Cotton</option>
+                       {
+                        itemUnitList.map((unit) => (
+                          <option key={unit._id} value={unit._id}>
+                            {unit.unitName}
+                          </option>
+                        ))
+                       }
                       </select>
                     </div>
 
                     {/* Per Unit */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Per Unit
+                        Per Unit <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"

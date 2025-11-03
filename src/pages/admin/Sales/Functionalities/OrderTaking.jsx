@@ -19,6 +19,8 @@ const OrderTaking = () => {
   const [balance, setBalance] = useState(null);
   const [creditsDays, setCreditsDays] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [totalQty, setTotalQty] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -95,7 +97,6 @@ const OrderTaking = () => {
         `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
       );
       setProductsList(res.data);
-      
     } catch (error) {
       console.error("Failed to fetch Employees", error);
     } finally {
@@ -128,17 +129,31 @@ const OrderTaking = () => {
   }, []);
 
   // 🗓️ Auto calculate Due Date based on today's date and Credit Limit
-useEffect(() => {
-  if (creditsDays) {
-    const today = new Date(); // current date
-    today.setDate(today.getDate() + Number(creditsDays)); // add credit limit days
-    const formattedDueDate = today.toISOString().split("T")[0]; // format YYYY-MM-DD
-    setDueDate(formattedDueDate);
-  } else {
-    setDueDate("");
-  }
-}, [creditsDays]);
-
+  useEffect(() => {
+    if (creditsDays) {
+      const today = new Date(); // current date
+      today.setDate(today.getDate() + Number(creditsDays)); // add credit limit days
+      const formattedDueDate = today.toISOString().split("T")[0]; // format YYYY-MM-DD
+      setDueDate(formattedDueDate);
+    } else {
+      setDueDate("");
+    }
+  }, [creditsDays]);
+  // summ of total and qty
+  useEffect(() => {
+    if (items.length > 0) {
+      const qtySum = items.reduce((sum, it) => sum + Number(it.qty || 0), 0);
+      const totalSum = items.reduce(
+        (sum, it) => sum + Number(it.total || 0),
+        0
+      );
+      setTotalQty(qtySum);
+      setGrandTotal(totalSum);
+    } else {
+      setTotalQty(0);
+      setGrandTotal(0);
+    }
+  }, [items]);
 
   // Auto-generate Order ID and Date (based on highest existing number)
   useEffect(() => {
@@ -218,7 +233,7 @@ useEffect(() => {
         totalAmount: Number(it.total),
       })),
     };
- 
+
     try {
       if (editingOrder) {
         // ✅ UPDATE EXISTING ORDER (PUT)
@@ -313,8 +328,8 @@ useEffect(() => {
     setRate("");
     setTotal("");
     setItems([]);
-    setCreditsDays("")
-    setDueDate("")
+    setCreditsDays("");
+    setDueDate("");
     setBalance("");
     setIsSliderOpen(false);
   };
@@ -365,7 +380,12 @@ useEffect(() => {
     setItems(updatedItems);
   };
   console.log({ productsList });
-
+ const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
+  };
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -412,11 +432,13 @@ useEffect(() => {
                       className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + i + 1}</div>
-                      <div>{order.orderId}</div>
-                      <div>{new Date(order.date).toLocaleDateString()}</div>
-                      <div>{order.salesmanId?.employeeName}</div>
-                      <div>{order.customerId?.customerName}</div>
-                      <div>{order.customerId?.phoneNumber}</div>
+                      <div>{order.orderId || "-"}</div>
+                      <div>
+                        {formatDate(order.date) || "-"}
+                      </div>
+                      <div>{order.salesmanId?.employeeName || "-"}</div>
+                      <div>{order.customerId?.customerName || "-"}</div>
+                      <div>{order.customerId?.phoneNumber || "-"}</div>
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleEdit(order)}
@@ -424,13 +446,8 @@ useEffect(() => {
                         >
                           <SquarePen size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(order._id)}
-                          className="text-red-600 hover:bg-red-50  rounded"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                        <button
+
+                        {/* <button
                           onClick={() => {
                             setSelectedOrder(order);
                             setIsView(true);
@@ -438,7 +455,7 @@ useEffect(() => {
                           className="text-amber-600 hover:bg-amber-50 rounded"
                         >
                           <Eye size={18} />
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   ))
@@ -492,7 +509,7 @@ useEffect(() => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full min-h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                <div className="absolute top-0 left-0 w-full min-h-[150vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -617,8 +634,8 @@ useEffect(() => {
                       />
                     </div>
                   </div>
-                        {/* Crdits Days and Due date */}
-                   <div className="flex gap-2">
+                  {/* Crdits Days and Due date */}
+                  <div className="flex gap-2">
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">
                         Credits Days
@@ -633,7 +650,9 @@ useEffect(() => {
 
                     {/* Due Dates */}
                     <div className="flex-1">
-                      <label className="block text-gray-700 mb-2">Due Date</label>
+                      <label className="block text-gray-700 mb-2">
+                        Due Date
+                      </label>
                       <input
                         type="date"
                         value={dueDate}
@@ -655,10 +674,11 @@ useEffect(() => {
                           const selected = productsList.find(
                             (p) => p.itemName === e.target.value
                           );
+                          console.log({ selected });
+
                           setProduct(e.target.value);
-                          setRate(selected?.price || "");
-                          setUnit(selected?.itemUnit|| "");
-                          
+                          setRate(selected?.price ?? "");
+                          setUnit(selected?.itemUnit.unitName || "");
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
@@ -683,7 +703,6 @@ useEffect(() => {
                         type="text"
                         value={unit}
                         disabled
-                      
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                       {/* <select
@@ -703,8 +722,8 @@ useEffect(() => {
                       <input
                         type="number"
                         value={rate}
-                        disabled
                         onChange={(e) => setRate(e.target.value)}
+                        disabled
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                     </div>
@@ -769,6 +788,22 @@ useEffect(() => {
                       ))
                     )}
                   </div>
+                  {items.length > 0 && (
+                    <div className="flex flex-col gap-3 items-end mt-3 text-sm font-semibold text-gray-700 ">
+                      <div className="text-[18px]">
+                        Total Qty:{" "}
+                        <span className=" text-newPrimary">
+                          {totalQty}
+                        </span>
+                      </div>
+                      <div className="text-[18px]">
+                        Total:{" "}
+                        <span className=" text-newPrimary">
+                          {grandTotal}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <button

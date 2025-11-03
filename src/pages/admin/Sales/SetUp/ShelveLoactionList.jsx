@@ -184,16 +184,20 @@ const ShelveLocationList = () => {
       });
   };
 
-  // // Show loading spinner
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+ // ✅ Pagination
+const [currentPage, setCurrentPage] = useState(1);
+const recordsPerPage = 10;
+
+const indexOfLastRecord = currentPage * recordsPerPage;
+const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+const currentRecords = shelveLocationList.slice(indexOfFirstRecord, indexOfLastRecord);
+const totalPages = Math.ceil(shelveLocationList.length / recordsPerPage);
+
+// ✅ Reset to first page whenever list updates
+useEffect(() => {
+  setCurrentPage(1);
+}, [shelveLocationList]);
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -246,16 +250,16 @@ const ShelveLocationList = () => {
                   No shelves found.
                 </div>
               ) : (
-                shelveLocationList.map((s, index) => (
+                currentRecords.map((s, index) => (
                   <>
                     {/* ✅ Desktop Row */}
                     <div
                       key={s._id}
                       className="hidden lg:grid grid-cols-[0.2fr_1fr_2fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-600">{index + 1}</div>
-                      <div className="text-gray-900">{s.shelfNameCode}</div>
-                      <div className="text-gray-600">{s.description}</div>
+                     <div className="text-gray-600">{indexOfFirstRecord + index + 1}</div>
+                      <div className="text-gray-900">{s.shelfNameCode || "-"}</div>
+                      <div className="text-gray-600">{s.description || "-"}</div>
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-3">
                           <button
@@ -280,9 +284,9 @@ const ShelveLocationList = () => {
                       className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
                     >
                       <h3 className="font-semibold text-gray-800">
-                        {s.shelfNameCode}
+                        {s.shelfNameCode || "-"}
                       </h3>
-                      <p className="text-sm text-gray-600">{s.description}</p>
+                      <p className="text-sm text-gray-600">{s.description || "-"}</p>
 
                       {userInfo?.isAdmin && (
                         <div className="mt-3 flex justify-end gap-3">
@@ -307,7 +311,46 @@ const ShelveLocationList = () => {
             </div>
           </div>
         </div>
+        {totalPages > 1 && (
+  <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+    <p className="text-sm text-gray-600">
+      Showing {indexOfFirstRecord + 1} to{" "}
+      {Math.min(indexOfLastRecord, shelveLocationList.length)} of{" "}
+      {shelveLocationList.length} records
+    </p>
+
+    <div className="flex gap-2">
+      <button
+        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 rounded-md ${
+          currentPage === 1
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+        }`}
+      >
+        Previous
+      </button>
+
+      <button
+        onClick={() =>
+          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+        }
+        disabled={currentPage === totalPages}
+        className={`px-3 py-1 rounded-md ${
+          currentPage === totalPages
+            ? "bg-gray-300 cursor-not-allowed"
+            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+        }`}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
       </div>
+
 
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">

@@ -1,653 +1,310 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Download, SquarePen, Trash2 } from "lucide-react";
+import { Eye, SquarePen } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
-import { api } from "../../../../context/ApiService";
 import toast from "react-hot-toast";
-
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { set } from "date-fns";
 import { ScaleLoader } from "react-spinners";
 import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
+import axios from "axios";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [invoiceId, setInvoiceId] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState("");
-  const [dcNo, setDcNo] = useState([]);
-  const [taxOptions, setTaxOptions] = useState([]);
-  const [deliveryDate, setDeliveryDate] = useState("");
-  const [medicineType, setMedicineType] = useState("");
-  const [bookingNo, setBookingNo] = useState("");
-  const invoiceRef = useRef(null);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [orderDate, setOrderDate] = useState("");
-  const [vendor, setVendor] = useState("");
-  const [selectedDcNos, setSelectedDcNos] = useState([]);
-  const [showDcDropdown, setShowDcDropdown] = useState(false);
-  const [taxes, setTaxes] = useState([{ type: "", value: "", amount: "" }]);
-  const [address, setAddress] = useState("");
-  const [phoneNo, setPhoneNo] = useState("");
-  const [balance, setBalance] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingInvoice, setEditingInvoice] = useState(null);
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-
-  const [errors, setErrors] = useState({});
-  const [orderTaking, setOrderTaking] = useState([]);
-  const [items, setItems] = useState([]);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [discountPercentage, setDiscountPercentage] = useState("");
-  const [discountAmount, setDiscountAmount] = useState("");
-  const [salesTax, setSalesTax] = useState(false);
-
-  const [netAmount, setNetAmount] = useState("");
-  const [dcList, setDcList] = useState([]);
-  const [nextInvoiceId, setNextInvoiceId] = useState("003");
+  const [loading, setLoading] = useState(false);
+  const [selectedSalesman, setSelectedSalesman] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
-  const sliderRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  const [date, setDate] = useState(today);
+  const [isSliderOpen, setIsSliderOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [invoiceId, setInvoiceId] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [salesman, setSalesman] = useState("");
+  const [previousBalance, setPreviousBalance] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [items, setItems] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState("");
+  const [receivable, setReceivable] = useState("");
+  const [received, setReceived] = useState("");
+  const [balance, setBalance] = useState("");
+  const [receivingDate, setReceivingDate] = useState("");
+  const [isView, setIsView] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const invoiceRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
-
-  // Simulate fetching invoices
-  const fetchInvoices = useCallback(async () => {
+  const headers = {
+    headers: {
+      Authorization: `Bearer ${userInfo?.token}`,
+    },
+  };
+  //  fetchSalesInvoiceList
+  async function fetchSalesInvoiceList() {
     try {
       setLoading(true);
-      const response = await api.get("/sales-invoice");
-      setInvoices(response.data);
-    } catch (error) {
-      console.error("Failed to fetch invoices", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
-
- 
-
-  // fetch booking orders
-  const fetchOrderTaking = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/order-taker/invoice");
-      setOrderTaking(response.data);
-    } catch (error) {
-      console.error("Failed to fetch booking orders", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchOrderTaking();
-  }, [fetchOrderTaking]);
-
-  const fetchTaxes = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/taxes");
-      setTaxOptions(response || []); // ✅ store options here
-    
-    } catch (error) {
-      console.error("Failed to fetch booking orders", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTaxes();
-  }, [fetchTaxes]);
-
- 
-  // Invoice search
-  // 🔍 Sales Invoice Search (same logic as Delivery Challan search)
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      fetchInvoices(); // only when cleared
-      return;
-    }
-
-    const delayDebounce = setTimeout(() => {
-      setLoading(true);
-      const filtered = invoices.filter((inv) =>
-        inv?.invoiceNo?.toUpperCase().includes(searchTerm.toUpperCase())
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`
       );
-      setInvoices(filtered);
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm, fetchInvoices]);
-
-  // Generate next invoice ID
-
-  // Generate next Invoice ID
-  useEffect(() => {
-    if (invoices.length > 0) {
-      const maxNo = Math.max(
-        ...invoices.map((inv) => {
-          const match = inv.invoiceNo?.match(/INV-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-      );
-      setNextInvoiceId((maxNo + 1).toString().padStart(3, "0"));
-    } else {
-      setNextInvoiceId("001");
+      setInvoices(res.data.data);
+    } catch (error) {
+      console.error("Failed to fetch SalesInvoice", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
     }
-  }, [invoices]);
+  }
 
-  // Handle DC No. selection
-
-  // Calculate totals
   useEffect(() => {
-    const calculatedTotal = items.reduce((sum, item) => sum + item.total, 0);
-    setTotalPrice(calculatedTotal);
+    fetchSalesInvoiceList();
+  }, []);
 
-    const discount =
-      discountPercentage !== ""
-        ? (calculatedTotal * parseFloat(discountPercentage)) / 100
-        : parseFloat(discountAmount) || 0;
+  // ✅ Format date
+  const formDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = d.toLocaleString("en-US", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
-    const taxAmount = salesTax ? calculatedTotal * 0.035 : 0;
-    const net = calculatedTotal - discount + taxAmount;
-    setNetAmount(net.toFixed(2));
-  }, [items, discountPercentage, discountAmount, salesTax]);
+  // ✅ Edit handler
+  const handleEdit = (invoice) => {
+    setEditingInvoice(invoice);
+    setInvoiceId(invoice.orderId);
+    setInvoiceDate(invoice.date);
+    setCustomer(invoice.customerId.customerName);
+    setSalesman(invoice.salesmanId.employeeName);
+    setPreviousBalance(invoice.customerId.salesBalance);
+    setDeliveryDate(new Date().toISOString().split("T")[0]); // current date
 
-  // Reset form fields
-  const resetForm = () => {
-    setInvoiceId("");
-    setInvoiceDate("");
-    setDcNo("");
-    setSelectedDcNos([]);
-    setDeliveryDate("");
-    setMedicineType("");
-    setBookingNo("");
-    setOrderDate("");
-    setVendor("");
-    setAddress("");
-    setPhoneNo("");
-    setBalance("");
-    setItems([]);
-    setTotalPrice(0);
-    setDiscountPercentage("");
+    // map products correctly
+    const mappedItems = invoice.products.map((p) => ({
+      item: p.itemName,
+      rate: p.rate,
+      qty: p.qty,
+      total: p.totalAmount,
+    }));
+    setItems(mappedItems);
+
+    setTotalPrice(invoice.totalAmount);
     setDiscountAmount("");
-    setSalesTax(false);
-    setDcList([]);
-    setNetAmount("");
-    setEditingInvoice(null);
-    setErrors({});
-    setTaxes([{ type: "", value: "", amount: "" }]); // ✅ ADD THIS LINE
-    setIsSliderOpen(false);
-  };
-
-  // Validate form fields
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!invoiceDate?.trim())
-      newErrors.invoiceDate = "Invoice Date is required";
-    if (!selectedOrderId)
-      newErrors.orderTakingId = "Order Taking selection is required";
-    if (items.length === 0)
-      newErrors.items = "At least one product is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handlers for form and table actions
-  const handleAddInvoice = () => {
-    resetForm();
+    setReceivable(invoice.totalAmount);
+    setReceived("");
+    setBalance(invoice.totalAmount);
+    setReceivingDate(invoice.customerId.timeLimit?.split("T")[0] || "");
     setIsSliderOpen(true);
-    setInvoiceDate(new Date().toISOString().split("T")[0]);
   };
 
-  // const handleEditClick = (invoice) => {
-  //   console.log({ invoice });
-
-  //   setEditingInvoice(invoice);
-
-  //   // ✅ Core invoice info
-  //   setInvoiceId(invoice.invoiceNo || "");
-  //   setInvoiceDate(invoice.invoiceDate?.split("T")[0] || "");
-
-  //   // ✅ Booking order details
-  //   setSelectedOrderId(invoice.bookingOrder?._id || null);
-  //   setBookingNo(invoice.bookingOrder?.orderNo || "");
-  //   setDeliveryDate(
-  //     invoice.bookingOrder?.deliveryDate
-  //       ? invoice.bookingOrder.deliveryDate.split("T")[0]
-  //       : ""
-  //   );
-
-  //   // ✅ Customer info
-  //   const customer = invoice.bookingOrder?.customer || {};
-  //   setVendor(customer.customerName || "");
-  //   setAddress(customer.address || "");
-  //   setPhoneNo(customer.phoneNumber || "");
-  //   setBalance(customer.balance?.toString() || "0");
-
-  //   // ✅ Delivery Challan info
-  //   setSelectedDcNos(
-  //     invoice.deliveryChallan ? [invoice.deliveryChallan.dcNo] : []
-  //   );
-
-  //   // ✅ Product items
-  //   setItems(
-  //     invoice.products?.map((p, index) => ({
-  //       srNo: index + 1,
-  //       DcNo: invoice.deliveryChallan?.dcNo || "",
-  //       item: p.name,
-  //       rate: p.rate,
-  //       qty: p.qty,
-  //       total: p.total,
-  //     })) || []
-  //   );
-
-  //   // ✅ Total calculations
-  //   setTotalPrice(invoice.totalAmount || 0);
-  //   setDiscountPercentage(invoice.discountPercentage?.toString() || "");
-  //   setDiscountAmount(invoice.discountAmount?.toString() || "");
-  //   setSalesTax(invoice.salesTax || false);
-  //   setNetAmount(invoice.netAmount?.toString() || "");
-
-  //   // ✅ Reset errors and open form
-  //   setErrors({});
-  //   setIsSliderOpen(true);
-  // };
+  // ✅ Total recalculation
+  useEffect(() => {
+    const total = items.reduce((acc, item) => acc + item.total, 0);
+    setTotalPrice(total);
+    const discount = parseFloat(discountAmount) || 0;
+    const receivableAmt = total - discount;
+    setReceivable(receivableAmt);
+    const bal = receivableAmt - (parseFloat(received) || 0);
+    setBalance(bal);
+  }, [items, discountAmount, received]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) return;
-    setIsSaving(true);
-    const newInvoice = {
-      invoiceNo: editingInvoice ? invoiceId : `INV-${nextInvoiceId}`,
-      invoiceDate: invoiceDate.trim(),
-
-      // ✅ Match backend exactly (orderTakingId instead of bookingOrder)
-      orderTakingId: selectedOrderId,
-
-      // ✅ Products payload same as your Postman example
-      products: items.map((item) => ({
-        categoryName: item.categoryName || "",
-        itemName: item.item,
-        issue: item.issue, // total issued from API
-        sold: item.qty, // current sold quantity
-        return: item.issue - item.qty, // difference = returned qty
-        itemUnit: item.itemUnit || "piece",
-        rate: item.rate,
-      })),
-
-      // ✅ Total amount
-      totalAmount: parseFloat(totalPrice) || 0,
-    };
-
-   
-
     try {
-      if (editingInvoice) {
-        setInvoices((prev) =>
-          prev.map((inv) =>
-            inv._id === editingInvoice._id
-              ? { ...inv, ...newInvoice, _id: inv._id }
-              : inv
-          )
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Updated!",
-          text: "Sales Invoice updated successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      } else {
-        try {
-          await api.post("/sales-invoice", newInvoice, {
-            headers: {
-              Authorization: `Bearer ${userInfo?.token}`,
-            },
-          });
-        } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to add invoice");
-        }
-        Swal.fire({
-          icon: "success",
-          title: "Added!",
-          text: "Sales Invoice added successfully.",
-          confirmButtonColor: "#3085d6",
-        });
-      }
-      fetchOrderTaking();
-      fetchInvoices();
-      resetForm();
-    } catch (error) {
-      console.error("Error saving sales invoice:", error);
+      setIsSaving(true);
+
+      const payload = {
+        invoiceNo: invoiceId,
+        invoiceDate: new Date().toISOString().split("T")[0],
+        customerId: editingInvoice.customerId._id,
+        salesmanId: editingInvoice.salesmanId._id,
+        orderTakingId: editingInvoice._id,
+        products: items.map((item) => ({
+          itemName: item.item,
+          rate: item.rate,
+          qty: item.qty,
+          totalAmount: item.total,
+        })),
+        totalAmount: receivable,
+        receivable: receivable,
+        received: parseFloat(received) || 0,
+        deliveryDate: deliveryDate,
+        status: "Pending", // default
+      };
+      console.log("🧾 Payload to send:", payload);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/sales-invoice`,
+        payload,
+        headers
+      );
+
       Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text: "Failed to save sales invoice.",
-        confirmButtonColor: "#d33",
+        icon: "success",
+        title: "Invoice Created!",
+        text: "Invoice posted successfully to server.",
+        confirmButtonColor: "#3085d6",
       });
+
+      setIsSliderOpen(false);
+      fetchSalesInvoiceList();
+    } catch (error) {
+      console.error(" Invoice post error:", error);
+      toast.error(error.response?.data?.message || "Failed to post invoice");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    const swalWithTailwindButtons = Swal.mixin({
-      customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
-      },
-      buttonsStyling: false,
-    });
-
-    swalWithTailwindButtons
-      .fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      })
-      .then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            // ✅ Proper delete syntax with Axios and headers
-            await api.delete(`/sales-invoice/${id}`, {
-              headers: {
-                Authorization: `Bearer ${userInfo?.token}`,
-              },
-            });
-
-            // ✅ Remove deleted invoice from state instantly
-            setInvoices((prev) => prev.filter((inv) => inv._id !== id));
-
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Sales Invoice deleted successfully.",
-              "success"
-            );
-          } catch (error) {
-            console.error("❌ Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              error.response?.data?.message ||
-                "Failed to delete sales invoice. Please try again.",
-              "error"
-            );
-          }
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Sales Invoice is safe 🙂",
-            "info"
-          );
-        }
-      });
-  };
-
-  // Pagination logic
+  // 🔢 Pagination Logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = invoices.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(invoices.length / recordsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handleTaxChange = (index, field, value) => {
-    setTaxes((prev) =>
-      prev.map((tax, i) => {
-        if (i === index) {
-          const updated = { ...tax, [field]: value };
-          if (field === "value" && netAmount) {
-            updated.amount = (
-              (netAmount * parseFloat(value || 0)) /
-              100
-            ).toFixed(2);
-          }
-          return updated;
-        }
-        return tax;
-      })
-    );
-  };
-
-  const handleAddTax = () => {
-    setTaxes((prev) => [...prev, { type: "", value: "", amount: "" }]);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest(".dc-dropdown-container")) {
-        setShowDcDropdown(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  async function handleDownload(invoice) {
-    setSelectedInvoice(invoice);
-
-    setTimeout(async () => {
-      if (!invoiceRef.current) return;
-
-      try {
-        const canvas = await html2canvas(invoiceRef.current, {
-          scale: 2,
-          useCORS: true,
-          scrollX: 0,
-          scrollY: 0,
-        });
-
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${invoice.invoiceNo || "Invoice"}.pdf`);
-
-        toast.success(`Invoice ${invoice.invoiceNo} downloaded successfully!`);
-      } catch (error) {
-        console.error("Error generating PDF:", error);
-        toast.error("Failed to generate invoice PDF.");
-      }
-    }, 400);
-  }
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-newPrimary">
-              Sales Invoice Details
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Enter Invoice ID eg: INV-001"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 w-[250px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            />
-            <button
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-              onClick={handleAddInvoice}
-            >
-              + Add Sales Invoice
-            </button>
+          <h1 className="text-2xl font-bold text-newPrimary">Pending Orders</h1>
+        </div>
+
+        {/* 🔹 Filter Fields */}
+        <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-5">
+          {/* Date + Invoice in left column */}
+          <div className="flex gap-8 ">
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={date}
+                max={today}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
+
+            {/* Salesman dropdown on right side */}
+            <div className="flex items-center gap-6 ">
+              <label className="text-gray-700 font-medium w-24">
+                Salesman <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Salesman</option>
+                {/* {salesman.map((cust) => (
+                  <option key={cust._id} value={cust._id}>
+                    {cust.employeeName}
+                  </option>
+                ))} */}
+              </select>
+            </div>
           </div>
         </div>
 
+        {/* ✅ Table */}
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
             <div className="min-w-[1000px]">
-              {/* ✅ Table Header */}
-              <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>SR</div>
-                <div>Invoice No.</div>
-                <div>Invoice Date</div>
-                <div>Order No.</div>
+                <div>Order ID</div>
                 <div>Order Date</div>
-                <div>Status</div>
-                <div>Total Amount</div>
-                <div>Actions</div>
+                <div>Salesman</div>
+                <div>Customer</div>
+                <div>Amount</div>
+                <div>Action</div>
               </div>
 
-              {/* ✅ Table Body */}
-              <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
+              <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
                   <TableSkeleton
-                    rows={currentRecords.length || 5}
-                    cols={8}
-                    className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                    rows={invoices.length > 0 ? invoices.length : 5}
+                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
+                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                   />
-                ) : currentRecords.length === 0 ? (
+                ) : invoices.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
-                    No sales invoices found.
+                    No Sales Invoice Found
                   </div>
                 ) : (
                   currentRecords.map((invoice, index) => (
                     <div
                       key={invoice._id}
-                      className="grid grid-cols-1 lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-600">
-                        {indexOfFirstRecord + index + 1}
-                      </div>
-                      <div className="text-gray-600">{invoice.invoiceNo}</div>
-                      <div className="text-gray-600">
-                        {new Date(invoice.invoiceDate).toLocaleDateString()}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.orderTakingId?.orderId || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {invoice.orderTakingId?.date
-                          ? new Date(
-                              invoice.orderTakingId?.date
-                            ).toLocaleDateString()
-                          : "-"}
-                      </div>
-
-                      <div
-                        className={`w-[120px] py-1 rounded-md text-center text-sm font-semibold
-                  ${
-                    invoice.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-600"
-                      : ""
-                  }
-                  ${
-                    invoice.status === "Completed"
-                      ? "bg-green-100 text-green-600"
-                      : ""
-                  }
-                  ${
-                    invoice.status === "Cancelled"
-                      ? "bg-red-100 text-red-600"
-                      : ""
-                  }
-                `}
-                      >
-                        {invoice.status}
-                      </div>
-
-                      <div className="text-gray-600">
-                        {invoice?.totalAmount || "-"}
-                      </div>
-
+                      <div>{indexOfFirstRecord + index + 1}</div>
+                      <div>{invoice.orderId || "-"}</div>
+                      <div>{formDate(invoice.date) || "-"}</div>
+                      <div>{invoice.salesmanId.employeeName || "-"}</div>
+                      <div>{invoice.customerId.customerName || "-"}</div>
+                      <div>{invoice.customerId.salesBalance || "-"}</div>
                       <div className="flex gap-3 justify-start">
                         <button
-                          onClick={() => handleDownload(invoice)}
+                          onClick={() => handleEdit(invoice)}
                           className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
-                          title="Download"
+                          title="Edit"
                         >
-                          <Download size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(invoice._id)}
-                          className="text-red-600 hover:bg-red-50 rounded p-1 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} />
+                          <SquarePen size={18} />
                         </button>
                       </div>
                     </div>
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, invoices.length)} of{" "}
+                    {invoices.length} invoices
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* ✅ Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between my-4 px-10">
-              <div className="text-sm text-gray-600">
-                Showing {indexOfFirstRecord + 1} to{" "}
-                {Math.min(indexOfLastRecord, invoices.length)} of{" "}
-                {invoices.length} records
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === 1
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === totalPages
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
+        {/* ✅ Form slider */}
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div
-              ref={sliderRef}
-              className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-            >
+            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
               {isSaving && (
                 <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
@@ -655,215 +312,80 @@ const SalesInvoice = () => {
               )}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
-                  {editingInvoice
-                    ? "Update Sales Invoice"
-                    : "Add a New Sales Invoice"}
+                  Edit Pending Orders
                 </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={resetForm}
+                  onClick={() => setIsSliderOpen(false)}
                 >
                   ×
                 </button>
               </div>
 
+              {/* ✅ Form (same styling preserved) */}
               <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-                <div className="grid grid-cols-2 gap-4 border p-4 pb-6 rounded-lg bg-gray-100">
-                  {/* Invoice No */}
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Invoice No. <span className="text-red-500">*</span>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-4 rounded-lg">
+                  <div className="flex gap-3">
+                    <label className="block text-gray-700 font-medium">
+                      Order No. :
                     </label>
-                    <input
-                      type="text"
-                      value={
-                        editingInvoice ? invoiceId : `INV-${nextInvoiceId}`
-                      }
-                      readOnly
-                      className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                        errors.invoiceId
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-newPrimary"
-                      }`}
-                      placeholder="Enter invoice no."
-                      required
-                    />
-                    {errors.invoiceId && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.invoiceId}
-                      </p>
-                    )}
+                    <p>{invoiceId}</p>
                   </div>
 
-                  {/* Invoice Date */}
-                  <div>
+                  <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Invoice Date <span className="text-red-500">*</span>
+                      Order Date :
+                    </label>
+                    <p>{formDate(invoiceDate)}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Customer :
+                    </label>
+                    <p>{customer}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Salesman :
+                    </label>
+                    <p>{salesman}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Previous Balance :
+                    </label>
+                    <p>{previousBalance}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Delivery Date :
                     </label>
                     <input
                       type="date"
-                      value={invoiceDate}
-                      onChange={(e) => setInvoiceDate(e.target.value)}
-                      className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${
-                        errors.invoiceDate
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-newPrimary"
-                      }`}
-                      required
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      className="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     />
-                    {errors.invoiceDate && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors.invoiceDate}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* order Taking (2nd row, half width) */}
-                  <div className="min-w-[50%]">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Order Taking No.
-                    </label>
-                    <select
-                      value={bookingNo}
-                      onChange={(e) => {
-                        const selectedOrder = orderTaking.find(
-                          (order) => order.orderId === e.target.value
-                        );
-
-                        setBookingNo(e.target.value);
-
-                        if (selectedOrder) {
-                          // ✅ store selected order id
-                          setSelectedOrderId(selectedOrder._id);
-
-                          // ✅ set customer info
-                          setVendor(
-                            selectedOrder.customerId?.customerName || ""
-                          );
-                          setAddress(selectedOrder.customerId?.address || "");
-                          setPhoneNo(
-                            selectedOrder.customerId?.phoneNumber || ""
-                          );
-
-                          setBalance(
-                            selectedOrder.customerId?.salesBalance?.toString() ||
-                              "0"
-                          );
-
-                          // ✅ populate product table
-                          const mappedItems = selectedOrder.products.map(
-                            (p, index) => ({
-                              srNo: index + 1,
-                              OrderNo: selectedOrder.orderId,
-                              item: p.itemName,
-                              rate: p.rate || 0,
-                              qty: p.qty,
-                              issue: p.qty, // ✅ total issued from API
-                              sold: p.qty, // ✅ start as sold = issue
-                              return: 0, // ✅ nothing returned initially
-                              originalQty: p.qty,
-                              total: p.totalAmount || p.rate * p.qty,
-                            })
-                          );
-                          setItems(mappedItems);
-
-                          setItems(mappedItems);
-                        } else {
-                          // 🧹 reset if empty
-                          setVendor("");
-                          setAddress("");
-                          setPhoneNo("");
-                          setBalance("");
-                          setItems([]);
-                        }
-                      }}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    >
-                      <option value="">Select Order Taking No.</option>
-                      {orderTaking.map((order) => (
-                        <option key={order._id} value={order.orderId}>
-                          {order.orderId}
-                        </option>
-                      ))}
-                    </select>
                   </div>
                 </div>
-                <div className="grid gap-4 border p-4 pb-6 rounded-lg bg-gray-100">
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Customer
-                      </label>
-                      <input
-                        disabled
-                        type="text"
-                        value={vendor}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Customer"
-                      />
-                    </div>
 
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Phone No.
-                      </label>
-                      <input
-                        disabled
-                        type="text"
-                        value={phoneNo}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Phone number"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Address
-                      </label>
-                      <input
-                        disabled
-                        type="text"
-                        value={address}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Address"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Balance
-                      </label>
-                      <input
-                        disabled
-                        type="number"
-                        value={balance}
-                        readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Balance"
-                      />
-                    </div>
-                  </div>
-                </div>
+                {/* ✅ Items table */}
                 <div className="mt-6">
                   <h3 className="text-lg font-medium text-gray-700 mb-4">
                     Items
                   </h3>
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    {/* Header */}
-                    <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-gray-600 text-sm font-semibold uppercase border-b border-gray-300">
+                    <div className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] bg-gray-200 text-gray-600 text-sm font-semibold uppercase border-b border-gray-300">
                       <div className="px-4 py-2 border-r border-gray-300">
-                        SR#.
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Order No
+                        SR#
                       </div>
                       <div className="px-4 py-2 border-r border-gray-300">
                         Item
                       </div>
-
                       <div className="px-4 py-2 border-r border-gray-300">
                         Rate
                       </div>
@@ -873,320 +395,185 @@ const SalesInvoice = () => {
                       <div className="px-4 py-2">Total</div>
                     </div>
 
-                    {/* Body */}
-                    {items.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500 bg-white">
-                        No items available for this DC No.
-                      </div>
-                    ) : (
-                      items.map((item, i) => (
-                        <div
-                          key={item.srNo}
-                          className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
-                        >
-                          <div className="px-4 py-2 border-r border-gray-300 ">
-                            {i + 1}
-                          </div>
-                          <div className="px-4 py-2 border-r border-gray-300 ">
-                            {item.OrderNo}
-                          </div>
-                          <div className="px-4 py-2 border-r border-gray-300 ">
-                            {item.item}
-                          </div>
-
-                          <div className="px-4 py-2 border-r border-gray-300 ">
-                            <input
-                              type="number"
-                              value={item.rate}
-                              onChange={(e) => {
-                                const newRate = parseFloat(e.target.value) || 0;
-                                setItems((prevItems) =>
-                                  prevItems.map((it) =>
-                                    it.srNo === item.srNo
-                                      ? {
-                                          ...it,
-                                          rate: newRate,
-                                          total: newRate * it.qty,
-                                        }
-                                      : it
-                                  )
-                                );
-                              }}
-                              className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                            />
-                          </div>
-
-                          <div className="px-4 py-2 border-r border-gray-300 ">
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.qty}
-                              onChange={(e) => {
-                                let newQty = parseFloat(e.target.value) || 1;
-
-                                // ✅ Prevent going below 1
-                                if (newQty < 1) newQty = 1;
-
-                                // ✅ Prevent increasing beyond the original order quantity
-                                if (newQty > item.originalQty) return;
-
-                                setItems((prevItems) =>
-                                  prevItems.map((it) =>
-                                    it.srNo === item.srNo
-                                      ? {
-                                          ...it,
-                                          qty: newQty,
-                                          total: newQty * it.rate,
-                                        }
-                                      : it
-                                  )
-                                );
-                              }}
-                              className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                            />
-                          </div>
-
-                          <div className="px-4 py-2 ">{item.total}</div>
+                    {items.map((item, i) => (
+                      <div
+                        key={i}
+                        className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
+                      >
+                        <div className="px-4 py-2 border-r border-gray-300">
+                          {i + 1}
                         </div>
-                      ))
-                    )}
-                  </div>
+                        <div className="px-4 py-2 border-r border-gray-300">
+                          {item.item}
+                        </div>
+                        <div className="px-4 py-2 border-r border-gray-300">
+                          <input
+                            type="number"
+                            value={item.rate}
+                            onChange={(e) => {
+                              const rate = parseFloat(e.target.value) || 0;
+                              setItems((prev) =>
+                                prev.map((it, idx) =>
+                                  idx === i
+                                    ? { ...it, rate, total: rate * it.qty }
+                                    : it
+                                )
+                              );
+                            }}
+                            className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                          />
+                        </div>
+                        <div className="px-4 py-2 border-r border-gray-300">
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.qty}
+                            onChange={(e) => {
+                              const newQty = parseFloat(e.target.value) || 1;
 
-                  {errors.items && (
-                    <p className="text-red-500 text-xs mt-1">{errors.items}</p>
-                  )}
+                              setItems((prev) =>
+                                prev.map((it, idx) => {
+                                  if (idx === i) {
+                                    // 🧠 Store original qty (first time only)
+                                    if (!it.originalQty)
+                                      it.originalQty = it.qty;
+
+                                    // 🧩 Allow only between 1 and originalQty
+                                    const updatedQty = Math.min(
+                                      Math.max(newQty, 1),
+                                      it.originalQty
+                                    );
+
+                                    return {
+                                      ...it,
+                                      qty: updatedQty,
+                                      total: updatedQty * it.rate,
+                                    };
+                                  }
+                                  return it;
+                                })
+                              );
+                            }}
+                            className="w-20 p-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                          />
+                        </div>
+                        <div className="px-4 py-2">{item.total}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-4 mt-4">
-                  {/* Total Price */}
-                  <div className="flex-1 min-w-0">
+                {/* ✅ Totals */}
+                <div className="flex flex-col w-full items-end gap-4 mt-4">
+                  <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Total Price
+                      Total Price :
                     </label>
                     <input
                       type="number"
                       value={totalPrice}
+                      disabled
                       readOnly
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      placeholder="Total price"
+                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
-                  {/* Discount Amount */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Discount Amount
+                      Discount :
                     </label>
                     <input
                       type="number"
                       value={discountAmount}
                       onChange={(e) => setDiscountAmount(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      placeholder="Discount amount"
+                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                       placeholder="Enter Discount"
                     />
                   </div>
 
-                  {/* NET Amount */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      NET Amount
+                      Receivable :
                     </label>
                     <input
                       type="number"
-                      value={netAmount}
+                      value={receivable}
+                      disabled
                       readOnly
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      placeholder="NET amount"
+                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
                     />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Received :
+                    </label>
+                    <input
+                      type="number"
+                      value={received}
+                      onChange={(e) => setReceived(e.target.value)}
+                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      placeholder="Enter Recived"
+                    />
+                  </div>
+
+                  <div className="flex w-full  ">
+                    <div className="flex-1 gap-2 flex min-w-0">
+                      <label className="block text-gray-700 font-medium mb-1">
+                        Aging Date :
+                      </label>
+                      <input
+                        type="date"
+                        value={receivingDate}
+                        onChange={(e) => setReceivingDate(e.target.value)}
+                        className="w-[150px]  h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Balance :
+                      </label>
+                      <input
+                        type="number"
+                        value={balance}
+                        disabled
+                        readOnly
+                        className="w-[150px] cursor-not-allowed  h-[40px] bg-gray-100 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        placeholder="Balance amount"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Tax Section (replaces Sales Tax) */}
-                {/* 
-                <div className="mt-4 space-y-4">
-                  {taxes.map((tax, index) => (
-                    <div key={index} className="flex items-end gap-4">
-                 
-                      <div className="flex-1 min-w-0">
-                        <label className="block text-gray-700 text-sm font-medium mb-1">
-                          Tax Type
-                        </label>
-                        <select
-                          value={tax.type}
-                          onChange={(e) => {
-                            const selectedTax = taxOptions.find(
-                              (t) => t.taxName === e.target.value
-                            );
-                            handleTaxChange(index, "type", e.target.value);
-
-                          
-                            if (selectedTax && e.target.value !== "") {
-                              handleTaxChange(
-                                index,
-                                "value",
-                                selectedTax.value
-                              );
-                            }
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        >
-                          <option value="">Select Tax Type</option>
-                          {taxOptions.map((opt) => (
-                            <option key={opt._id} value={opt.taxName}>
-                              {opt.taxName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                 
-                      <div className="flex-1 min-w-0">
-                        <label className="block text-gray-700 text-sm font-medium mb-1">
-                          Value (%)
-                        </label>
-                        <input
-                          type="number"
-                          value={tax.value}
-                          readOnly
-                          onChange={(e) =>
-                            handleTaxChange(index, "value", e.target.value)
-                          }
-                          className="w-full p-3 border bg-gray-50 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                          placeholder="Enter value"
-                        />
-                      </div>
-
-                  
-                      <div className="flex-1 min-w-0">
-                        <label className="block text-gray-700 text-sm font-medium mb-1">
-                          Amount
-                        </label>
-                        <input
-                          type="number"
-                          value={tax.amount}
-                          readOnly
-                          className="w-full p-3 border border-gray-300 rounded-md bg-gray-50 focus:outline-none"
-                          placeholder="Auto"
-                        />
-                      </div>
-
-                     
-                      {index === taxes.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={handleAddTax}
-                          className="flex items-center justify-center w-10 h-10 mb-[2px] bg-newPrimary text-white rounded-md hover:bg-newPrimary/90 transition"
-                        >
-                          +
-                        </button>
-                      )}
-                    </div>
-                  ))}
-
-                
-                  {taxes.length > 1 && (
-                    <div className="flex justify-end mr-20">
-                      <div className="text-right mt-2">
-                        <p className="font-medium text-md text-gray-700">
-                          Total Tax Amount:{" "}
-                          <span className="text-newPrimary font-semibold">
-                            {taxes.reduce(
-                              (sum, t) => sum + (parseFloat(t.amount) || 0),
-                              0
-                            )}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                
-                  <div className="  flex justify-end mr-20">
-                    <div className=" space-y-1 text-right">
-                      <div>
-                        <p className="font-medium text-lg text-gray-700">
-                          Net Pay:{" "}
-                          <span className="text-newPrimary font-semibold">
-                            {parseFloat(netAmount || 0)}
-                          </span>
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-lg text-gray-700">
-                          Total Tax Included:{" "}
-                          <span className="text-newPrimary font-semibold">
-                            {taxes.reduce(
-                              (sum, t) => sum + (parseFloat(t.amount) || 0),
-                              0
-                            )}
-                          </span>
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="font-medium text-lg text-gray-700">
-                          Total Payable:{" "}
-                          <span className="text-newPrimary font-semibold">
-                            {parseFloat(netAmount || 0) +
-                              taxes.reduce(
-                                (sum, t) => sum + (parseFloat(t.amount) || 0),
-                                0
-                              )}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
-
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
+                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors"
                 >
-                  {loading
-                    ? "Saving..."
-                    : editingInvoice
-                    ? "Update Sales Invoice"
-                    : "Save Sales Invoice"}
+                  Update Pending Orders
                 </button>
               </form>
             </div>
           </div>
         )}
-
-        <style jsx>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #edf2f7;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #a0aec0;
-            border-radius: 4px;
-          }
-          .dc-dropdown-container {
-            position: relative;
-            z-index: 1;
-          }
-
-          .dc-dropdown-container .absolute {
-            top: 100%;
-            left: 0;
-            margin-top: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-          }
-        `}</style>
       </div>
-      {/* Hidden invoice template for download */}
-<div style={{ position: "absolute", left: "-9999px", top: "0" }}>
-  <InvoiceTemplate ref={invoiceRef} invoice={selectedInvoice} />
-</div>
+
+      {isView && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-[90%] md:w-[70%] lg:w-[60%] max-h-[90vh] overflow-y-auto p-5 relative shadow-lg">
+            <button
+              onClick={() => setIsView(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-red-500"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-semibold text-center mb-4">
+              Invoice Details
+            </h2>
+            <InvoiceTemplate invoice={selectedInvoice} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

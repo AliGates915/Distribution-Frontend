@@ -10,9 +10,8 @@ import TableSkeleton from "../../Components/Skeleton";
 import CommanHeader from "../../Components/CommanHeader";
 import toast from "react-hot-toast";
 
-
 const ManufactureList = () => {
-     const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [manufacturerList, setManufacturerList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [manufacturerId, setManufacturerId] = useState("");
@@ -92,15 +91,27 @@ const ManufactureList = () => {
   };
 
   const handleSave = async () => {
-     setIsSaving(true);
+    if (!personName) {
+      return toast.error("Please enter Contact Person Name");
+    }
+    if (!manufacturerName) {
+      return toast.error("Please enter Manufacturer Name");
+    }
+     if (!address) {
+      return toast.error("Please enter Address");
+    }
+     if (!phoneNumber) {
+      return toast.error("Please enter phone Number");
+    }
+     if (!email) {
+      return toast.error("Please enter Email Address");
+    }
+    setIsSaving(true);
     const formData = {
       manufacturerName: manufacturerName,
-
       address,
       phoneNumber,
       personName,
-      mobileNumber,
-      designation,
       email,
       status,
     };
@@ -142,9 +153,9 @@ const ManufactureList = () => {
       fetchManufacturersList();
     } catch (error) {
       console.error(error);
-      toast.error(`❌ ${isEdit ? "Update" : "Add"} manufacturer failed`);
-    }finally{
-        setIsSaving(false);
+      toast.error(error.response?.data?.message || "An error occurred");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -217,15 +228,22 @@ const ManufactureList = () => {
       });
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // ✅ Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = manufacturerList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(manufacturerList.length / recordsPerPage);
+
+  // ✅ Reset page to 1 when list updates
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [manufacturerList]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -280,14 +298,17 @@ const ManufactureList = () => {
                   No manufacturers found.
                 </div>
               ) : (
-                manufacturerList.map((m, index) => (
+                currentRecords.map((m, index) => (
                   <>
                     {/* ✅ Desktop Row */}
                     <div
                       key={m._id}
                       className="hidden lg:grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_2fr_1fr_1fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-600">{index + 1}</div>
+                      <div className="text-gray-600">
+                        {indexOfFirstRecord + index + 1}
+                      </div>
+
                       <div className="text-gray-900">{m.manufacturerName}</div>
                       <div className="text-gray-600">{m.personName}</div>
                       <div className="text-gray-600">{m.email || "—"}</div>
@@ -361,6 +382,45 @@ const ManufactureList = () => {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, manufacturerList.length)} of{" "}
+                  {manufacturerList.length} records
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -372,7 +432,7 @@ const ManufactureList = () => {
             ref={sliderRef}
             className="relative w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-              {isSaving && (
+            {isSaving && (
               <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" size={60} />
               </div>
@@ -427,19 +487,25 @@ const ManufactureList = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div>
+             <div className="">
                 <label className="block text-gray-700 font-medium">
-                  Phone Number <span className="text-red-500">*</span>
+                  Phone No <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={phoneNumber}
-                  required
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full p-2 border rounded"
-                  placeholder="e.g. +82-2-1234-5678"
-                />
-              </div>
+              <input
+                type="text"
+                value={phoneNumber}
+                required
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // ✅ Allow only digits and '+' sign at start
+                  if (/^[0-9+]*$/.test(value)) {
+                    setPhoneNumber(value);
+                  }
+                }}
+                className="w-full p-2 border rounded"
+                placeholder="e.g. +923001234567"
+              />
+        </div>
               <div>
                 <label className="block text-gray-700 font-medium">
                   Email Address <span className="text-red-500">*</span>
