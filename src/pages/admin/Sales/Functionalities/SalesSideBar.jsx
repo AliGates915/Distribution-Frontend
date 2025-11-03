@@ -100,11 +100,11 @@ const setupChildren = [
     label: "Manufacture",
     icon: <FaIndustry />,
   },
-   {
-    to: "/admin/shelve-location",
-    label: "Shelve Location",
-    icon: <FaWarehouse />,
-  },
+  //  {
+  //   to: "/admin/shelve-location",
+  //   label: "Shelve Location",
+  //   icon: <FaWarehouse />,
+  // },
   {
     to: "/admin/list-of-items",
     label: "List Of Items",

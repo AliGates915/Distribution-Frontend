@@ -469,7 +469,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Address <span className="text-red-500">*</span>
+                    Address 
                   </label>
                   <input
                     type="text"
@@ -480,7 +480,7 @@ const validateSalesmanForm = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    City <span className="text-red-500">*</span>
+                    City 
                   </label>
                   <input
                     type="text"
@@ -493,7 +493,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Gender <span className="text-red-500">*</span>{" "}
+                    Gender 
                   </label>
                   <select
                     value={gender}

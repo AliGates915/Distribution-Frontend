@@ -142,7 +142,7 @@ const ListOfItems = () => {
   useEffect(() => {
     fetchCategoryList();
   }, [fetchCategoryList]);
-// item Unit
+  // item Unit
   const fetchItemUnitList = useCallback(async () => {
     try {
       setIsSaving(true);
@@ -168,8 +168,7 @@ const ListOfItems = () => {
     const fetchItemTypes = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${
-            itemCategory.name
+          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${itemCategory.name
           }`
         );
         setItemTypeList(res.data);
@@ -199,8 +198,8 @@ const ListOfItems = () => {
     fetchItemUnitsList();
   }, [fetchItemUnitsList]);
 
-  console.log({itemUnitList});
-  
+  console.log({ itemUnitList });
+
 
   // Manufacturer List Fetch
   const fetchManufacturerList = useCallback(async () => {
@@ -425,7 +424,7 @@ const ListOfItems = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit._id  || "");
+    setItemUnit(item?.itemUnit._id || "");
     setItemType(item?.itemType?._id || "");
     setItemCategoryId(item.itemId);
     // Normal fields
@@ -677,11 +676,10 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
                           ? "bg-gray-300 cursor-not-allowed"
                           : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                        }`}
                     >
                       Previous
                     </button>
@@ -690,11 +688,10 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
                           ? "bg-gray-300 cursor-not-allowed"
                           : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                        }`}
                     >
                       Next
                     </button>
@@ -838,17 +835,13 @@ const ListOfItems = () => {
                         Item Kind <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={itemKind}
-                        required
-                        onChange={(e) => setItemKind(e.target.value)}
-                        className="w-full p-2 border rounded"
+                        value="Finished Goods"
+                        disabled
+                        className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed text-gray-700"
                       >
-                        <option value="">Select Item kind</option>
-                        <option value="Raw Material">Raw Material</option>
                         <option value="Finished Goods">Finished Goods</option>
-                        <option value="Ready to Ship">Ready to Ship</option>
-                        <option value="Services">Services</option>
                       </select>
+
                     </div>
                   </div>
 
@@ -856,7 +849,7 @@ const ListOfItems = () => {
                     {/* Manufacture */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Manufacture 
+                        Manufacture
                       </label>
                       <select
                         value={manufacture}
@@ -875,7 +868,7 @@ const ListOfItems = () => {
                     {/* Supplier */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Supplier 
+                        Supplier
                       </label>
                       <select
                         value={supplier}
@@ -894,7 +887,7 @@ const ListOfItems = () => {
                     {/* Shelve Location */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
-                        Shelve Location 
+                        Shelve Location
                       </label>
                       <select
                         value={shelveLocation}
@@ -942,13 +935,13 @@ const ListOfItems = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                       {
-                        itemUnitList.map((unit) => (
-                          <option key={unit._id} value={unit._id}>
-                            {unit.unitName}
-                          </option>
-                        ))
-                       }
+                        {
+                          itemUnitList.map((unit) => (
+                            <option key={unit._id} value={unit._id}>
+                              {unit.unitName}
+                            </option>
+                          ))
+                        }
                       </select>
                     </div>
 
@@ -1176,14 +1169,12 @@ const ListOfItems = () => {
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    enabled ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      enabled ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
