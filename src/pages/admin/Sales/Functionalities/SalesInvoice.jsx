@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
 import axios from "axios";
+import { use } from "react";
+import { api } from "../../../../context/ApiService";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
@@ -23,6 +25,7 @@ const SalesInvoice = () => {
   const [invoiceDate, setInvoiceDate] = useState("");
   const [customer, setCustomer] = useState("");
   const [salesman, setSalesman] = useState("");
+  const [salesmanList, setSalesmanList] = useState([]);
   const [previousBalance, setPreviousBalance] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [items, setItems] = useState([]);
@@ -42,24 +45,66 @@ const SalesInvoice = () => {
     },
   };
   //  fetchSalesInvoiceList
-  async function fetchSalesInvoiceList() {
-    try {
-      setLoading(true);
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`
-      );
-      setInvoices(res.data.data);
-    } catch (error) {
-      console.error("Failed to fetch SalesInvoice", error);
-    } finally {
-      setTimeout(() => setLoading(false), 500);
+  //  fetchSalesInvoiceList
+async function fetchSalesInvoiceList() {
+  try {
+    setLoading(true);
+
+    if (!selectedSalesman || !date) {
+      console.warn("⏸ Please select a salesman and date first");
+      setInvoices([]);
+      return;
     }
+
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`,
+      {
+        params: {
+          date: date,
+          salesmanId: selectedSalesman,
+        },
+        headers,
+      }
+    );
+
+    // ✅ Your backend returns: { success, count, date, data: [...] }
+    setInvoices(res.data?.data || []);
+    console.log("✅ Pending Orders Response:", res.data);
+  } catch (error) {
+    console.error("❌ Failed to fetch SalesInvoice", error);
+    toast.error("Failed to fetch pending orders");
+  } finally {
+    setTimeout(() => setLoading(false), 500);
   }
+}
+
 
   useEffect(() => {
+  if (selectedSalesman && date) {
     fetchSalesInvoiceList();
-  }, []);
+  }
+}, [selectedSalesman, date]);
 
+
+  // salesmanList
+  const fetchSaleman = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/employees/salesman`);
+      
+setSalesmanList(response.employees);
+    } catch (error) {
+      console.error(" Failed to fetch customers by salesman:", error);
+     
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  };
+  useEffect(() => {
+    fetchSaleman();
+  },[])
+ 
+  
   // ✅ Format date
   const formDate = (date) => {
     if (!date) return "";
@@ -199,11 +244,11 @@ const SalesInvoice = () => {
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               >
                 <option value="">Select Salesman</option>
-                {/* {salesman.map((cust) => (
+                {salesmanList.map((cust) => (
                   <option key={cust._id} value={cust._id}>
                     {cust.employeeName}
                   </option>
-                ))} */}
+                ))}
               </select>
             </div>
           </div>

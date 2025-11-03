@@ -176,29 +176,28 @@ const DailySalesReport = () => {
   }, [fetchSalesman]);
 
   // Fetch Pening Orders List
- const fetchPendingOrdersList = useCallback(async () => {
-  if (!selectedDate) return; // make sure date exists
+const fetchPendingOrdersList = useCallback(async () => {
+  if (!selectedSalesman || !selectedDate) return;
+
   try {
     setLoading(true);
- const response = await api.get(
-  `/sales-invoice/invoice-no?salesmanId=${selectedSalesman}`
-);
+    const response = await api.get(
+      `/sales-invoice/invoice-no?salesmanId=${selectedSalesman}&date=${selectedDate}`
+    );
 
-    // 🧠 API returns { success, count, date, data: [ { invoiceNo } ] }
-    const invoices = response?.data || response?.data?.data || [];
+    const invoices = response?.data|| [];
     setPeningOrdersList(invoices);
   } catch (error) {
     console.error("❌ Failed to fetch pending orders:", error);
   } finally {
     setTimeout(() => setLoading(false), 2000);
   }
-}, [selectedDate]);
+}, [selectedSalesman, selectedDate]);
 
 useEffect(() => {
-  if (selectedSalesman) {
-    fetchPendingOrdersList();
-  }
-}, [selectedSalesman, fetchPendingOrdersList]);
+  fetchPendingOrdersList();
+}, [fetchPendingOrdersList]);
+
 
 
 
@@ -264,27 +263,27 @@ useEffect(() => {
 
 
   // 🔄 Refetch Pending Orders when date changes
-  useEffect(() => {
-    if (selectedSalesman && selectedDate) {
-      const fetchDatewisePendingOrders = async () => {
-        try {
-          setLoading(true);
-          const response = await api.get(
-            `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
-          );
+  // useEffect(() => {
+  //   if (selectedSalesman && selectedDate) {
+  //     const fetchDatewisePendingOrders = async () => {
+  //       try {
+  //         setLoading(true);
+  //         const response = await api.get(
+  //           `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
+  //         );
 
          
           
-          setPeningOrdersList(response?.data || []);
-        } catch (error) {
-          console.error(" Failed to fetch datewise pending orders:", error);
-        } finally {
-          setTimeout(() => setLoading(false), 2000);
-        }
-      };
-      fetchDatewisePendingOrders();
-    }
-  }, [selectedSalesman, selectedDate]);
+  //         setPeningOrdersList(response?.data || []);
+  //       } catch (error) {
+  //         console.error(" Failed to fetch datewise pending orders:", error);
+  //       } finally {
+  //         setTimeout(() => setLoading(false), 2000);
+  //       }
+  //     };
+  //     fetchDatewisePendingOrders();
+  //   }
+  // }, [selectedSalesman, selectedDate]);
 
   // 🔄 Fetch All Pending Orders (with Sales Items & Payments) when date changes
   useEffect(() => {
@@ -428,7 +427,7 @@ useEffect(() => {
     selectedCustomer &&
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
- console.log({salesmanList});
+ console.log({PendingOrdersList});
  
  
 

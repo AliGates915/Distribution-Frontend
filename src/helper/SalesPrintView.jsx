@@ -342,7 +342,7 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
                     .map(
                       (s) => `
                     <tr>
-                      <td>${s.orderId || "-"}</td>
+                      <td>${s.invoiceNo || "-"}</td>
                       <td>${s.itemName || "-"}</td>
                       <td>${s.rate || 0}</td>
                       <td>${s.qty || 0}</td>
