@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, role }) => {
       }
 
       try {
-        const { data } = await axios.get(API_URL, {
+        const { data } = await axios.get(API_URL`/token`, {
           headers: { Authorization: `Bearer ${user.token}` },
           timeout: 7000, // avoid hanging forever
         });
