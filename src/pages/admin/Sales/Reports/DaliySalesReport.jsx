@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Printer, SquarePen, Trash2 } from "lucide-react";
+import { Loader, Printer, SquarePen, Trash2 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import axios from "axios";
@@ -9,6 +9,7 @@ import ViewModal from "../../../../helper/ViewModel";
 import { ScaleLoader } from "react-spinners";
 import toast from "react-hot-toast";
 import { handleDailySalesPrint } from "../../../../helper/SalesPrintView";
+import { set } from "date-fns";
 
 const DailySalesReport = () => {
   const [isView, setIsView] = useState(false);
@@ -179,7 +180,9 @@ const DailySalesReport = () => {
   if (!selectedDate) return; // make sure date exists
   try {
     setLoading(true);
-    const response = await api.get(`/sales-invoice/invoice-no?date=${selectedDate}`);
+ const response = await api.get(
+  `/sales-invoice/invoice-no?salesmanId=${selectedSalesman}`
+);
 
     // 🧠 API returns { success, count, date, data: [ { invoiceNo } ] }
     const invoices = response?.data || response?.data?.data || [];
@@ -191,9 +194,12 @@ const DailySalesReport = () => {
   }
 }, [selectedDate]);
 
- useEffect(() => {
-  fetchPendingOrdersList();
-}, [fetchPendingOrdersList]);
+useEffect(() => {
+  if (selectedSalesman) {
+    fetchPendingOrdersList();
+  }
+}, [selectedSalesman, fetchPendingOrdersList]);
+
 
 
   // console.log({ PendingOrdersList });
@@ -306,6 +312,8 @@ useEffect(() => {
       fetchPendingOrdersWithDate();
     }
   }, [selectedSalesman, selectedDate]);
+
+  
 
   // Reset invoices when customer changes
   useEffect(() => {
@@ -422,11 +430,18 @@ useEffect(() => {
     selectedInvoices.length === filteredInvoices.length;
  console.log({salesmanList});
  
+ 
+
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="px-6 mx-auto">
+      {
+        loading ?
+        <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  className=" animate-spin"/></div>:
+        (
+          <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
             Daily Sales Report
@@ -1016,6 +1031,9 @@ useEffect(() => {
           }
         `}</style>
       </div>
+        )
+      }
+      
     </div>
   );
 };
