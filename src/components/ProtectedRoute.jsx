@@ -1,4 +1,3 @@
-// src/components/ProtectedRoute.jsx
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
@@ -6,7 +5,7 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ children, role }) => {
   const [isValid, setIsValid] = useState(null);
   const user = JSON.parse(localStorage.getItem("userInfo"));
-  const API_URL = import.meta.env.VITE_API_BASE_URL ;
+  const API_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const checkToken = async () => {
@@ -15,7 +14,6 @@ const ProtectedRoute = ({ children, role }) => {
         return;
       }
 
-      // ⏳ Use cached result if validated recently (within 5 minutes)
       const lastCheck = localStorage.getItem("lastTokenCheck");
       if (lastCheck && Date.now() - parseInt(lastCheck, 10) < 5 * 60 * 1000) {
         setIsValid(true);
@@ -25,35 +23,34 @@ const ProtectedRoute = ({ children, role }) => {
       try {
         const { data } = await axios.get(API_URL`/token`, {
           headers: { Authorization: `Bearer ${user.token}` },
-          timeout: 7000, // avoid hanging forever
+          timeout: 7000,
         });
 
         if (data?.success === false) {
-          // ❌ Explicitly invalid token
           localStorage.clear();
           setIsValid(false);
         } else {
-          // ✅ Valid token
           localStorage.setItem("lastTokenCheck", Date.now().toString());
           setIsValid(true);
         }
       } catch (error) {
-        console.warn("⚠️ Token validation failed:", error.message);
-        // ✅ Network / server failure — keep session active instead of logging out
-        setIsValid(true);
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.warn("🚫 Token expired or invalid — redirecting...");
+          localStorage.clear();
+          setIsValid(false);
+        } else {
+          console.warn("⚠️ Token validation failed:", error.message);
+          // optional: assume valid if network fails
+          setIsValid(true);
+        }
       }
     };
 
     checkToken();
   }, []);
 
-  // ⏳ While checking
-   if (isValid === null) return null;
-
-  // 🔒 If no user or invalid token
+  if (isValid === null) return null;
   if (!user || !isValid) return <Navigate to="/" replace />;
-
-  // 🔑 Role-based access check
   if (role && user.role !== role) return <Navigate to="/" replace />;
 
   return children;
