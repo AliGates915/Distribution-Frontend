@@ -11,9 +11,12 @@ import axios from "axios";
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedSalesman, setSelectedSalesman] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const [isSaving, setIsSaving] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  const [date, setDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [invoiceId, setInvoiceId] = useState("");
@@ -168,6 +171,44 @@ const SalesInvoice = () => {
           <h1 className="text-2xl font-bold text-newPrimary">Pending Orders</h1>
         </div>
 
+        {/* 🔹 Filter Fields */}
+        <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-5">
+          {/* Date + Invoice in left column */}
+          <div className="flex gap-8 ">
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={date}
+                max={today}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
+
+            {/* Salesman dropdown on right side */}
+            <div className="flex items-center gap-6 ">
+              <label className="text-gray-700 font-medium w-24">
+                Salesman <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Salesman</option>
+                {/* {salesman.map((cust) => (
+                  <option key={cust._id} value={cust._id}>
+                    {cust.employeeName}
+                  </option>
+                ))} */}
+              </select>
+            </div>
+          </div>
+        </div>
+
         {/* ✅ Table */}
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
@@ -199,7 +240,7 @@ const SalesInvoice = () => {
                       key={invoice._id}
                       className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div>{indexOfFirstRecord+ index + 1}</div>
+                      <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{invoice.orderId || "-"}</div>
                       <div>{formDate(invoice.date) || "-"}</div>
                       <div>{invoice.salesmanId.employeeName || "-"}</div>
@@ -426,78 +467,79 @@ const SalesInvoice = () => {
                 <div className="flex flex-col w-full items-end gap-4 mt-4">
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Total Price
+                      Total Price :
                     </label>
                     <input
                       type="number"
                       value={totalPrice}
                       disabled
                       readOnly
-                      className="w-[200px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Discount Amount
+                      Discount :
                     </label>
                     <input
                       type="number"
                       value={discountAmount}
                       onChange={(e) => setDiscountAmount(e.target.value)}
-                      className="w-[200px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                       placeholder="Enter Discount"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Receivable
+                      Receivable :
                     </label>
                     <input
                       type="number"
                       value={receivable}
                       disabled
                       readOnly
-                      className="w-[200px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px] cursor-not-allowed bg-gray-100  h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Received
+                      Received :
                     </label>
                     <input
                       type="number"
                       value={received}
                       onChange={(e) => setReceived(e.target.value)}
-                      className="w-[200px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px]  h-[40px] p-3 border border-gray-300 rounded-md"
+                      placeholder="Enter Recived"
                     />
                   </div>
 
                   <div className="flex w-full  ">
                     <div className="flex-1 gap-2 flex min-w-0">
                       <label className="block text-gray-700 font-medium mb-1">
-                        Aging Date
+                        Aging Date :
                       </label>
                       <input
                         type="date"
                         value={receivingDate}
-                        disabled
-                        readOnly
-                        className="w-[200px] h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        onChange={(e) => setReceivingDate(e.target.value)}
+                        className="w-[150px]  h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                       />
                     </div>
-
-                    <div className="flex-1 gap-2 relative left-28 flex min-w-0">
+                    
+                    <div className="flex gap-2">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Balance
+                        Balance :
                       </label>
                       <input
                         type="number"
                         value={balance}
                         disabled
                         readOnly
-                        className="w-[200px] h-[40px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        className="w-[150px] cursor-not-allowed  h-[40px] bg-gray-100 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                         placeholder="Balance amount"
                       />
                     </div>
