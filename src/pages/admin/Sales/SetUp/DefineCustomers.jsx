@@ -170,17 +170,7 @@ const DefineCustomers = () => {
 
   // Save or Update Customer
   const handleSave = async () => {
-    if (
-      paymentTerms === "Credit" &&
-      status &&
-      (!balanceReceived || parseFloat(balanceReceived) <= 0)
-    ) {
-      toast.error(
-        "❌ Balance Received is required and must be a positive number for Credit payment terms"
-      );
-      return;
-    }
- 
+  
 
     setIsSaving(true);
 
