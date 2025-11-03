@@ -6,10 +6,13 @@ import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
+import axios from "axios";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
   const [isSaving, setIsSaving] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -29,41 +32,29 @@ const SalesInvoice = () => {
   const [isView, setIsView] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const invoiceRef = useRef(null);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const headers = {
+    headers: {
+      Authorization: `Bearer ${userInfo?.token}`,
+    },
+  };
+  //  fetchSalesInvoiceList
+  async function fetchSalesInvoiceList() {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/order-taker/pending`
+      );
+      setInvoices(res.data.data);
+    } catch (error) {
+      console.error("Failed to fetch SalesInvoice", error);
+    } finally {
+      setTimeout(() => setLoading(false), 500);
+    }
+  }
 
-  // ✅ Static dummy data
   useEffect(() => {
-    const dummyInvoices = [
-      {
-        _id: "1",
-        invoiceNo: "INV-001",
-        invoiceDate: "2025-11-01",
-        salesman: "Ali",
-        customer: "Eman Ali",
-        amount: 6000,
-        previousBalance: 1500,
-        receivingDate: "2025-11-01",
-        items: [
-          { srNo: 1, item: "Sugar", rate: 200, qty: 10, total: 2000 },
-          { srNo: 2, item: "Flour", rate: 150, qty: 20, total: 3000 },
-          { srNo: 3, item: "Tea", rate: 100, qty: 10, total: 1000 },
-        ],
-      },
-      {
-        _id: "2",
-        invoiceNo: "INV-002",
-        invoiceDate: "2025-10-25",
-        salesman: "Usman",
-        customer: "Ahsan Traders",
-        amount: 8500,
-        previousBalance: 2000,
-        receivingDate: "2025-10-26",
-        items: [
-          { srNo: 1, item: "Oil", rate: 400, qty: 10, total: 4000 },
-          { srNo: 2, item: "Rice", rate: 450, qty: 10, total: 4500 },
-        ],
-      },
-    ];
-    setInvoices(dummyInvoices);
+    fetchSalesInvoiceList();
   }, []);
 
   // ✅ Format date
@@ -79,19 +70,28 @@ const SalesInvoice = () => {
   // ✅ Edit handler
   const handleEdit = (invoice) => {
     setEditingInvoice(invoice);
-    setInvoiceId(invoice.invoiceNo);
-    setInvoiceDate(invoice.invoiceDate);
-    setCustomer(invoice.customer);
-    setSalesman(invoice.salesman);
-    setPreviousBalance(invoice.previousBalance);
+    setInvoiceId(invoice.orderId);
+    setInvoiceDate(invoice.date);
+    setCustomer(invoice.customerId.customerName);
+    setSalesman(invoice.salesmanId.employeeName);
+    setPreviousBalance(invoice.customerId.salesBalance);
     setDeliveryDate(new Date().toISOString().split("T")[0]); // current date
-    setItems(invoice.items);
-    setTotalPrice(invoice.amount);
+
+    // map products correctly
+    const mappedItems = invoice.products.map((p) => ({
+      item: p.itemName,
+      rate: p.rate,
+      qty: p.qty,
+      total: p.totalAmount,
+    }));
+    setItems(mappedItems);
+
+    setTotalPrice(invoice.totalAmount);
     setDiscountAmount("");
-    setReceivable(invoice.amount);
+    setReceivable(invoice.totalAmount);
     setReceived("");
-    setBalance(invoice.amount);
-    setReceivingDate(invoice.receivingDate);
+    setBalance(invoice.totalAmount);
+    setReceivingDate(invoice.customerId.timeLimit?.split("T")[0] || "");
     setIsSliderOpen(true);
   };
 
@@ -106,16 +106,59 @@ const SalesInvoice = () => {
     setBalance(bal);
   }, [items, discountAmount, received]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    Swal.fire({
-      icon: "success",
-      title: "Updated!",
-      text: "Invoice updated successfully (static mode).",
-      confirmButtonColor: "#3085d6",
-    });
-    setIsSliderOpen(false);
+    try {
+      setIsSaving(true);
+
+      const payload = {
+        invoiceNo: invoiceId,
+        invoiceDate: new Date().toISOString().split("T")[0],
+        customerId: editingInvoice.customerId._id,
+        salesmanId: editingInvoice.salesmanId._id,
+        orderTakingId: editingInvoice._id,
+        products: items.map((item) => ({
+          itemName: item.item,
+          rate: item.rate,
+          qty: item.qty,
+          totalAmount: item.total,
+        })),
+        totalAmount: receivable,
+        receivable: receivable,
+        received: parseFloat(received) || 0,
+        deliveryDate: deliveryDate,
+        status: "Pending", // default
+      };
+      console.log("🧾 Payload to send:", payload);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/sales-invoice`,
+        payload,
+        headers
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Invoice Created!",
+        text: "Invoice posted successfully to server.",
+        confirmButtonColor: "#3085d6",
+      });
+
+      setIsSliderOpen(false);
+      fetchSalesInvoiceList();
+    } catch (error) {
+      console.error(" Invoice post error:", error);
+      toast.error(error.response?.data?.message || "Failed to post invoice");
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  // 🔢 Pagination Logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = invoices.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(invoices.length / recordsPerPage);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -129,10 +172,10 @@ const SalesInvoice = () => {
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
             <div className="min-w-[1000px]">
-              <div className="hidden lg:grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>SR</div>
-                <div>Invoice ID</div>
-                <div>Invoice Date</div>
+                <div>Order ID</div>
+                <div>Order Date</div>
                 <div>Salesman</div>
                 <div>Customer</div>
                 <div>Amount</div>
@@ -140,29 +183,79 @@ const SalesInvoice = () => {
               </div>
 
               <div className="flex flex-col divide-y divide-gray-100">
-                {invoices.map((invoice, index) => (
-                  <div
-                    key={invoice._id}
-                    className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                  >
-                    <div>{index + 1}</div>
-                    <div>{invoice.invoiceNo}</div>
-                    <div>{formDate(invoice.invoiceDate)}</div>
-                    <div>{invoice.salesman}</div>
-                    <div>{invoice.customer}</div>
-                    <div>{invoice.amount}</div>
-                    <div className="flex gap-3 justify-start">
-                      <button
-                        onClick={() => handleEdit(invoice)}
-                        className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
-                        title="Edit"
-                      >
-                        <SquarePen size={18} />
-                      </button>
-                    </div>
+                {loading ? (
+                  <TableSkeleton
+                    rows={invoices.length > 0 ? invoices.length : 5}
+                    cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
+                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  />
+                ) : invoices.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500 bg-white">
+                    No Sales Invoice Found
                   </div>
-                ))}
+                ) : (
+                  currentRecords.map((invoice, index) => (
+                    <div
+                      key={invoice._id}
+                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                    >
+                      <div>{indexOfFirstRecord+ index + 1}</div>
+                      <div>{invoice.orderId || "-"}</div>
+                      <div>{formDate(invoice.date) || "-"}</div>
+                      <div>{invoice.salesmanId.employeeName || "-"}</div>
+                      <div>{invoice.customerId.customerName || "-"}</div>
+                      <div>{invoice.customerId.salesBalance || "-"}</div>
+                      <div className="flex gap-3 justify-start">
+                        <button
+                          onClick={() => handleEdit(invoice)}
+                          className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
+                          title="Edit"
+                        >
+                          <SquarePen size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, invoices.length)} of{" "}
+                    {invoices.length} invoices
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -170,8 +263,7 @@ const SalesInvoice = () => {
         {/* ✅ Form slider */}
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-           <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
-
+            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
               {isSaving && (
                 <div className="absolute top-0 left-0 w-full h-[110vh] bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                   <ScaleLoader color="#1E93AB" size={60} />
@@ -194,14 +286,14 @@ const SalesInvoice = () => {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-4 rounded-lg">
                   <div className="flex gap-3">
                     <label className="block text-gray-700 font-medium">
-                      Invoice No. :
+                      Order No. :
                     </label>
                     <p>{invoiceId}</p>
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Invoice Date :
+                      Order Date :
                     </label>
                     <p>{formDate(invoiceDate)}</p>
                   </div>

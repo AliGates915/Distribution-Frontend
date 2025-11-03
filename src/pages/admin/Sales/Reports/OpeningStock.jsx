@@ -315,16 +315,16 @@ const OpeningStock = () => {
                     } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
                   >
                     <div>{index + 1}</div>
-                    <div>{rec?.itemCategory?.categoryName}</div>
-                    <div>{rec?.itemType?.itemTypeName}</div>
+                    <div>{rec?.itemCategory?.categoryName || "-"}</div>
+                    <div>{rec?.itemType?.itemTypeName || "-"}</div>
                     <div className="font-medium text-gray-900">
-                      {rec.itemName}
+                      {rec.itemName || "-"}
                     </div>
 
                     {showRate && (
                       <>
-                        <div className="text-gray-600">{rec.purchase}</div>
-                        <div className="text-gray-600">{rec.price}</div>
+                        <div className="text-gray-600">{rec.purchase || "-"}</div>
+                        <div className="text-gray-600">{rec.price || "-"}</div>
                       </>
                     )}
 
@@ -352,7 +352,7 @@ const OpeningStock = () => {
                           }}
                           className="cursor-pointer"
                         >
-                          {rec.stock}
+                          {rec.stock || "-"}
                         </span>
                       )}
                     </div>
