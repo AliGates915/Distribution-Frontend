@@ -92,7 +92,7 @@ const DailySalesReport = () => {
     try {
       setLoading(true);
       const response = await api.get(`/customers/isPending/${salesmanId}`);
-      console.log("Resp ", response.data);
+      
 
       // 🧠 Ensure it’s always an array
       const data = response.data;
@@ -131,7 +131,7 @@ const DailySalesReport = () => {
     }
   }, [customersList]);
 
-  console.log({ filteredInvoices });
+  
 
   useEffect(() => {
     if (selectedCustomer) {
@@ -160,8 +160,9 @@ const DailySalesReport = () => {
   const fetchSalesman = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/employees/reports");
-      setSalesman(response);
+      const response = await api.get("/employees/salesman");
+      setSalesman(response.employees || []);
+    
     } catch (error) {
       console.error("Failed to fetch salesman list", error);
     } finally {
@@ -174,20 +175,26 @@ const DailySalesReport = () => {
   }, [fetchSalesman]);
 
   // Fetch Pening Orders List
-  const fetchPendingOrdersList = useCallback(async () => {
-    if (!selectedSalesman) return;
-    try {
-      setLoading(true);
-      const response = await api.get(
-        `/order-taker/salesman/${selectedSalesman}`
-      );
-      setPeningOrdersList(response?.data || []);
-    } catch (error) {
-      console.error("Failed to fetch salesman list", error);
-    } finally {
-      setTimeout(() => setLoading(false), 2000);
-    }
-  }, [selectedSalesman]);
+ const fetchPendingOrdersList = useCallback(async () => {
+  if (!selectedDate) return; // make sure date exists
+  try {
+    setLoading(true);
+    const response = await api.get(`/sales-invoice/invoice-no?date=${selectedDate}`);
+
+    // 🧠 API returns { success, count, date, data: [ { invoiceNo } ] }
+    const invoices = response?.data || response?.data?.data || [];
+    setPeningOrdersList(invoices);
+  } catch (error) {
+    console.error("❌ Failed to fetch pending orders:", error);
+  } finally {
+    setTimeout(() => setLoading(false), 2000);
+  }
+}, [selectedDate]);
+
+ useEffect(() => {
+  fetchPendingOrdersList();
+}, [fetchPendingOrdersList]);
+
 
   // console.log({ PendingOrdersList });
 
@@ -197,7 +204,7 @@ const DailySalesReport = () => {
     try {
       setLoading(true);
       const response = await api.get(
-        `/order-taker/pending/salesman/${selectedSalesman}`
+        `/sales-invoice/daily-report/${selectedSalesman}`
       );
       setSalesmanList({
         salesItems: response.salesItems || [],
@@ -214,40 +221,41 @@ const DailySalesReport = () => {
 
   useEffect(() => {
     if (selectedSalesman) {
-      fetchPendingOrdersList(); // for dropdown
+    
       fetchPendingOrderData(); // for table data
     }
-  }, [selectedSalesman, fetchPendingOrdersList, fetchPendingOrderData]);
+  }, [selectedSalesman, fetchPendingOrderData]);
 
   // ✅ Fetch Table Data Based on Selected Order
-  const fetchOrderBasedData = useCallback(async () => {
-    console.log({ selectedOrders });
+const fetchOrderBasedData = useCallback(async () => {
+  if (!selectedOrders) return;
 
-    if (!selectedOrders) return;
-    try {
-      setLoading(true);
-      const response = await api.get(
-        `/order-taker/pending/order/${selectedOrders}`
-      );
-      console.log({ response });
-      setSalesmanList({
-        salesItems: response.salesItems || [],
-        paymentReceived: response.paymentReceived || [],
-        recoveries: response.recoveries || [],
-      });
-    } catch (error) {
-      console.error(" Failed to fetch order-based data:", error);
-      toast.error("Failed to load order data");
-    } finally {
-      setTimeout(() => setLoading(false), 2000);
-    }
-  }, [selectedOrders]);
+  try {
+    setLoading(true);
+    const response = await api.get(
+      `/sales-invoice/daily-report/null/${selectedOrders}?date=${selectedDate}`
+    );
 
-  useEffect(() => {
-    if (selectedOrders) {
-      fetchOrderBasedData();
-    }
-  }, [selectedOrders, fetchOrderBasedData]);
+    setSalesmanList({
+      salesItems: response.salesItems || [],
+      paymentReceived: response.paymentReceived || [],
+    });
+
+    setSelectedOrder(response);
+  } catch (error) {
+    console.error(" Failed to fetch order-based data:", error);
+    toast.error("Failed to load order data");
+  } finally {
+    setTimeout(() => setLoading(false), 2000);
+  }
+}, [selectedOrders, selectedDate]);
+
+useEffect(() => {
+  if (selectedOrders && selectedDate) {
+    fetchOrderBasedData();
+  }
+}, [selectedOrders, selectedDate, fetchOrderBasedData]);
+
 
   // 🔄 Refetch Pending Orders when date changes
   useEffect(() => {
@@ -256,8 +264,11 @@ const DailySalesReport = () => {
         try {
           setLoading(true);
           const response = await api.get(
-            `/order-taker/salesman/${selectedSalesman}?date=${selectedDate}`
+            `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
           );
+
+         
+          
           setPeningOrdersList(response?.data || []);
         } catch (error) {
           console.error(" Failed to fetch datewise pending orders:", error);
@@ -276,7 +287,7 @@ const DailySalesReport = () => {
         try {
           setLoading(true);
           const response = await api.get(
-            `/order-taker/pending/salesman/${selectedSalesman}?date=${selectedDate}`
+            `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
           );
           setSalesmanList({
             salesItems: response.salesItems || [],
@@ -328,7 +339,7 @@ const DailySalesReport = () => {
       mode: paymentType,
       amount: enterAmount,
     };
-    console.log("📦 Payload:", payload);
+  
 
     const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
     const headers = {
@@ -382,7 +393,7 @@ const DailySalesReport = () => {
     setNewBalance(0);
     setPaymentType("Cash");
   };
-  console.log({ salesmanList });
+ 
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -409,7 +420,8 @@ const DailySalesReport = () => {
     selectedCustomer &&
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
-  console.log({ salesmanList });
+ console.log({salesmanList});
+ 
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -438,7 +450,7 @@ const DailySalesReport = () => {
                 </button>
               )}
 
-            <button
+            {/* <button
               className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
               onClick={() => {
                 if (!selectedSalesman) {
@@ -450,13 +462,28 @@ const DailySalesReport = () => {
               }}
             >
               + Add Receivable
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="flex justify-start gap-[40rem] w-full mt-4">
           {/* ===== Left Section ===== */}
           <div className="flex flex-col space-y-2">
-            {/* Salesman Field */}
+           
+
+            {/* Date Field */}
+            <div className="flex items-center gap-6">
+              <label className="text-gray-700 font-medium w-24">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                max={today}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
+             {/* Salesman Field */}
             <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
                 Salesman <span className="text-red-500">*</span>
@@ -474,20 +501,6 @@ const DailySalesReport = () => {
                 ))}
               </select>
             </div>
-
-            {/* Date Field */}
-            <div className="flex items-center gap-6">
-              <label className="text-gray-700 font-medium w-24">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                max={today}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              />
-            </div>
           </div>
 
           {/* ===== Right Section ===== */}
@@ -503,8 +516,8 @@ const DailySalesReport = () => {
               >
                 <option value="">Select Orders</option>
                 {PendingOrdersList?.map((order) => (
-                  <option key={order._id} value={order.orderId}>
-                    {order.orderId}
+                  <option key={order._id} value={order.invoiceNo}>
+                    {order.invoiceNo}
                   </option>
                 ))}
               </select>
@@ -513,14 +526,15 @@ const DailySalesReport = () => {
         </div>
 
         <div className="p-0 mt-6">
-          {selectedSalesman && (
+          {(selectedSalesman || selectedOrders)  && (
             <div>
               {/* Sales Items Table */}
               <h1 className="text-xl font-bold py-2">Sales Items</h1>
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
                 <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
                   <div className="min-w-full custom-scrollbar">
-                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                      <div>Invoice No</div>
                       <div>Items</div>
                       <div>Rate</div>
                       <div>Qty</div>
@@ -530,7 +544,8 @@ const DailySalesReport = () => {
                       {loading ? (
                         <TableSkeleton
                           rows={currentSalesItems.length || 5}
-                          cols={4}
+                          cols={5}
+                          className="lg:grid-cols-[1fr_1fr_1fr_1fr_1fr]"
                         />
                       ) : currentSalesItems.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 bg-white">
@@ -541,8 +556,9 @@ const DailySalesReport = () => {
                           {currentSalesItems.map((item, index) => (
                             <div
                               key={index}
-                              className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                              className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                             >
+                              <div>{item.invoiceNo || "-"}</div>
                               <div>{item?.itemName || "-"}</div>
                               <div>{item?.rate || "-"}</div>
                               <div>{item?.qty || "-"}</div>
@@ -550,7 +566,8 @@ const DailySalesReport = () => {
                             </div>
                           ))}
                           {/* Total Row with Colors */}
-                          <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                            <div></div>
                             <div></div>
                             <div></div>
                             <div></div>
