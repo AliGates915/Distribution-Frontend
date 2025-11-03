@@ -91,21 +91,11 @@ const ManufactureList = () => {
   };
 
   const handleSave = async () => {
-    if (!personName) {
-      return toast.error("Please enter Contact Person Name");
-    }
+ 
     if (!manufacturerName) {
       return toast.error("Please enter Manufacturer Name");
     }
-     if (!address) {
-      return toast.error("Please enter Address");
-    }
-     if (!phoneNumber) {
-      return toast.error("Please enter phone Number");
-    }
-     if (!email) {
-      return toast.error("Please enter Email Address");
-    }
+ 
     setIsSaving(true);
     const formData = {
       manufacturerName: manufacturerName,
@@ -310,10 +300,10 @@ const ManufactureList = () => {
                       </div>
 
                       <div className="text-gray-900">{m.manufacturerName}</div>
-                      <div className="text-gray-600">{m.personName}</div>
+                      <div className="text-gray-600">{m.personName || "—"}</div>
                       <div className="text-gray-600">{m.email || "—"}</div>
-                      <div className="text-gray-600 truncate">{m.address}</div>
-                      <div className="text-gray-600">{m.phoneNumber}</div>
+                      <div className="text-gray-600 truncate">{m.address || "—"}</div>
+                      <div className="text-gray-600">{m.phoneNumber || "—"}</div>
                       <div className="font-semibold">
                         {m.status ? (
                           <span className="text-green-600">Active</span>
@@ -477,7 +467,7 @@ const ManufactureList = () => {
               </div>
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Address <span className="text-red-500">*</span>
+                  Address 
                 </label>
                 <input
                   type="text"
@@ -489,7 +479,7 @@ const ManufactureList = () => {
               </div>
              <div className="">
                 <label className="block text-gray-700 font-medium">
-                  Phone No <span className="text-red-500">*</span>
+                  Phone No
                 </label>
               <input
                 type="text"
@@ -508,7 +498,7 @@ const ManufactureList = () => {
         </div>
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Email Address <span className="text-red-500">*</span>
+                  Email Address 
                 </label>
                 <input
                   type="email"
@@ -521,7 +511,7 @@ const ManufactureList = () => {
 
               <div>
                 <label className="block text-gray-700 font-medium">
-                  Contact Person <span className="text-red-500">*</span>
+                  Contact Person 
                 </label>
                 <input
                   type="text"
