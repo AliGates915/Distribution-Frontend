@@ -66,7 +66,7 @@ async function fetchSalesInvoiceList() {
 
     // ✅ Handle response
     setInvoices(res.data?.data || []);
-    console.log("✅ Pending Orders Response:", res.data);
+    // console.log("✅ Pending Orders Response:", res.data);
   } catch (error) {
     console.error("❌ Failed to fetch SalesInvoice:", error);
     toast.error("Failed to fetch pending orders");
@@ -183,7 +183,7 @@ setSalesmanList(response.employees);
         agingDate: receivingDate,
         status: "Pending", // default
       };
-      console.log("🧾 Payload to send:", payload);
+      // console.log("🧾 Payload to send:", payload);
 
       const res = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/sales-invoice`,
@@ -218,7 +218,7 @@ setSalesmanList(response.employees);
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
       {
-        loading? <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  className=" animate-spin"/></div>:
+        loading? <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  color = "#1E93AB" className=" animate-spin"/></div>:
         (
  <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
