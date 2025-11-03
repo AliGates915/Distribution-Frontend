@@ -223,6 +223,11 @@ useEffect(() => {
     <div className="p-4 bg-gray-50 min-h-screen">
       <div className="px-6 mx-auto">
         <CommanHeader />
+        {isSaving && (
+                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">All Vehicles</h1>
@@ -342,15 +347,12 @@ useEffect(() => {
         {/* Add/Edit Vehicle Modal */}
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
+            
             <div
               ref={sliderRef}
               className="relative w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
-             {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-screen bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
-                  <ScaleLoader color="#1E93AB" size={60} />
-                </div>
-              )}
+             
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingVehicle ? "Update Vehicle" : "Add a New Vehicle"}

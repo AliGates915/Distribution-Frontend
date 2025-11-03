@@ -16,12 +16,13 @@ const ProtectedRoute = ({ children, role }) => {
 
       const lastCheck = localStorage.getItem("lastTokenCheck");
       if (lastCheck && Date.now() - parseInt(lastCheck, 10) < 5 * 60 * 1000) {
+        // ✅ Within 5 minutes, skip recheck
         setIsValid(true);
         return;
       }
 
       try {
-        const { data } = await axios.get(API_URL`/token`, {
+        const { data } = await axios.get(`${API_URL}/token/check`, {
           headers: { Authorization: `Bearer ${user.token}` },
           timeout: 7000,
         });
@@ -30,7 +31,10 @@ const ProtectedRoute = ({ children, role }) => {
           localStorage.clear();
           setIsValid(false);
         } else {
-          localStorage.setItem("lastTokenCheck", Date.now().toString());
+          // ✅ Store timestamp when token validated
+       
+localStorage.setItem("lastTokenCheck", Date.now().toString());
+
           setIsValid(true);
         }
       } catch (error) {
@@ -40,7 +44,7 @@ const ProtectedRoute = ({ children, role }) => {
           setIsValid(false);
         } else {
           console.warn("⚠️ Token validation failed:", error.message);
-          // optional: assume valid if network fails
+          // Optional fallback
           setIsValid(true);
         }
       }

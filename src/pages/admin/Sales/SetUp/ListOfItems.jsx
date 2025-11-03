@@ -120,8 +120,6 @@ const ListOfItems = () => {
     }
   }, [itemList]);
 
-
-
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
     try {
@@ -157,7 +155,6 @@ const ListOfItems = () => {
     fetchItemUnitList();
   }, [fetchItemUnitList]);
 
-
   // Fetch itemTypes when category changes
   useEffect(() => {
     if (!itemCategory) return; // only call when category selected
@@ -165,7 +162,8 @@ const ListOfItems = () => {
     const fetchItemTypes = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${itemCategory.name
+          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${
+            itemCategory.name
           }`
         );
         setItemTypeList(res.data);
@@ -196,7 +194,6 @@ const ListOfItems = () => {
   }, [fetchItemUnitsList]);
 
   // console.log({ itemUnitList });
-
 
   // Manufacturer List Fetch
   const fetchManufacturerList = useCallback(async () => {
@@ -306,8 +303,6 @@ const ListOfItems = () => {
 
   // Save or Update Item
   const handleSave = async () => {
-
-    
     const errors = validateForm();
     if (errors.length > 0) {
       Swal.fire({
@@ -408,8 +403,6 @@ const ListOfItems = () => {
     setExpiryOption("NoExpiry");
     setExpiryDay("");
   };
-
-
 
   // Edit Item
   const handleEdit = (item) => {
@@ -559,11 +552,17 @@ const ListOfItems = () => {
     setCurrentPage(pageNumber);
   };
 
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Coomon header */}
       <CommanHeader />
+
+      {isSaving && (
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
+
       <div className="flex justify-between items-center mt-6 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Items List</h1>
@@ -610,9 +609,7 @@ const ListOfItems = () => {
                       key={item._id}
                       className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      {
-                        indexOfFirstRecord + index + 1
-                      }
+                      {indexOfFirstRecord + index + 1}
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
                         <img
@@ -626,7 +623,9 @@ const ListOfItems = () => {
                       </div>
 
                       {/* Item Name */}
-                      <div className="text-gray-600">{item.itemName || "-"}</div>
+                      <div className="text-gray-600">
+                        {item.itemName || "-"}
+                      </div>
 
                       {/* Purchase */}
                       <div className="font-semibold text-gray-600">
@@ -678,10 +677,11 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Previous
                     </button>
@@ -690,10 +690,11 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Next
                     </button>
@@ -712,11 +713,6 @@ const ListOfItems = () => {
             ref={sliderRef}
             className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-            {isSaving && (
-              <div className="absolute h-[150vh] inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
-                <ScaleLoader color="#1E93AB" height={60} />
-              </div>
-            )}
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Item" : "Add a New Item"}
@@ -849,7 +845,6 @@ const ListOfItems = () => {
 
                       {/* Hidden input ensures value passes in form submission */}
                       <input type="hidden" name="itemKind" value={itemKind} />
-
                     </div>
                   </div>
 
@@ -944,13 +939,11 @@ const ListOfItems = () => {
                         className="w-full p-2 border rounded"
                       >
                         <option value="">Select Unit</option>
-                        {
-                          itemUnitList.map((unit) => (
-                            <option key={unit._id} value={unit._id}>
-                              {unit.unitName}
-                            </option>
-                          ))
-                        }
+                        {itemUnitList.map((unit) => (
+                          <option key={unit._id} value={unit._id}>
+                            {unit.unitName}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -1178,12 +1171,14 @@ const ListOfItems = () => {
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
-                    }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                    enabled ? "bg-green-500" : "bg-gray-300"
+                  }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
-                      }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                      enabled ? "translate-x-7" : "translate-x-0"
+                    }`}
                   />
                 </button>
               </div>

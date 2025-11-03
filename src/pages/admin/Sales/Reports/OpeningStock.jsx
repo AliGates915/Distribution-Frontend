@@ -150,7 +150,7 @@ const OpeningStock = () => {
       {/* Heading */}
       {/* Common Header */}
       <CommanHeader />
-      <h1 className="text-2xl font-bold text-newPrimary">Opening Balance</h1>
+      <h1 className="text-2xl font-bold text-newPrimary">Opening Stocks</h1>
 
       {/* Form */}
       <div className="border rounded-lg shadow bg-white p-6 w-full">

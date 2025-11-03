@@ -5,17 +5,22 @@ import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import { ScaleLoader } from "react-spinners";
+import { api } from "../../../../context/ApiService";
 
 const Recovery = () => {
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const [invoiceList, setInvoiceList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
+  const [salesmanList, setSalesmanList] = useState([]);
   const [selectedOrders, setSelectedOrders] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 2;
 
   // Form fields for edit modal
   const [discountAmount, setDiscountAmount] = useState("");
@@ -24,118 +29,224 @@ const Recovery = () => {
   const [received, setReceived] = useState("");
   const [balance, setBalance] = useState("");
 
-  const salesman = [
-    { _id: "1", employeeName: "Ali Raza" },
-    { _id: "2", employeeName: "Bilal Ahmed" },
-    { _id: "3", employeeName: "Usman Tariq" },
-  ];
+  // salesmanList
+  const fetchSaleman = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/employees/salesman`);
 
-  const staticData = [
-    {
-      sr: 1,
-      invoiceId: "INV-001",
-      date: "2025-10-29",
-      customer: "Ahmed Traders",
-      salesman: "Ali Raza",
-      allow: 20,
-      billDays: 30,
-      dueDate: "2025-11-28",
-      dueDays: 30,
-      total: 45000,
-      received: 25000,
-      previousBalance: 20000,
-      balance: 20000,
-      items: [
-        { srNo: 1, item: "Sugar", rate: 200, qty: 10, total: 2000 },
-        { srNo: 2, item: "Rice", rate: 400, qty: 5, total: 2000 },
-      ],
-    },
-    {
-      sr: 2,
-      invoiceId: "INV-002",
-      date: "2025-10-30",
-      customer: "Hassan Foods",
-      salesman: "Ali Raza",
-      allow: 30,
-      billDays: 15,
-      dueDate: "2025-11-14",
-      dueDays: 30,
-      total: 32000,
-      received: 20000,
-      previousBalance: 4000,
-      balance: 12000,
-      items: [
-        { srNo: 1, item: "Flour", rate: 150, qty: 10, total: 1500 },
-        { srNo: 2, item: "Oil", rate: 400, qty: 5, total: 2000 },
-      ],
-    },
-    {
-      sr: 3,
-      invoiceId: "INV-003",
-      date: "2025-10-31",
-      customer: "Imran Store",
-      salesman: "Bilal Ahmed",
-      allow: "Yes",
-      billDays: 20,
-      dueDate: "2025-11-20",
-      total: 58000,
-      dueDays: 30,
-      previousBalance: 245000,
-      received: 30000,
-      balance: 28000,
-      items: [
-        { srNo: 1, item: "Tea", rate: 100, qty: 10, total: 1000 },
-        { srNo: 2, item: "Sugar", rate: 200, qty: 15, total: 3000 },
-      ],
-    },
-  ];
+      setSalesmanList(response.employees);
+    } catch (error) {
+      console.error(" Failed to fetch customers by salesman:", error);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  };
+  useEffect(() => {
+    fetchSaleman();
+  }, []);
 
-  const handleSalesmanChange = (e) => {
+  // 🔹 Fetch Recovery Data when salesman changes
+  const fetchRecoveryData = async (id) => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/sales-invoice/recovery/${id}?date=${selectedDate}`
+      );
+      // console.log("✅ Recovery Data:", res);
+      if (res.success) {
+        setData(res.data || []);
+      } else {
+        setData([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch recovery data:", error);
+      setTimeout(() => {
+        toast.error("Failed to load recovery records");
+      }, 2000);
+
+      setData([]);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  };
+  // 🔹 Re-fetch Recovery Data when date changes (if salesman already selected)
+  useEffect(() => {
+    if (selectedSalesman) {
+      fetchRecoveryData(selectedSalesman);
+    }
+  }, [selectedDate]);
+
+  // 🔹 Fetch Recovery Data by Invoice No for specific salesman
+  const fetchRecoveryByInvoice = async (salesmanId, invoiceNo) => {
+    if (!salesmanId || !invoiceNo) return;
+
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/sales-invoice/recovery/${salesmanId}/${invoiceNo}`
+      );
+
+      // console.log("✅ Recovery Data by Invoice:", res);
+
+      if (res.success) {
+        setData(res.data || []);
+        setCurrentPage(1);
+      } else {
+        setData([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch recovery by invoice:", error);
+      setTimeout(() => {
+        toast.error("Failed to load recovery details for this invoice");
+      }, 2000);
+
+      setData([]);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  };
+
+  // 🔹 Fetch Invoice List by Salesman and Date
+  const fetchInvoicesByDate = async (salesmanId, date) => {
+    if (!salesmanId || !date) return;
+
+    try {
+      setLoading(true);
+      const res = await api.get(
+        `/sales-invoice/invoice-no?salesmanId=${salesmanId}&date=${date}`
+      );
+      // console.log("✅ Invoices by Date:", res);
+
+      if (res.success) {
+        setInvoiceList(res.data || []);
+      } else {
+        setInvoiceList([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch invoices by date:", error);
+      toast.error("Failed to load invoices for selected date");
+      setInvoiceList([]);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedSalesman) {
+      // 🔸 Update Invoice dropdown when date changes
+      fetchInvoicesByDate(selectedSalesman, selectedDate);
+
+      // 🔸 Also refresh table data
+      fetchRecoveryData(selectedSalesman);
+    }
+  }, [selectedDate]);
+
+  const handleSalesmanChange = async (e) => {
     const id = e.target.value;
     setSelectedSalesman(id);
-    setLoading(true);
-    setTimeout(() => {
-      const filtered = staticData.filter(
-        (item) =>
-          salesman.find((s) => s._id === id)?.employeeName === item.salesman
-      );
-      setData(filtered);
-      setLoading(false);
-    }, 800);
+    setSelectedOrders(""); // reset invoice select
+
+    if (!id) {
+      setInvoiceList([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await api.get(`/sales-invoice/invoice-no?salesmanId=${id}`);
+      if (res.success) {
+        setInvoiceList(res.data || []);
+      } else {
+        setInvoiceList([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch invoices:", error);
+      toast.error("Failed to load invoice list");
+      setInvoiceList([]);
+    } finally {
+      setTimeout(() => setLoading(false), 2000);
+    }
+
+    // ✅ Fetch Recovery data for that salesman & date
+    fetchRecoveryData(id);
   };
 
   const handleEdit = (invoice) => {
     setEditingInvoice(invoice);
+
+    // reset editable fields
     setDiscountAmount("");
-    setReceivable(invoice.total);
-    setReceived(invoice.received);
-    setBalance(invoice.balance);
-    setPreviousBalance(invoice.previousBalance);
+    setReceivable(invoice.receivable || invoice.totalPrice || 0);
+    setReceived(invoice.received || 0);
+    setBalance(invoice.balance || invoice.totalPrice || 0);
+    setPreviousBalance(invoice.previousBalance || 0);
+
+    // recovery date should be today's date
+    setSelectedDate(today);
+
     setIsSliderOpen(true);
   };
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
-    Swal.fire({
-      icon: "success",
-      title: "Updated!",
-      text: "Recovery updated successfully (static mode).",
-      confirmButtonColor: "#3085d6",
-    });
-    setIsSliderOpen(false);
+    const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+    const headers = {
+      headers: {
+        Authorization: `Bearer ${userInfo?.token}`,
+      },
+    };
+    if (!editingInvoice?._id && !editingInvoice?.invoiceId) {
+      toast.error("Invalid invoice ID");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      // 🔹 Prepare payload for API
+      const payload = {
+        invoiceId: editingInvoice.invoiceId || editingInvoice._id,
+        amount: parseFloat(received) || 0,
+      };
+
+      // console.log("📤 Sending Recovery Data:", payload);
+
+      // 🔹 Call API
+      const res = await api.post(`/recovery`, payload, headers);
+
+      if (res.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Recovery Added!",
+          text: "Recovery has been added successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+
+        // ✅ Optionally refresh data table
+        fetchRecoveryData(selectedSalesman);
+        setIsSliderOpen(false);
+      } else {
+        toast.error(res.message || "Failed to add recovery");
+      }
+    } catch (error) {
+      console.error("❌ Recovery submission failed:", error);
+      toast.error("Failed to save recovery");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Auto recalculation logic like in SalesInvoice
   useEffect(() => {
     if (editingInvoice) {
-      const total = editingInvoice.total;
-      const discount = parseFloat(discountAmount) || 0;
-      const receivableAmt = total - discount;
-      setReceivable(receivableAmt);
-      const bal = receivableAmt - (parseFloat(received) || 0);
-      setBalance(bal);
+      const total = editingInvoice.receivable || 0;
+      const receivedAmt = parseFloat(received) || 0;
+      const newBalance = total - receivedAmt;
+      setBalance(newBalance);
     }
-  }, [discountAmount, received, editingInvoice]);
+  }, [received, editingInvoice]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -144,9 +255,16 @@ const Recovery = () => {
     return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
   };
 
+  // Pagination Logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = data.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(data.length / recordsPerPage);
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
+
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
@@ -172,17 +290,17 @@ const Recovery = () => {
 
             <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
-                Invoice ID <span className="text-red-500">*</span>
+                Salesman <span className="text-red-500">*</span>
               </label>
               <select
-                value={selectedOrders}
-                onChange={(e) => setSelectedOrders(e.target.value)}
+                value={selectedSalesman}
+                onChange={handleSalesmanChange}
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               >
-                <option value="">Select Invoice</option>
-                {staticData.map((order) => (
-                  <option key={order.invoiceId} value={order.invoiceId}>
-                    {order.invoiceId}
+                <option value="">Select Salesman</option>
+                {salesmanList.map((cust) => (
+                  <option key={cust._id} value={cust._id}>
+                    {cust.employeeName}
                   </option>
                 ))}
               </select>
@@ -191,17 +309,23 @@ const Recovery = () => {
 
           <div className="flex items-center gap-6">
             <label className="text-gray-700 font-medium w-24">
-              Salesman <span className="text-red-500">*</span>
+              Invoice <span className="text-red-500">*</span>
             </label>
             <select
-              value={selectedSalesman}
-              onChange={handleSalesmanChange}
+              value={selectedOrders}
+              onChange={(e) => {
+                const invoiceNo = e.target.value;
+                setSelectedOrders(invoiceNo);
+                if (selectedSalesman && invoiceNo) {
+                  fetchRecoveryByInvoice(selectedSalesman, invoiceNo);
+                }
+              }}
               className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
             >
-              <option value="">Select Salesman</option>
-              {salesman.map((cust) => (
-                <option key={cust._id} value={cust._id}>
-                  {cust.employeeName}
+              <option value="">Select Invoice</option>
+              {invoiceList.map((inv, index) => (
+                <option key={index} value={inv.invoiceNo}>
+                  {inv.invoiceNo}
                 </option>
               ))}
             </select>
@@ -233,7 +357,7 @@ const Recovery = () => {
                     <div className="flex flex-col divide-y divide-gray-100">
                       {loading ? (
                         <TableSkeleton
-                          rows={data.length}
+                          rows={data.length || 5}
                           cols={12}
                           className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                         />
@@ -242,22 +366,23 @@ const Recovery = () => {
                           No records found.
                         </div>
                       ) : (
-                        data.map((item, index) => (
+                        currentRecords.map((item, index) => (
                           <div
                             key={item.invoiceId}
                             className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                           >
-                            <div>{index + 1}</div>
-                            <div>{formatDate(item.date)}</div>
-                            <div>{item.invoiceId}</div>
-                            <div>{item.customer}</div>
-                            <div>{item.salesman}</div>
-                            <div>{item.total}</div>
+                            <div>{indexOfFirstRecord + index + 1}</div>
+
+                            <div>{formatDate(item.invoiceDate) || "-"}</div>
+                            <div>{item.invoiceNo || "-"}</div>
+                            <div>{item.customer || "-"}</div>
+                            <div>{item.salesman || "-"}</div>
+                            <div>{item.totalPrice || "-"}</div>
                             <div>{item.received || 0}</div>
-                            <div>{item.balance || item.total}</div>
-                            <div>{item.billDays || "-"}</div>
-                            <div>{item.dueDays || "-"}</div>
-                            <div>{formatDate(item.dueDate)}</div>
+                            <div>{item.previousBalance || item.total}</div>
+                            <div>{item.billDays ?? "-"}</div>
+                            <div>{item.overDays || "-"}</div>
+                            <div>{formatDate(item.agingDate)}</div>
                             <div className="flex gap-3 justify-start">
                               <button
                                 onClick={() => handleEdit(item)}
@@ -271,6 +396,47 @@ const Recovery = () => {
                         ))
                       )}
                     </div>
+                    {totalPages > 1 && (
+                      <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl">
+                        <p className="text-sm text-gray-600">
+                          Showing {indexOfFirstRecord + 1} to{" "}
+                          {Math.min(indexOfLastRecord, data.length)} of{" "}
+                          {data.length} records
+                        </p>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() =>
+                              setCurrentPage((prev) => Math.max(prev - 1, 1))
+                            }
+                            disabled={currentPage === 1}
+                            className={`px-3 py-1 rounded-md ${
+                              currentPage === 1
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                            }`}
+                          >
+                            Previous
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              setCurrentPage((prev) =>
+                                Math.min(prev + 1, totalPages)
+                              )
+                            }
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-1 rounded-md ${
+                              currentPage === totalPages
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                            }`}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -281,13 +447,12 @@ const Recovery = () => {
         {/* 🔹 Edit Form Modal (Full Functional Like SalesInvoice) */}
         {isSliderOpen && editingInvoice && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-                <div className="absolute top-0 left-0 w-full h-full bg-white/70 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
-
               <div className="flex justify-between items-center p-4 border-b bg-white">
                 <h2 className="text-xl font-bold text-newPrimary">
                   Edit Recovery
@@ -306,7 +471,7 @@ const Recovery = () => {
                     <label className="block text-gray-700 font-medium">
                       Recovery Id :
                     </label>
-                    <p>REC-001</p>
+                    <p>{`REC-${editingInvoice.recoveryId}`}</p>
                   </div>
 
                   <div className="flex gap-2 items-center">
@@ -316,6 +481,7 @@ const Recovery = () => {
                     <input
                       type="date"
                       value={selectedDate}
+                      disabled
                       onChange={(e) => setSelectedDate(e.target.value)}
                       className="border h-[30px] border-gray-300 rounded-md p-4 w-[200px] focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     />
@@ -326,13 +492,13 @@ const Recovery = () => {
                     <label className="block text-gray-700 font-medium">
                       Invoice No. :
                     </label>
-                    <p>{editingInvoice.invoiceId}</p>
+                    <p>{editingInvoice.invoiceNo}</p>
                   </div>
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
                       Invoice Date :
                     </label>
-                    <p>{formatDate(editingInvoice.date)}</p>
+                    <p>{formatDate(editingInvoice.invoiceDate)}</p>
                   </div>
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
@@ -406,45 +572,45 @@ const Recovery = () => {
                     </label>
                     <input
                       type="number"
-                      value={editingInvoice.total}
+                      value={editingInvoice.totalPrice || 0}
                       disabled
                       readOnly
-                      className="w-[150px] cu h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Receivable
+                      Receivable :
                     </label>
                     <input
                       type="number"
-                      value={receivable}
+                      value={editingInvoice.receivable}
                       readOnly
                       disabled
-                      className="w-[200px] h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="flex gap-2">
                     <label className="block text-gray-700 font-medium mb-2">
-                      Received
+                      Received :
                     </label>
                     <input
                       type="number"
                       value={received}
                       onChange={(e) => setReceived(e.target.value)}
-                      className="w-[200px] h-[40px] p-3 border border-gray-300 rounded-md"
+                      className="w-[150px] h-[40px] p-3 border border-gray-300 rounded-md"
                     />
                   </div>
 
                   <div className="flex w-full items-start gap-6">
                     <div className="flex-1">
                       <p className="ml-auto font-bold ">
-                        Allow Days : {editingInvoice.allow}
+                        Allow Days : {editingInvoice.allowDays || "-"}
                       </p>
                       <p className="ml-auto font-bold ">
-                        Over Days : {editingInvoice.dueDays}
+                        Over Days : {editingInvoice.overDays || "-"}
                       </p>
 
                       <div className="flex  gap-3 mt-2">
@@ -453,10 +619,14 @@ const Recovery = () => {
                         </label>
                         <input
                           type="date"
-                          value={editingInvoice.dueDate}
+                          value={
+                            editingInvoice.agingDate
+                              ? editingInvoice.agingDate.split("T")[0]
+                              : ""
+                          }
                           disabled
                           readOnly
-                          className="w-[200px] h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                          className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                         />
                       </div>
                     </div>
@@ -470,7 +640,7 @@ const Recovery = () => {
                         value={balance}
                         disabled
                         readOnly
-                        className="w-[200px] h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        className="w-[150px] cursor-not-allowed bg-gray-100 h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                         placeholder="Balance amount"
                       />
                     </div>
