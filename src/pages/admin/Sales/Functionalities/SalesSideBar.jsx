@@ -65,11 +65,11 @@ const salesChildren = [
     label: "Recovery",
     icon: <FileMinus  strokeWidth={3} size={40} />,
   },
-  //  {
-  //   to: "/admin/sales/sales",
-  //   label: "Sales",
-  //   icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
-  // },
+   {
+    to: "/admin/sales/sales",
+    label: "Sales Profit",
+    icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+  },
   // {
   //   to: "/admin/sales/cash-deposite",
   //   label: "Cash Deposit",

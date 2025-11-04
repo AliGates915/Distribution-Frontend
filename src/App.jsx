@@ -59,7 +59,7 @@ import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRec
 import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 
 import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
-import Sales from "./pages/admin/Sales/Functionalities/Sales.jsx";
+import Sales from "./pages/admin/Sales/Functionalities/SalesProfit.jsx";
 import CreditAgingReport from "./pages/admin/Sales/Reports/CreditAgingReport.jsx";
 import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
 import ItemType from "./pages/admin/Sales/SetUp/ItemType.jsx";

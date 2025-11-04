@@ -24,12 +24,9 @@ const CreditAgingReport = () => {
         `${import.meta.env.VITE_API_BASE_URL}/credit-aging`
       );
 
-      console.log({ response });
-
       if (response.data.success) {
-        setApiData(response.data.data);
-        setTotals(response.data.totals);
-        console.log("Credit Aging Data:", response.data.data);
+        setApiData(response.data.data || []);
+        setTotals(response.data.totals || {});
         toast.success("Credit aging data loaded successfully");
       } else {
         throw new Error(response.data.message || "Failed to fetch data");
@@ -37,7 +34,6 @@ const CreditAgingReport = () => {
     } catch (error) {
       console.error("Failed to fetch credit aging data:", error);
       toast.error("Failed to load data from API");
-      // Clear any previous data on error
       setApiData([]);
       setTotals({
         totalDebit: 0,
@@ -58,6 +54,7 @@ const CreditAgingReport = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
+
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
@@ -69,21 +66,22 @@ const CreditAgingReport = () => {
               onClick={() => handleCreditAgingPrint(apiData, totals)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
-              <Printer size={18} />
+              <Printer size={18} /> Print
             </button>
           )}
         </div>
 
-        {/* 🔹 Credit Aging Report Table */}
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           <div className="overflow-x-auto">
-            <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-screen overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1500px] w-full align-middle">
-                {/* Header */}
-                <div className="hidden lg:grid grid-cols-11 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                {/* Table Header */}
+                <div className="hidden lg:grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>SR</div>
                   <div>Customer</div>
+                  <div>Salesman</div>
                   <div>Invoice No</div>
+                  <div>Invoice Date</div>
                   <div>Delivery Date</div>
                   <div>Allow Days</div>
                   <div>Bill Days</div>
@@ -91,77 +89,95 @@ const CreditAgingReport = () => {
                   <div>Credit</div>
                   <div>Under Credit</div>
                   <div>Due</div>
-                  <div>Outstanding</div>
                 </div>
 
-                {/* Body */}
+                {/* Table Body */}
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={5} cols={11} />
+                    <TableSkeleton rows={5} cols={12} />
                   ) : apiData.length > 0 ? (
-                    apiData.map((row, idx) => (
-                      <div
-                        key={idx}
-                        className="grid grid-cols-11 items-center gap-6 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
-                      >
-                        <div>{idx + 1}</div>
-                        <div>{row.customerName}</div>
-                        <div>{row.invoiceNo}</div>
-                        <div>{row.deliveryDate}</div>
-                        <div>{row.allowDays}</div>
-                        <div>{row.billDays}</div>
-                        <div>{row.debit.toLocaleString()}</div>
-                        <div>{row.credit.toLocaleString()}</div>
-                        <div className={` px-2 py-1 rounded`}>
-                          {row.underCredit > 0
-                            ? row.underCredit.toLocaleString()
-                            : "-"}
+                    apiData.map((customer, cIdx) => (
+                      <div key={cIdx} className="bg-white">
+                        {/* Customer Header */}
+                        <div className="bg-blue-50 px-6 py-2 text-newPrimary font-semibold border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold">
+                              #{customer.sr}.
+                            </span>
+                            <span className="text-base">
+                              {customer.customerName}
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            Total Invoices: {customer.invoices.length}
+                          </span>
                         </div>
-                        <div className={`$ px-2 py-1 rounded`}>
-                          {row.due?.toLocaleString()}
-                        </div>
-                        <div className="text-blue-600 font-semibold">
-                          {row.outstanding.toLocaleString()}
-                        </div>
+
+                        {/* Customer Invoices */}
+                        {customer.invoices.map((inv, iIdx) => (
+                          <div
+                            key={iIdx}
+                            className="grid grid-cols-12 items-center gap-6 px-6 py-3 text-sm hover:bg-gray-50 transition"
+                          >
+                            <div>{cIdx + 1}</div>
+                            <div>{inv.customerName}</div>
+                            <div>{inv.salesman}</div>
+                            <div>{inv.invoiceNo}</div>
+                            <div>{inv.invoiceDate}</div>
+                            <div>{inv.deliveryDate}</div>
+                            <div>{inv.allowDays}</div>
+                            <div>{inv.billDays}</div>
+                            <div>{inv.debit.toLocaleString()}</div>
+                            <div>{inv.credit.toLocaleString()}</div>
+                            <div className="text-green-600 font-semibold">
+                              {inv.underCredit > 0
+                                ? inv.underCredit.toLocaleString()
+                                : "-"}
+                            </div>
+                            <div
+                              className={`font-semibold ${
+                                inv.due > 0
+                                  ? "text-red-600"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {inv.due > 0 ? inv.due.toLocaleString() : "-"}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     ))
                   ) : (
-                    // Show empty state when no data
                     <div className="px-6 py-8 text-center text-gray-500">
                       No credit aging data available
                     </div>
                   )}
                 </div>
 
-                {/* Totals Row */}
-                <div className="grid grid-cols-11 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div className="text-blue-600">
-                    Total Deb: {totals.totalDebit.toLocaleString()}
+                {/* Totals Footer */}
+                {apiData.length > 0 && (
+                  <div className="grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                    <div className="col-span-8 text-right">Totals:</div>
+                    <div className="text-blue-600">
+                      Debit: {totals.totalDebit.toLocaleString()}
+                    </div>
+                    <div className="text-green-600">
+                      Credit: {totals.totalCredit.toLocaleString()}
+                    </div>
+                    <div className="text-orange-600">
+                      Under Credit: {totals.totalUnderCredit.toLocaleString()}
+                    </div>
+                    <div className="text-red-600">
+                      Due: {totals.totalDue.toLocaleString()}
+                    </div>
                   </div>
-                  <div className="text-green-600">
-                    Total Cred: {totals.totalCredit.toLocaleString()}
-                  </div>
-                  <div className="text-orange-600">
-                    Total Under Cred: {totals.totalUnderCredit.toLocaleString()}
-                  </div>
-                  <div className="text-red-600">
-                    Total Due: {totals.totalDue.toLocaleString()}
-                  </div>
-                  <div className="text-blue-800">
-                    Total Outstand: {totals.totalOutstanding.toLocaleString()}
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Scrollbar styling */}
         <style jsx>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 6px;

@@ -1,0 +1,267 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { api } from "../../../../context/ApiService";
+import CommanHeader from "../../Components/CommanHeader";
+import TableSkeleton from "../../Components/Skeleton";
+import toast from "react-hot-toast";
+import { Printer } from "lucide-react";
+import { handleDirectPrint } from "../../../../helper/SalesPrintView";
+
+const Sales = () => {
+  const [salesmanList, setSalesmanList] = useState([]);
+  const [reportData, setReportData] = useState(null); // holds whole response
+  const [selectedSalesman, setSelectedSalesman] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Fetch Salesman List
+  const fetchSalesmanList = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/employees/reports");
+      setSalesmanList(response.data || response);
+    } catch (error) {
+      console.error("Failed to fetch salesmen:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ✅ Fetch Salesman Report
+  const fetchSalesmanReport = useCallback(async () => {
+    if (!selectedSalesman || !selectedDate) return;
+    try {
+      setLoading(true);
+
+      const formattedDate = new Date(selectedDate).toISOString().split("T")[0];
+
+      const response = await api.get(
+        `/salesman-report/${selectedSalesman}?date=${formattedDate}`
+      );
+
+      // ✅ Log to verify
+      console.log("📊 Salesman Report Response:", response);
+
+      // ✅ Fix: response itself IS the data
+      const data = response;
+      console.log("✅ Parsed Salesman Report Data:", data);
+
+      if (data?.success) {
+        setReportData(data);
+        toast.success(data.message || "Salesman report loaded");
+      } else {
+        setReportData(null);
+        toast.error("No data found for this date or salesman");
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch salesman report:", error);
+      toast.error("Error loading salesman report");
+      setReportData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedSalesman, selectedDate]);
+
+  useEffect(() => {
+    fetchSalesmanList();
+  }, [fetchSalesmanList]);
+
+  useEffect(() => {
+    fetchSalesmanReport();
+  }, [selectedSalesman, selectedDate, fetchSalesmanReport]);
+
+  const productSection = reportData?.productSection || [];
+  const customerSection = reportData?.customerSection || [];
+  const totals = reportData?.totals || { totalPurchase: 0, totalSales: 0 };
+
+  return (
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <CommanHeader />
+
+      <div className="px-6 mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Salesman Wise Sales & Recovery
+          </h1>
+
+          {productSection.length > 0 && (
+            <button
+              onClick={() => handleDirectPrint(reportData)}
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+            >
+              <Printer size={18} /> Print
+            </button>
+          )}
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-5 mb-6">
+          <div className="w-[200px]">
+            <label className="block text-gray-700 font-medium mb-2">Date</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
+
+          <div className="w-[300px]">
+            <label className="block text-gray-700 font-medium mb-2">
+              Salesman
+            </label>
+            <select
+              value={selectedSalesman}
+              onChange={(e) => setSelectedSalesman(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            >
+              <option value="">Select Salesman</option>
+              {salesmanList.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.employeeName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* ================= PRODUCT SECTION ================= */}
+        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white mb-10">
+          <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+            Product-wise Sales
+          </div>
+
+          {loading ? (
+            <TableSkeleton rows={5} cols={10} />
+          ) : productSection.length === 0 ? (
+            <div className="text-center py-6 text-gray-500">
+              No product data found.
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
+                <div>Sr</div>
+                <div>Supplier</div>
+                <div>Product</div>
+                <div>Weight</div>
+                <div>Purchase Price</div>
+                <div>Sale Price</div>
+                <div>Qty</div>
+                <div>Purchase Total</div>
+                <div>Sale Total</div>
+                <div>Profit</div>
+              </div>
+
+              {/* Rows */}
+              <div className="divide-y divide-gray-100">
+                {productSection.map((row, i) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm hover:bg-gray-50 text-center"
+                  >
+                    <div>{i + 1}</div>
+                    <div className="text-left">{row.supplier}</div>
+                    <div className="text-left">{row.product}</div>
+                    <div>{row.weight}</div>
+                    <div>{row.purchasePrice.toLocaleString()}</div>
+                    <div>{row.salePrice.toLocaleString()}</div>
+                    <div>{row.qty}</div>
+                    <div>{row.purchaseTotal.toLocaleString()}</div>
+                    <div>{row.saleTotal.toLocaleString()}</div>
+                    <div className="text-green-600 font-semibold">
+                      {(row.saleTotal - row.purchaseTotal).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals Row */}
+              <div className="grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 text-center border-t border-gray-200">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div className="text-right pr-2 font-bold">Total:</div>
+                <div className="text-red-600 font-semibold">
+                  {totals.totalPurchase.toLocaleString()}
+                </div>
+                <div className="text-green-600 font-semibold">
+                  {totals.totalSales.toLocaleString()}
+                </div>
+                <div className="text-blue-600 font-semibold">
+                  {(totals.totalSales - totals.totalPurchase).toLocaleString()}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ================= CUSTOMER SECTION ================= */}
+        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
+          <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+            Customer-wise Sales & Recovery
+          </div>
+
+          {loading ? (
+            <TableSkeleton rows={5} cols={6} />
+          ) : customerSection.length === 0 ? (
+            <div className="text-center py-6 text-gray-500">
+              No customer data found.
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
+                <div>Sr</div>
+                <div>Customer</div>
+                <div>Section / Area</div>
+                <div>Customer Address</div>
+                <div>Sales</div>
+                <div>Recovery</div>
+              </div>
+
+              {/* Rows */}
+              <div className="divide-y divide-gray-100">
+                {customerSection.map((row, i) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm hover:bg-gray-50 text-center"
+                  >
+                    <div>{i + 1}</div>
+                    <div className="text-left">{row.customer}</div>
+                    <div className="text-left">{row.salesArea}</div>
+                    <div className="text-left">{row.customerAddress}</div>
+                    <div>{row.sales.toLocaleString()}</div>
+                    <div>{row.recovery.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals Row */}
+              <div className="grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 text-center border-t border-gray-200">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div className="text-right pr-2 font-bold">Total:</div>
+                <div className="text-blue-600 font-semibold">
+                  {totals.totalSales.toLocaleString()}
+                </div>
+                <div className="text-green-600 font-semibold">
+                  {customerSection
+                    .reduce((sum, row) => sum + (row.recovery || 0), 0)
+                    .toLocaleString()}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default Sales;
