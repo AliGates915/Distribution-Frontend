@@ -264,30 +264,8 @@ const DailySalesReport = () => {
   }, [selectedOrders, selectedDate, fetchOrderBasedData]);
 
 
-  // 🔄 Refetch Pending Orders when date changes
-  // useEffect(() => {
-  //   if (selectedSalesman && selectedDate) {
-  //     const fetchDatewisePendingOrders = async () => {
-  //       try {
-  //         setLoading(true);
-  //         const response = await api.get(
-  //           `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
-  //         );
-
-
-
-  //         setPeningOrdersList(response?.data || []);
-  //       } catch (error) {
-  //         console.error(" Failed to fetch datewise pending orders:", error);
-  //       } finally {
-  //         setTimeout(() => setLoading(false), 2000);
-  //       }
-  //     };
-  //     fetchDatewisePendingOrders();
-  //   }
-  // }, [selectedSalesman, selectedDate]);
-
-  // 🔄 Fetch All Pending Orders (with Sales Items & Payments) when date changes
+  
+  
   useEffect(() => {
     if (selectedSalesman && selectedDate) {
       const fetchPendingOrdersWithDate = async () => {
@@ -429,7 +407,7 @@ const DailySalesReport = () => {
     selectedCustomer &&
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
-  console.log({ PendingOrdersList });
+  console.log({ salesmanList });
 
 
 

@@ -216,8 +216,19 @@ const OrderTaking = () => {
   const handleSaveOrder = async (e) => {
     e.preventDefault();
 
-    if (!salesman || !customer || items.length === 0) {
-      toast.error("Please fill all required fields");
+    // ✅ Strong validation before submitting
+    if (!salesman) {
+      toast.error("Please select a Salesman before saving!");
+      return;
+    }
+
+    if (!customer) {
+      toast.error("Please select a Customer before saving!");
+      return;
+    }
+
+    if (items.length === 0) {
+      toast.error("Please add at least one Product item!");
       return;
     }
     setIsSaving(true);
@@ -380,7 +391,7 @@ const OrderTaking = () => {
     setItems(updatedItems);
   };
   // console.log({ productsList });
- const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
     const options = { day: "2-digit", month: "short", year: "numeric" };
@@ -433,9 +444,7 @@ const OrderTaking = () => {
                     >
                       <div>{indexOfFirstRecord + i + 1}</div>
                       <div>{order.orderId || "-"}</div>
-                      <div>
-                        {formatDate(order.date) || "-"}
-                      </div>
+                      <div>{formatDate(order.date) || "-"}</div>
                       <div>{order.salesmanId?.employeeName || "-"}</div>
                       <div>{order.customerId?.customerName || "-"}</div>
                       <div>{order.customerId?.phoneNumber || "-"}</div>
@@ -447,15 +456,12 @@ const OrderTaking = () => {
                           <SquarePen size={18} />
                         </button>
 
-                        {/* <button
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setIsView(true);
-                          }}
-                          className="text-amber-600 hover:bg-amber-50 rounded"
+                        <button
+                          onClick={() => handleDelete(order._id)}
+                          className="text-red-600 hover:underline"
                         >
-                          <Eye size={18} />
-                        </button> */}
+                          <Trash2 size={18} />
+                        </button>
                       </div>
                     </div>
                   ))
@@ -509,7 +515,7 @@ const OrderTaking = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
               {isSaving && (
-               <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
+                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
                   <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
@@ -792,15 +798,11 @@ const OrderTaking = () => {
                     <div className="flex flex-col gap-3 items-end mt-3 text-sm font-semibold text-gray-700 ">
                       <div className="text-[18px]">
                         Total Qty:{" "}
-                        <span className=" text-newPrimary">
-                          {totalQty}
-                        </span>
+                        <span className=" text-newPrimary">{totalQty}</span>
                       </div>
                       <div className="text-[18px]">
                         Total:{" "}
-                        <span className=" text-newPrimary">
-                          {grandTotal}
-                        </span>
+                        <span className=" text-newPrimary">{grandTotal}</span>
                       </div>
                     </div>
                   )}
