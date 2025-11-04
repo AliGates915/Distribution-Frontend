@@ -21,7 +21,7 @@ const Recovery = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 2;
-  const [salesmanLodaing,setSalesmanLodaing] = useState(false)
+  const [salesmanLodaing, setSalesmanLodaing] = useState(false)
   // Form fields for edit modal
   const [discountAmount, setDiscountAmount] = useState("");
   const [PreviousBalance, setPreviousBalance] = useState(6000);
@@ -172,21 +172,22 @@ const Recovery = () => {
     // ✅ Fetch Recovery data for that salesman & date
     fetchRecoveryData(id);
   };
-
   const handleEdit = (invoice) => {
+    console.log("Editing Invoice:", invoice);
+
     setEditingInvoice(invoice);
 
-    // reset editable fields
     setDiscountAmount("");
+    // receivable now means remaining balance
     setReceivable(invoice.receivable || invoice.totalPrice || 0);
-    setReceived(0);
-    setBalance(invoice.balance || invoice.totalPrice || 0);
-    setPreviousBalance(invoice.previousBalance || 0);
+    setReceived(""); // user will type new recovery amount
+    setBalance(invoice.receivable || 0); // initially same as remaining due
 
-    // recovery date should be today's date
+    setPreviousBalance(invoice.previousBalance || 0);
     setSelectedDate(today);
     setIsSliderOpen(true);
   };
+
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -240,12 +241,13 @@ const Recovery = () => {
   // Auto recalculation logic like in SalesInvoice
   useEffect(() => {
     if (editingInvoice) {
-      const total = editingInvoice.receivable || 0;
-      const receivedAmt = parseFloat(received) || 0;
-      const newBalance = total - receivedAmt;
-      setBalance(newBalance);
+      const remaining = parseFloat(receivable) || 0;
+      const entered = parseFloat(received) || 0;
+      const newBalance = remaining - entered;
+      setBalance(newBalance >= 0 ? newBalance : 0);
     }
-  }, [received, editingInvoice]);
+  }, [received, receivable, editingInvoice]);
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -259,410 +261,423 @@ const Recovery = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = data.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(data.length / recordsPerPage);
-console.log({currentRecords});
+  console.log({ currentRecords });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
       {
-          salesmanLodaing? <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  color = "#1E93AB" className=" animate-spin"/></div>:(
-             <div className="px-6 mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-newPrimary">
-            Recovery Report
-          </h1>
-        </div>
-
-        {/* 🔹 Filter Fields */}
-       <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4">
-
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center gap-6">
-              <label className="text-gray-700 font-medium w-24">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              />
+        salesmanLodaing ? <div className="w-full flex justify-center items-center h-screen"><Loader size={70} color="#1E93AB" className=" animate-spin" /></div> : (
+          <div className="px-6 mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold text-newPrimary">
+                Recovery Report
+              </h1>
             </div>
 
-            <div className="flex items-center gap-6">
-              <label className="text-gray-700 font-medium w-24">
-                Salesman <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedSalesman}
-                onChange={handleSalesmanChange}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Select Salesman</option>
-                {salesmanList.map((cust) => (
-                  <option key={cust._id} value={cust._id}>
-                    {cust.employeeName}
-                  </option>
-                ))}
-              </select>
+            {/* 🔹 Filter Fields */}
+            <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4">
+
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Salesman <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedSalesman}
+                    onChange={handleSalesmanChange}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesmanList.map((cust) => (
+                      <option key={cust._id} value={cust._id}>
+                        {cust.employeeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <label className="text-gray-700 font-medium w-24">
+                  Invoice <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedOrders}
+                  onChange={(e) => {
+                    const invoiceNo = e.target.value;
+                    setSelectedOrders(invoiceNo);
+                    if (selectedSalesman && invoiceNo) {
+                      fetchRecoveryByInvoice(selectedSalesman, invoiceNo);
+                    }
+                  }}
+                  className="w-full md:w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                >
+                  <option value="">Select Invoice</option>
+                  {invoiceList.map((inv, index) => (
+                    <option key={index} value={inv.invoiceNo}>
+                      {inv.invoiceNo}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-6">
-            <label className="text-gray-700 font-medium w-24">
-              Invoice <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={selectedOrders}
-              onChange={(e) => {
-                const invoiceNo = e.target.value;
-                setSelectedOrders(invoiceNo);
-                if (selectedSalesman && invoiceNo) {
-                  fetchRecoveryByInvoice(selectedSalesman, invoiceNo);
-                }
-              }}
-              className="w-full md:w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            >
-              <option value="">Select Invoice</option>
-              {invoiceList.map((inv, index) => (
-                <option key={index} value={inv.invoiceNo}>
-                  {inv.invoiceNo}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* 🔹 Table */}
-        <div className="p-0 mt-6">
-          {selectedSalesman && (
-            <div>
-              <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-              <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar">
-                  <div className="min-w-full custom-scrollbar">
-                    <div className="hidden lg:grid whitespace-nowrap grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                      <div>SR</div>
-                      <div>Date</div>
-                      <div>ID</div>
-                      <div>Customer</div>
-                      <div>Salesman</div>
-                      <div>Total</div>
-                      <div>Received</div>
-                      <div>Balance</div>
-                      <div>Bill Days</div>
-                      <div>Due Days</div>
-                      <div>Recovery Date</div>
-                      <div>Action</div>
-                    </div>
-
-                    <div className="flex flex-col divide-y divide-gray-100">
-                      {loading ? (
-                        <TableSkeleton
-                          rows={data.length || 5}
-                          cols={12}
-                          className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                        />
-                      ) : data.length === 0 ? (
-                        <div className="text-center py-4 text-gray-500 bg-white">
-                          No records found.
+            {/* 🔹 Table */}
+            <div className="p-0 mt-6">
+              {selectedSalesman && (
+                <div>
+                  <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar">
+                      <div className="min-w-full custom-scrollbar">
+                        <div className="hidden lg:grid whitespace-nowrap grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                          <div>SR</div>
+                          <div>Date</div>
+                          <div>ID</div>
+                          <div>Customer</div>
+                          <div>Salesman</div>
+                          <div>Total</div>
+                          <div>Received</div>
+                          <div>Balance</div>
+                          <div>Bill Days</div>
+                          <div>Due Days</div>
+                          <div>Recovery Date</div>
+                          <div>Action</div>
                         </div>
-                      ) : (
-                        currentRecords.map((item, index) => (
-                          <div
-                            key={item.invoiceId}
-                            className="grid lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                          >
-                            <div>{indexOfFirstRecord + index + 1}</div>
 
-                            <div>{formatDate(item.invoiceDate) || "-"}</div>
-                            <div>{item.invoiceNo || "-"}</div>
-                            <div>{item.customer || "-"}</div>
-                            <div>{item.salesman || "-"}</div>
-                            <div>{item.totalPrice || "-"}</div>
-                            <div>{item.received || 0}</div>
-                            <div>{item.previousBalance || item.total}</div>
-                            <div>{item.billDays ?? "-"}</div>
-                            <div>{item.overDays || "-"}</div>
-                            <div>{formatDate(item.agingDate)}</div>
-                            <div className="flex gap-3 justify-start">
-                              <button
-                                onClick={() => handleEdit(item)}
-                                className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
-                                title="Edit"
+                        <div className="flex flex-col divide-y divide-gray-100">
+                          {loading ? (
+                            <TableSkeleton
+                              rows={data.length || 5}
+                              cols={12}
+                              className="lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                            />
+                          ) : data.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500 bg-white">
+                              No records found.
+                            </div>
+                          ) : (
+                            currentRecords.map((item, index) => (
+                              <div
+                                key={item.invoiceId}
+                                className="grid lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                               >
-                                <SquarePen size={18} />
+                                <div>{indexOfFirstRecord + index + 1}</div>
+
+                                <div>{formatDate(item.invoiceDate) || "-"}</div>
+                                <div>{item.invoiceNo || "-"}</div>
+                                <div>{item.customer || "-"}</div>
+                                <div>{item.salesman || "-"}</div>
+                                <div>{item.totalPrice || "-"}</div>
+                                <div>{item.received || 0}</div>
+                                <div>{item.balance || item.total}</div>
+                                <div>{item.billDays ?? "-"}</div>
+                                <div>{item.overDays || "-"}</div>
+                                <div>{formatDate(item.agingDate)}</div>
+                                <div className="flex gap-3 justify-start">
+                                  <button
+                                    onClick={() => handleEdit(item)}
+                                    className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
+                                    title="Edit"
+                                  >
+                                    <SquarePen size={18} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        {totalPages > 1 && (
+                          <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl">
+                            <p className="text-sm text-gray-600">
+                              Showing {indexOfFirstRecord + 1} to{" "}
+                              {Math.min(indexOfLastRecord, data.length)} of{" "}
+                              {data.length} records
+                            </p>
+
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  setCurrentPage((prev) => Math.max(prev - 1, 1))
+                                }
+                                disabled={currentPage === 1}
+                                className={`px-3 py-1 rounded-md ${currentPage === 1
+                                  ? "bg-gray-300 cursor-not-allowed"
+                                  : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                                  }`}
+                              >
+                                Previous
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  setCurrentPage((prev) =>
+                                    Math.min(prev + 1, totalPages)
+                                  )
+                                }
+                                disabled={currentPage === totalPages}
+                                className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                                  ? "bg-gray-300 cursor-not-allowed"
+                                  : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                                  }`}
+                              >
+                                Next
                               </button>
                             </div>
                           </div>
-                        ))
-                      )}
-                    </div>
-                    {totalPages > 1 && (
-                      <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl">
-                        <p className="text-sm text-gray-600">
-                          Showing {indexOfFirstRecord + 1} to{" "}
-                          {Math.min(indexOfLastRecord, data.length)} of{" "}
-                          {data.length} records
-                        </p>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() =>
-                              setCurrentPage((prev) => Math.max(prev - 1, 1))
-                            }
-                            disabled={currentPage === 1}
-                            className={`px-3 py-1 rounded-md ${
-                              currentPage === 1
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                            }`}
-                          >
-                            Previous
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              setCurrentPage((prev) =>
-                                Math.min(prev + 1, totalPages)
-                              )
-                            }
-                            disabled={currentPage === totalPages}
-                            className={`px-3 py-1 rounded-md ${
-                              currentPage === totalPages
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                            }`}
-                          >
-                            Next
-                          </button>
-                        </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 🔹 Edit Form Modal (Full Functional Like SalesInvoice) */}
-        {isSliderOpen && editingInvoice && (
-          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
-              {isSaving && (
-                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
-                  <ScaleLoader color="#1E93AB" size={60} />
                 </div>
               )}
-              <div className="flex justify-between items-center p-4 border-b bg-white">
-                <h2 className="text-xl font-bold text-newPrimary">
-                  Edit Recovery
-                </h2>
-                <button
-                  className="text-2xl text-gray-500 hover:text-gray-700"
-                  onClick={() => setIsSliderOpen(false)}
-                >
-                  ×
-                </button>
-              </div>
+            </div>
 
-              <form onSubmit={handleUpdate} className="space-y-4 p-4 md:p-6">
-                <div className="grid grid-cols-2 items-center gap-x-4 gap-y-1 border p-4 rounded-lg">
-                  <div className="flex gap-3">
-                    <label className="block text-gray-700 font-medium">
-                      Recovery Id :
-                    </label>
-                    <p>{`${editingInvoice.recoveryNo}`}</p>
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <label className="block text-gray-700 font-medium">
-                      Recovery Date :
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      disabled
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="border h-[30px] border-gray-300 rounded-md p-4 w-[200px] focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-4 rounded-lg">
-                  <div className="flex gap-3">
-                    <label className="block text-gray-700 font-medium">
-                      Invoice No. :
-                    </label>
-                    <p>{editingInvoice.invoiceNo}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Invoice Date :
-                    </label>
-                    <p>{formatDate(editingInvoice.invoiceDate)}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Customer :
-                    </label>
-                    <p>{editingInvoice.customer}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Salesman :
-                    </label>
-                    <p>{editingInvoice.salesman}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Previous Balance :
-                    </label>
-                    <p>{editingInvoice.previousBalance}</p>
-                  </div>
-                </div>
-
-                {/* Items Table */}
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-4">
-                    Items
-                  </h3>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] bg-gray-200 text-gray-600 text-sm font-semibold uppercase border-b border-gray-300">
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        SR#
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Item
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Rate
-                      </div>
-                      <div className="px-4 py-2 border-r border-gray-300">
-                        Qty
-                      </div>
-                      <div className="px-4 py-2">Total</div>
+            {/* 🔹 Edit Form Modal (Full Functional Like SalesInvoice) */}
+            {isSliderOpen && editingInvoice && (
+              <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
+                <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                  {isSaving && (
+                    <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
+                      <ScaleLoader color="#1E93AB" size={60} />
                     </div>
-                    {editingInvoice.items.map((item, i) => (
-                      <div
-                        key={i}
-                        className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
-                      >
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          {i + 1}
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300">
-                          {item.item}
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300 ">
-                          {item.rate}
-                        </div>
-                        <div className="px-4 py-2 border-r border-gray-300 ">
-                          {item.qty}
-                        </div>
-                        <div className="px-4 py-2 ">{item.total}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Totals + Aging Date + Discounts */}
-                <div className="flex flex-col w-full items-end gap-4 mt-4">
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Total Price :
-                    </label>
-                    <input
-                      type="number"
-                      value={editingInvoice.totalPrice || 0}
-                      disabled
-                      readOnly
-                      className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
-                    />
+                  )}
+                  <div className="flex justify-between items-center p-4 border-b bg-white">
+                    <h2 className="text-xl font-bold text-newPrimary">
+                      Edit Recovery
+                    </h2>
+                    <button
+                      className="text-2xl text-gray-500 hover:text-gray-700"
+                      onClick={() => setIsSliderOpen(false)}
+                    >
+                      ×
+                    </button>
                   </div>
 
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Receivable :
-                    </label>
-                    <input
-                      type="number"
-                      value={editingInvoice.receivable}
-                      readOnly
-                      disabled
-                      className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Received :
-                    </label>
-                    <input
-                      type="number"
-                      value={received}
-                      onChange={(e) => setReceived(e.target.value)}
-                      className="w-[150px] h-[40px] p-3 border border-gray-300 rounded-md"
-                    />
-                  </div>
-
-                  <div className="flex w-full items-start gap-6">
-                    <div className="flex-1">
-                      <p className="ml-auto font-bold ">
-                        Allow Days : {editingInvoice.allowDays || "-"}
-                      </p>
-                      <p className="ml-auto font-bold ">
-                        Over Days : {editingInvoice.overDays || "-"}
-                      </p>
-
-                      <div className="flex  gap-3 mt-2">
+                  <form onSubmit={handleUpdate} className="space-y-4 p-4 md:p-6">
+                    <div className="grid grid-cols-2 items-center gap-x-4 gap-y-1 border p-4 rounded-lg">
+                      <div className="flex gap-3">
                         <label className="block text-gray-700 font-medium">
-                          Aging Date
+                          Recovery Id :
+                        </label>
+                        <p>{`${editingInvoice.recoveryNo}`}</p>
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        <label className="block text-gray-700 font-medium">
+                          Recovery Date :
                         </label>
                         <input
                           type="date"
-                          value={
-                            editingInvoice.agingDate
-                              ? editingInvoice.agingDate.split("T")[0]
-                              : ""
-                          }
+                          value={selectedDate}
                           disabled
-                          readOnly
-                          className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          className="border h-[30px] border-gray-300 rounded-md p-4 w-[200px] focus:outline-none focus:ring-2 focus:ring-newPrimary"
                         />
                       </div>
                     </div>
-
-                    <div className="flex  gap-1">
-                      <label className="block text-gray-700 font-medium">
-                        Balance
-                      </label>
-                      <input
-                        type="number"
-                        value={balance}
-                        disabled
-                        readOnly
-                        className="w-[150px] cursor-not-allowed bg-gray-100 h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Balance amount"
-                      />
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 border p-4 rounded-lg">
+                      <div className="flex gap-3">
+                        <label className="block text-gray-700 font-medium">
+                          Invoice No. :
+                        </label>
+                        <p>{editingInvoice.invoiceNo}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Invoice Date :
+                        </label>
+                        <p>{formatDate(editingInvoice.invoiceDate)}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Customer :
+                        </label>
+                        <p>{editingInvoice.customer}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Salesman :
+                        </label>
+                        <p>{editingInvoice.salesman}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Previous Balance :
+                        </label>
+                        <p>{editingInvoice.previousBalance}</p>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <button
-                  type="submit"
-                  className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors"
-                >
-                  Update Recovery
-                </button>
-              </form>
-            </div>
+                    {/* Items Table */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium text-gray-700 mb-4">
+                        Items
+                      </h3>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] bg-gray-200 text-gray-600 text-sm font-semibold uppercase border-b border-gray-300">
+                          <div className="px-4 py-2 border-r border-gray-300">
+                            SR#
+                          </div>
+                          <div className="px-4 py-2 border-r border-gray-300">
+                            Item
+                          </div>
+                          <div className="px-4 py-2 border-r border-gray-300">
+                            Rate
+                          </div>
+                          <div className="px-4 py-2 border-r border-gray-300">
+                            Qty
+                          </div>
+                          <div className="px-4 py-2">Total</div>
+                        </div>
+                        {editingInvoice.items.map((item, i) => (
+                          <div
+                            key={i}
+                            className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
+                          >
+                            <div className="px-4 py-2 border-r border-gray-300">
+                              {i + 1}
+                            </div>
+                            <div className="px-4 py-2 border-r border-gray-300">
+                              {item.item}
+                            </div>
+                            <div className="px-4 py-2 border-r border-gray-300 ">
+                              {item.rate}
+                            </div>
+                            <div className="px-4 py-2 border-r border-gray-300 ">
+                              {item.qty}
+                            </div>
+                            <div className="px-4 py-2 ">{item.total}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Totals + Aging Date + Discounts */}
+                    <div className="flex flex-col w-full items-end gap-4 mt-4">
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Total Price :
+                        </label>
+                        <input
+                          type="number"
+                          value={editingInvoice.totalPrice || 0}
+                          disabled
+                          readOnly
+                          className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Receivable :
+                        </label>
+                        <input
+                          type="number"
+                          value={receivable}
+                          readOnly
+                          disabled
+                          className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] p-3 border border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <label className="block text-gray-700 font-medium mb-2">
+                          Received :
+                        </label>
+                        <input
+                          type="number"
+                          value={received}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setReceived(val);
+                            // live update balance
+                            const remaining = parseFloat(receivable) || 0;
+                            const newBalance = remaining - parseFloat(val || 0);
+                            setBalance(newBalance >= 0 ? newBalance : 0);
+                          }}
+                          placeholder="Enter amount"
+                          className="w-[150px] h-[40px] p-3 border border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div className="flex w-full items-start gap-6">
+                        <div className="flex-1">
+                          <p className="ml-auto font-bold ">
+                            Allow Days : {editingInvoice.allowDays || "-"}
+                          </p>
+                          <p className="ml-auto font-bold ">
+                            Over Days : {editingInvoice.overDays || "-"}
+                          </p>
+
+                          <div className="flex  gap-3 mt-2">
+                            <label className="block text-gray-700 font-medium">
+                              Aging Date
+                            </label>
+                            <input
+                              type="date"
+                              value={
+                                editingInvoice.agingDate
+                                  ? editingInvoice.agingDate.split("T")[0]
+                                  : ""
+                              }
+                              disabled
+                              readOnly
+                              className="w-[150px] bg-gray-100 cursor-not-allowed h-[40px] px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <label className="block text-gray-700 font-medium mb-2">
+                            Balance :
+                          </label>
+                          <input
+                            type="number"
+                            value={balance}
+                            disabled
+                            readOnly
+                            className="w-[150px] cursor-not-allowed bg-gray-100 h-[40px] p-3 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {(editingInvoice.status === "Completed" || balance <= 0) && (
+                      <p className="text-green-600 font-semibold text-center mb-2">
+                        ✅ This invoice has been fully recovered.
+                      </p>
+                    )}
+                    {/* ✅ Disable when invoice is completed or balance is 0 */}
+                    <button
+                      type="submit"
+                      
+                      className={`w-full px-4 py-3 rounded-lg transition-colors 
+                         bg-newPrimary text-white hover:bg-newPrimary/80
+                        }`}
+                    >
+                      Update Recovery
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-          )
+        )
       }
-     
+
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
