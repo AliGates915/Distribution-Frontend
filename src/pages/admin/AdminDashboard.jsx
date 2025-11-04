@@ -21,7 +21,7 @@ import {
   Calendar,
   CreditCard,
   PieChart as PieChartIcon,
-} from "lucide-react";  
+} from "lucide-react";
 import CommanHeader from "../admin/Components/CommanHeader";
 
 import HeaderSkeleton from "./HeaderSkeleton";
@@ -30,6 +30,8 @@ import ChartSkeleton from "./ChartSkeleton";
 import DasboardTableSkelton from "./DasboardTableSkelton";
 
 const AdminDashboard = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+
   const [customers, setCustomers] = useState(0);
   const [items, setItems] = useState(0);
   const [booking, setBooking] = useState(0);
@@ -151,11 +153,17 @@ const AdminDashboard = () => {
       status: "Denied",
     },
   ];
-  const filteredData = dummyBookings.filter(
-    (booking) =>
-      booking.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      booking.mobileNo.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredData =
+    dashboardData?.recentBookings.filter(
+      (b) =>
+        b.customerId.customerName
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        b.customerId.phoneNumber
+          .toLowerCase()
+          .includes(search.toLowerCase())
+    ) || [];
+
   const abortRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -185,6 +193,23 @@ const AdminDashboard = () => {
       }, 2000);
     }
   }, [userInfo.token, base]);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${base}/dashboard/summary`);
+        setDashboardData(res.data);
+      } catch (err) {
+        console.error("Dashboard fetch failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+
 
   useEffect(() => {
     fetchCustomerCount();
@@ -503,56 +528,50 @@ const AdminDashboard = () => {
 
   // ✅ Mark all notifications as read
 
-  const summaryData = [
-    {
-      name: "Total Customers",
-      value: customerCount.count,
-      icon: <Users size={24} />,
-      change: "+12%",
-      color: "bg-blue-100 text-blue-600",
-      border: "border-l-4 border-blue-700",
-    },
-    {
-      name: "Total Products",
-      value: totalProducts.count,
-      icon: <Package size={24} />,
-      change: "+5%",
-      color: "bg-green-100 text-green-600",
-      border: "border-l-4 border-green-400",
-    },
-    {
-      name: "Total Staff",
-      value: totalStaff.count,
-      icon: <UserCheck size={24} />,
-      change: "+2%",
-      color: "bg-purple-100 text-purple-600",
-      border: "border-l-4 border-purple-400",
-    },
-    {
-      name: "Total Sales",
-      value: totalSales.totalSales,
-      icon: <CreditCard size={24} />,
-      change: "+18%",
-      color: "bg-amber-100 text-amber-600",
-      border: "border-l-4 border-amber-500",
-    },
-    // {
-    //   name: "Total Revenue",
-    //   value: `$${revenue.toLocaleString()}`,
-    //   icon: <DollarSign size={24} />,
-    //   change: "+15%",
-    //   color: "bg-emerald-100 text-emerald-600",
-    //   border: "border-l-4 border-emerald-500",
-    // },
-    {
-      name: "Bookings",
-      value: totalBooking.count,
-      icon: <Calendar size={24} />,
-      change: "-3%",
-      color: "bg-rose-100 text-rose-600",
-      border: "border-l-4 border-rose-400",
-    },
-  ];
+  const summaryData = dashboardData
+    ? [
+      {
+        name: "Total Customers",
+        value: dashboardData.stats.totalCustomers,
+        icon: <Users size={24} />,
+        change: "+12%",
+        color: "bg-blue-100 text-blue-600",
+        border: "border-l-4 border-blue-700",
+      },
+      {
+        name: "Total Products",
+        value: dashboardData.stats.totalProducts,
+        icon: <Package size={24} />,
+        change: "+5%",
+        color: "bg-green-100 text-green-600",
+        border: "border-l-4 border-green-400",
+      },
+      {
+        name: "Total Staff",
+        value: dashboardData.stats.totalStaff,
+        icon: <UserCheck size={24} />,
+        change: "+2%",
+        color: "bg-purple-100 text-purple-600",
+        border: "border-l-4 border-purple-400",
+      },
+      {
+        name: "Total Sales",
+        value: dashboardData.stats.totalSales,
+        icon: <CreditCard size={24} />,
+        change: "+18%",
+        color: "bg-amber-100 text-amber-600",
+        border: "border-l-4 border-amber-500",
+      },
+      {
+        name: "Bookings",
+        value: dashboardData.stats.totalBookings,
+        icon: <Calendar size={24} />,
+        change: "-3%",
+        color: "bg-rose-100 text-rose-600",
+        border: "border-l-4 border-rose-400",
+      },
+    ]
+    : [];
 
   const pieData = [
     { month: "JUN", thisYear: 1000, lastYear: 600 },
@@ -625,7 +644,14 @@ const AdminDashboard = () => {
               <h2 className="text-lg font-semibold mb-4">Customer Orders</h2>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={data}>
+                  <ComposedChart
+                    data={dashboardData?.charts.customerOrders.map((item) => ({
+                      name: new Date(2025, item._id - 1).toLocaleString("default", { month: "short" }),
+                      pv: item.totalOrders,
+                      uv: Math.floor(item.totalOrders * 0.8),
+                    })) || []}
+                  >
+
                     <XAxis dataKey="name" stroke="#9CA3AF" />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip />
@@ -646,11 +672,13 @@ const AdminDashboard = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={pieData1}
+                      data={dashboardData?.charts.salesProfit.map((item) => ({
+                        name: item.label,
+                        value: item.value,
+                      })) || []}
                       cx="50%"
                       cy="50%"
                       outerRadius="80%"
-                      fill="#8884d8"
                       dataKey="value"
                       labelLine={false}
                       label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -659,6 +687,7 @@ const AdminDashboard = () => {
                         <Cell key={`cell-${index}`} fill={color} />
                       ))}
                     </Pie>
+
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'white',
@@ -695,11 +724,13 @@ const AdminDashboard = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={pieData2}
+                      data={dashboardData?.charts.customerBalance.map((item) => ({
+                        name: item.label,
+                        value: item.value,
+                      })) || []}
                       cx="50%"
                       cy="50%"
                       outerRadius="80%"
-                      fill="#10B981"
                       dataKey="value"
                       labelLine={false}
                       label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -708,6 +739,8 @@ const AdminDashboard = () => {
                         <Cell key={`cell2-${index}`} fill={color} />
                       ))}
                     </Pie>
+
+
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'white',
@@ -788,26 +821,31 @@ const AdminDashboard = () => {
               {loading ? (
                 <DasboardTableSkelton rows={filteredData.length} cols={7} />
               ) : (
-                filteredData.map((booking, index) => (
+                filteredData.map((booking) => (
                   <div
-                    key={booking.id}
+                    key={booking._id}
                     className="grid grid-cols-7 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                   >
                     <div className="font-medium text-gray-700">
-                      {booking.customerName}
+                      {booking.customerId.customerName}
                     </div>
-                    <div className="text-gray-600">{booking.mobileNo}</div>
+                    <div className="text-gray-600">{booking.customerId.phoneNumber}</div>
                     <div className="text-gray-600 truncate">
-                      {booking.address}
+                      {booking.customerId.address}
                     </div>
                     <div className="text-gray-600 truncate">
-                      {booking.items.join(", ")}
+                      {booking.products.map((p) => p.itemName).join(", ")}
                     </div>
-                    <div className="text-gray-600">Rs.{booking.total}</div>
-                    <div className="text-gray-600">{booking.paymentMethod}</div>
+                    <div className="text-gray-600">
+                      Rs.
+                      {booking.products.reduce((sum, p) => sum + (p.totalAmount || 0), 0)}
+                    </div>
+                    <div className="text-gray-600">—</div>
                     <div>
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${statusColor[booking.status]
+                        className={`px-2 py-1 text-xs rounded-full ${booking.status === "Completed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-amber-100 text-amber-800"
                           }`}
                       >
                         {booking.status}
@@ -815,6 +853,7 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ))
+
               )}
             </div>
           </div>

@@ -191,6 +191,7 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
 
 export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
   const win = window.open("", "", "width=900,height=700");
+
   win.document.write(`
     <html>
       <head>
@@ -203,9 +204,10 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
           p { font-size: 14px; color: #555; }
           hr { border: none; border-top: 1px solid #aaa; margin: 10px 0 20px; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-          th, td { border: 1px solid #999; padding: 6px; text-align: center; }
+          th, td { border: 1px solid #999; padding: 6px; text-align: center; vertical-align: middle; }
           th { background: #f2f2f2; }
           tfoot td { font-weight: bold; background: #fafafa; }
+          .customer-row td { background: #e9f5ff; font-weight: bold; text-align: left; }
           .note { font-size: 11px; color: #777; margin-top: 20px; text-align: center; }
         </style>
       </head>
@@ -235,20 +237,32 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
           <tbody>
             ${apiData
               .map(
-                (row, i) => `
-                  <tr>
+                (group, i) => `
+                  <tr class="customer-row">
                     <td>${i + 1}</td>
-                    <td>${row.customerName || "-"}</td>
-                    <td>${row.invoiceNo || "-"}</td>
-                    <td>${row.deliveryDate || "-"}</td>
-                    <td>${row.allowDays || 0}</td>
-                    <td>${row.billDays || 0}</td>
-                    <td>${row.debit?.toLocaleString() || 0}</td>
-                    <td>${row.credit?.toLocaleString() || 0}</td>
-                    <td>${row.underCredit?.toLocaleString() || 0}</td>
-                    <td>${row.due?.toLocaleString() || 0}</td>
-                    <td>${row.outstanding?.toLocaleString() || 0}</td>
-                  </tr>`
+                    <td colspan="10">${group.customerName}</td>
+                  </tr>
+                  ${
+                    group.invoices
+                      ?.map(
+                        (inv) => `
+                        <tr>
+                          <td></td>
+                          <td></td>
+                          <td>${inv.invoiceNo || "-"}</td>
+                          <td>${inv.deliveryDate || "-"}</td>
+                          <td>${inv.allowDays || 0}</td>
+                          <td>${inv.billDays || 0}</td>
+                          <td>${inv.debit?.toLocaleString() || 0}</td>
+                          <td>${inv.credit?.toLocaleString() || 0}</td>
+                          <td>${inv.underCredit?.toLocaleString() || 0}</td>
+                          <td>${inv.due?.toLocaleString() || 0}</td>
+                          <td>${inv.outstanding?.toLocaleString() || 0}</td>
+                        </tr>`
+                      )
+                      .join("") || ""
+                  }
+                `
               )
               .join("")}
           </tbody>
@@ -270,10 +284,10 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
       </body>
     </html>
   `);
+
   win.document.close();
   win.print();
 };
-
 
 
 

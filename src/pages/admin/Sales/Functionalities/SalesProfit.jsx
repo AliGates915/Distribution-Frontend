@@ -126,21 +126,19 @@ const Sales = () => {
         </div>
 
         {/* ================= PRODUCT SECTION ================= */}
-        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white mb-10">
-          <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+        <div className="rounded-xl shadow-md border border-gray-200 bg-white mb-10 overflow-hidden">
+          <div className="bg-newPrimary text-white py-3 px-5 text-sm font-semibold uppercase tracking-wide">
             Product-wise Sales
           </div>
 
           {loading ? (
             <TableSkeleton rows={5} cols={10} />
           ) : productSection.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              No product data found.
-            </div>
+            <div className="text-center py-6 text-gray-500">No product data found.</div>
           ) : (
             <>
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-50 border-b border-gray-200 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
                 <div>Sr</div>
                 <div>Supplier</div>
                 <div>Product</div>
@@ -158,18 +156,19 @@ const Sales = () => {
                 {productSection.map((row, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm hover:bg-gray-50 text-center"
+                    className={`grid grid-cols-[0.2fr_1.5fr_0.6fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
-                    <div className="text-left">{row.supplier}</div>
-                    <div className="text-left">{row.product}</div>
-                    <div>{row.weight}</div>
+                    <div className="text-left">{row.supplier || "-"}</div>
+                    <div className="text-left">{row.product || "-"}</div>
+                    <div>{row.weight || "-"}</div>
                     <div>{row.purchasePrice.toLocaleString()}</div>
                     <div>{row.salePrice.toLocaleString()}</div>
                     <div>{row.qty}</div>
-                    <div>{row.purchaseTotal.toLocaleString()}</div>
-                    <div>{row.saleTotal.toLocaleString()}</div>
-                    <div className="text-green-600 font-semibold">
+                    <div className="text-red-600">{row.purchaseTotal.toLocaleString()}</div>
+                    <div className="text-green-600">{row.saleTotal.toLocaleString()}</div>
+                    <div className="text-blue-600 font-semibold">
                       {(row.saleTotal - row.purchaseTotal).toLocaleString()}
                     </div>
                   </div>
@@ -185,12 +184,8 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className="text-right pr-2 font-bold">Total:</div>
-                <div className="text-red-600 font-semibold">
-                  {totals.totalPurchase.toLocaleString()}
-                </div>
-                <div className="text-green-600 font-semibold">
-                  {totals.totalSales.toLocaleString()}
-                </div>
+                <div className="text-red-600">{totals.totalPurchase.toLocaleString()}</div>
+                <div className="text-green-600">{totals.totalSales.toLocaleString()}</div>
                 <div className="text-blue-600 font-semibold">
                   {(totals.totalSales - totals.totalPurchase).toLocaleString()}
                 </div>
@@ -200,21 +195,19 @@ const Sales = () => {
         </div>
 
         {/* ================= CUSTOMER SECTION ================= */}
-        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
-          <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+        <div className="rounded-xl shadow-md border border-gray-200 bg-white overflow-hidden">
+          <div className="bg-newPrimary text-white py-3 px-5 text-sm font-semibold uppercase tracking-wide">
             Customer-wise Sales & Recovery
           </div>
 
           {loading ? (
             <TableSkeleton rows={5} cols={6} />
           ) : customerSection.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              No customer data found.
-            </div>
+            <div className="text-center py-6 text-gray-500">No customer data found.</div>
           ) : (
             <>
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] bg-gray-50 border-b border-gray-200 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
                 <div>Sr</div>
                 <div>Customer</div>
                 <div>Section / Area</div>
@@ -228,14 +221,15 @@ const Sales = () => {
                 {customerSection.map((row, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm hover:bg-gray-50 text-center"
+                    className={`grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
                     <div className="text-left">{row.customer}</div>
                     <div className="text-left">{row.salesArea}</div>
                     <div className="text-left">{row.customerAddress}</div>
-                    <div>{row.sales.toLocaleString()}</div>
-                    <div>{row.recovery.toLocaleString()}</div>
+                    <div className="text-blue-600 font-medium">{row.sales.toLocaleString()}</div>
+                    <div className="text-green-600 font-medium">{row.recovery.toLocaleString()}</div>
                   </div>
                 ))}
               </div>
@@ -246,10 +240,8 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className="text-right pr-2 font-bold">Total:</div>
-                <div className="text-blue-600 font-semibold">
-                  {totals.totalSales.toLocaleString()}
-                </div>
-                <div className="text-green-600 font-semibold">
+                <div className="text-blue-600">{totals.totalSales.toLocaleString()}</div>
+                <div className="text-green-600">
                   {customerSection
                     .reduce((sum, row) => sum + (row.recovery || 0), 0)
                     .toLocaleString()}
