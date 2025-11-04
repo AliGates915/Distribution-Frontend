@@ -473,7 +473,7 @@ console.log({currentRecords});
                     <label className="block text-gray-700 font-medium">
                       Recovery Id :
                     </label>
-                    <p>{`REC-${editingInvoice.recoveryId}`}</p>
+                    <p>{`${editingInvoice.recoveryNo}`}</p>
                   </div>
 
                   <div className="flex gap-2 items-center">
