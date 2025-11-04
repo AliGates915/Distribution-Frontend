@@ -312,7 +312,7 @@ const handleEdit = (invoice) => {
                         <div>{formDate(invoice.date) || "-"}</div>
                         <div>{invoice.salesmanId?.employeeName || "-"}</div>
                         <div>{invoice.customerId?.customerName || "-"}</div>
-                        <div>{invoice.customerId?.salesBalance || "-"}</div>
+                        <div>{invoice.customerId?.salesBalance ?? "-"}</div>
                         <div className="flex gap-3 justify-start">
                           <button
                             onClick={() => handleEdit(invoice)}

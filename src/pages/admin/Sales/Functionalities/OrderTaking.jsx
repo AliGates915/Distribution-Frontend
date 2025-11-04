@@ -699,6 +699,7 @@ const OrderTaking = () => {
                       <input
                         type="number"
                         value={qty}
+                        min={1}
                         onChange={(e) => setQty(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
