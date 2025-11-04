@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SquarePen } from "lucide-react";
+import { Loader, SquarePen } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
@@ -21,7 +21,7 @@ const Recovery = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 2;
-
+  const [salesmanLodaing,setSalesmanLodaing] = useState(false)
   // Form fields for edit modal
   const [discountAmount, setDiscountAmount] = useState("");
   const [PreviousBalance, setPreviousBalance] = useState(6000);
@@ -32,14 +32,14 @@ const Recovery = () => {
   // salesmanList
   const fetchSaleman = async () => {
     try {
-      setLoading(true);
+      setSalesmanLodaing(true);
       const response = await api.get(`/employees/salesman`);
 
       setSalesmanList(response.employees);
     } catch (error) {
       console.error(" Failed to fetch customers by salesman:", error);
     } finally {
-      setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setSalesmanLodaing(false), 2000);
     }
   };
   useEffect(() => {
@@ -113,7 +113,7 @@ const Recovery = () => {
     if (!salesmanId || !date) return;
 
     try {
-      setLoading(true);
+      setSalesmanLodaing(true);
       const res = await api.get(
         `/sales-invoice/invoice-no?salesmanId=${salesmanId}&date=${date}`
       );
@@ -129,7 +129,7 @@ const Recovery = () => {
       toast.error("Failed to load invoices for selected date");
       setInvoiceList([]);
     } finally {
-      setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setSalesmanLodaing(false), 2000);
     }
   };
 
@@ -154,7 +154,7 @@ const Recovery = () => {
     }
 
     try {
-      setLoading(true);
+      setSalesmanLodaing(true);
       const res = await api.get(`/sales-invoice/invoice-no?salesmanId=${id}`);
       if (res.success) {
         setInvoiceList(res.data || []);
@@ -166,7 +166,7 @@ const Recovery = () => {
       toast.error("Failed to load invoice list");
       setInvoiceList([]);
     } finally {
-      setTimeout(() => setLoading(false), 2000);
+      setTimeout(() => setSalesmanLodaing(false), 2000);
     }
 
     // ✅ Fetch Recovery data for that salesman & date
@@ -179,13 +179,12 @@ const Recovery = () => {
     // reset editable fields
     setDiscountAmount("");
     setReceivable(invoice.receivable || invoice.totalPrice || 0);
-    setReceived(invoice.received || 0);
+    setReceived(0);
     setBalance(invoice.balance || invoice.totalPrice || 0);
     setPreviousBalance(invoice.previousBalance || 0);
 
     // recovery date should be today's date
     setSelectedDate(today);
-
     setIsSliderOpen(true);
   };
 
@@ -260,12 +259,14 @@ const Recovery = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = data.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(data.length / recordsPerPage);
+console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-
-      <div className="px-6 mx-auto">
+      {
+          salesmanLodaing? <div className="w-full flex justify-center items-center h-screen"><Loader size={70}  color = "#1E93AB" className=" animate-spin"/></div>:(
+             <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
             Recovery Report
@@ -282,7 +283,7 @@ const Recovery = () => {
               <input
                 type="date"
                 value={selectedDate}
-                max={today}
+                
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
               />
@@ -658,6 +659,9 @@ const Recovery = () => {
           </div>
         )}
       </div>
+          )
+      }
+     
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
