@@ -4,19 +4,22 @@
 
 body {
   @apply font-sans bg-gray-100 text-gray-800;
-    overflow-x: hidden;
+  overflow-x: hidden;
 
 }
 
 ::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 /* Enable scrollbars only for .custom-scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  display: block;     /* Show scrollbar again */
-  height: 8px;        /* for horizontal */
-  width: 8px;         /* for vertical */
+  display: block;
+  /* Show scrollbar again */
+  height: 8px;
+  /* for horizontal */
+  width: 8px;
+  /* for vertical */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -24,3 +27,7 @@ body {
   border-radius: 4px;
 }
 
+/* Remove focus border on Recharts SVG elements */
+.recharts-wrapper *:focus {
+  outline: none !important;
+}

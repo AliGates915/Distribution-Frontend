@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
-
 import {
-  BarChart,
-  Bar,
+  ResponsiveContainer,
+  ComposedChart,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Line,
   Legend,
-  LineChart,
+  Bar,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 import {
@@ -53,6 +53,32 @@ const AdminDashboard = () => {
   const [totalStaff, setTotalStaff] = useState([]);
   const [totalSales, setTotalSales] = useState([]);
   const [totalBooking, setTotalBooking] = useState([]);
+  const data = [
+    { name: "Jan", uv: 4000, pv: 2400 },
+    { name: "Feb", uv: 3000, pv: 1398 },
+    { name: "Mar", uv: 2000, pv: 9800 },
+    { name: "Apr", uv: 2780, pv: 3908 },
+    { name: "May", uv: 1890, pv: 4800 },
+    { name: "Jun", uv: 2390, pv: 3800 },
+    { name: "Jul", uv: 3490, pv: 4300 },
+    { name: "Aug", uv: 4200, pv: 3600 },
+    { name: "Sep", uv: 3100, pv: 4100 },
+
+  ];
+  const pieData1 = [
+    { name: "Active", value: 60 },
+    { name: "Inactive", value: 25 },
+    { name: "Pending", value: 15 },
+  ];
+
+  const pieData2 = [
+    { name: "Completed", value: 75 },
+    { name: "In Progress", value: 20 },
+    { name: "Delayed", value: 5 },
+  ];
+
+  const COLORS = ["#3B82F6", "#8B5CF6", "#F59E0B", "#10B981"];
+
   const dummyBookings = [
     {
       id: 1,
@@ -585,149 +611,133 @@ const AdminDashboard = () => {
         </div>
       )}
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {loading ? (
           <>
-            {/* Sales Overview Skeleton */}
-            <ChartSkeleton type="line" />
-
-            {/* Order Status Skeleton with legend shimmer */}
-            <ChartSkeleton type="bar" />
+            <ChartSkeleton className="h-[250px] w-full" />
+            <ChartSkeleton className="h-[250px] w-full" />
+            <ChartSkeleton className="h-[250px] w-full" />
           </>
         ) : (
           <>
-            {/* Revenue Chart */}
-            <div
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-              style={{ animation: "slideInLeft 0.5s ease-out" }}
-            >
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-2 sm:mb-0">
-                  Sales Overview
-                </h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => {
-                      setActivePeriod("weekly");
-                      fetchSalesChart("weekly");
-                    }}
-                    className={`px-3 py-1 text-xs rounded-full ${
-                      activePeriod === "weekly"
-                        ? "bg-newPrimary/10 text-newPrimary"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Weekly
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setActivePeriod("monthly");
-                      fetchSalesChart("monthly");
-                    }}
-                    className={`px-3 py-1 text-xs rounded-full ${
-                      activePeriod === "monthly"
-                        ? "bg-newPrimary/10 text-newPrimary"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Monthly
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setActivePeriod("yearly");
-                      fetchSalesChart("yearly");
-                    }}
-                    className={`px-3 py-1 text-xs rounded-full ${
-                      activePeriod === "yearly"
-                        ? "bg-newPrimary/10 text-newPrimary"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    Yearly
-                  </button>
-                </div>
-              </div>
-              <div className="h-80">
+            {/* Sales Chart */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+              <h2 className="text-lg font-semibold mb-4">Customer Orders</h2>
+              <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={saleschartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="day" />
-                    <YAxis domain={[30, 210]} />
-                    <Tooltip content={<CustomTooltip />} />
+                  <ComposedChart data={data}>
+                    <XAxis dataKey="name" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip />
                     <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="thisWeek"
-                      stroke="#84cf16"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                      name="This Week"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="lastWeek"
-                      stroke="#6b7280"
-                      strokeWidth={2}
-                      dot={{ r: 3 }}
-                      name="Last Week"
-                    />
-                  </LineChart>
+                    <Bar dataKey="pv" barSize={20} fill="#6366F1" radius={[6, 6, 0, 0]} />
+                    <Line type="monotone" dataKey="uv" stroke="#EC4899" strokeWidth={2} />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Order Status Bar Chart */}
-            <div
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-              style={{ animation: "slideInRight 0.5s ease-out" }}
-            >
-              <h2 className="text-lg font-semibold text-gray-800 mb-6">
-                Order Status
+            {/* User Activity Chart */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                Sales Profit
               </h2>
-              <div className="flex justify-center items-center h-64">
+              <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={pieData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" />
-                    <YAxis
-                      tickFormatter={(value) => `$${value / 1000}k`}
-                      domain={[0, 3000]}
-                    />
+                  <PieChart>
+                    <Pie
+                      data={pieData1}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="80%"
+                      fill="#8884d8"
+                      dataKey="value"
+                      labelLine={false}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {COLORS.map((color, index) => (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      ))}
+                    </Pie>
                     <Tooltip
-                      formatter={(value) => [`$${value}`, "Orders"]}
-                      cursor={{ fill: "rgba(0,0,0,0.05)" }}
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #e5e7eb',
+                      }}
                     />
-                    <Bar dataKey="thisYear" fill="#84cf16" barSize={40} />
-                    <Bar dataKey="lastYear" fill="#d1d5db" barSize={40} />
-                  </BarChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
+              {/* Color Legend */}
+              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-blue-500 block"></span>
+                  <span>Net Profit</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-purple-500 block"></span>
+                  <span>Total Revenue</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-yellow-500 block"></span>
+                  <span>Total Expenses</span>
+                </div>
+              </div>
+            </div>
 
-              {/* Legend */}
-              <div className="flex flex-wrap justify-center gap-4 mt-4">
-                {pieData.map((entry, index) => (
-                  <div key={index} className="flex items-center">
-                    <div
-                      className="w-3 h-3 rounded-full mr-2"
-                      style={{ backgroundColor: entry.color }}
-                    ></div>
-                    <span className="text-sm text-gray-600">{entry.name}</span>
-                  </div>
-                ))}
+            {/* Project Completion Chart */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+                Customer Balance
+              </h2>
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData2}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="80%"
+                      fill="#10B981"
+                      dataKey="value"
+                      labelLine={false}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    >
+                      {COLORS.map((color, index) => (
+                        <Cell key={`cell2-${index}`} fill={color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #e5e7eb',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Color Legend */}
+              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-blue-500 block"></span>
+                  <span>Paid In Full</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-purple-500 block"></span>
+                  <span>Pending Payment</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-yellow-500 block"></span>
+                  <span>Overdue Balance</span>
+                </div>
               </div>
             </div>
           </>
         )}
       </div>
+
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
         {/* Header with Search */}
@@ -797,9 +807,8 @@ const AdminDashboard = () => {
                     <div className="text-gray-600">{booking.paymentMethod}</div>
                     <div>
                       <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          statusColor[booking.status]
-                        }`}
+                        className={`px-2 py-1 text-xs rounded-full ${statusColor[booking.status]
+                          }`}
                       >
                         {booking.status}
                       </span>
