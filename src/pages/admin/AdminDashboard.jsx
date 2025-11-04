@@ -21,7 +21,7 @@ import {
   Calendar,
   CreditCard,
   PieChart as PieChartIcon,
-} from "lucide-react";
+} from "lucide-react";  
 import CommanHeader from "../admin/Components/CommanHeader";
 
 import HeaderSkeleton from "./HeaderSkeleton";
@@ -621,7 +621,7 @@ const AdminDashboard = () => {
         ) : (
           <>
             {/* Sales Chart */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+            <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-all">
               <h2 className="text-lg font-semibold mb-4">Customer Orders</h2>
               <div className="h-[250px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -638,8 +638,8 @@ const AdminDashboard = () => {
             </div>
 
             {/* User Activity Chart */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
-              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+            <div className="bg-white rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 ">
                 Sales Profit
               </h2>
               <div className="h-[250px] w-full">
@@ -670,7 +670,7 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               </div>
               {/* Color Legend */}
-              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600 ">
                 <div className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full bg-blue-500 block"></span>
                   <span>Net Profit</span>
@@ -687,8 +687,8 @@ const AdminDashboard = () => {
             </div>
 
             {/* Project Completion Chart */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow hover:shadow-lg transition-all">
-              <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+            <div className="bg-white  rounded-2xl p-6 shadow hover:shadow-lg transition-all">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800 ">
                 Customer Balance
               </h2>
               <div className="h-[250px] w-full">
@@ -719,7 +719,7 @@ const AdminDashboard = () => {
                 </ResponsiveContainer>
               </div>
               {/* Color Legend */}
-              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="mt-6 grid grid-cols-3 gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <span className="w-4 h-4 rounded-full bg-blue-500 block"></span>
                   <span>Paid In Full</span>
