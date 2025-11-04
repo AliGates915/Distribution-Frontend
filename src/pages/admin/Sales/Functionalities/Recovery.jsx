@@ -274,7 +274,8 @@ console.log({currentRecords});
         </div>
 
         {/* 🔹 Filter Fields */}
-        <div className="flex justify-start gap-[40rem] w-full mt-4">
+       <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4">
+
           <div className="flex flex-col space-y-2">
             <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
@@ -321,7 +322,7 @@ console.log({currentRecords});
                   fetchRecoveryByInvoice(selectedSalesman, invoiceNo);
                 }
               }}
-              className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              className="w-full md:w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
             >
               <option value="">Select Invoice</option>
               {invoiceList.map((inv, index) => (
@@ -338,9 +339,9 @@ console.log({currentRecords});
           {selectedSalesman && (
             <div>
               <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-                <div className="overflow-y-auto lg:overflow-x-auto max-h-[400px]">
+              <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar">
                   <div className="min-w-full custom-scrollbar">
-                    <div className="hidden lg:grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                    <div className="hidden lg:grid whitespace-nowrap grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                       <div>SR</div>
                       <div>Date</div>
                       <div>ID</div>
@@ -370,7 +371,7 @@ console.log({currentRecords});
                         currentRecords.map((item, index) => (
                           <div
                             key={item.invoiceId}
-                            className="grid grid-cols-1 lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                            className="grid lg:grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                           >
                             <div>{indexOfFirstRecord + index + 1}</div>
 
