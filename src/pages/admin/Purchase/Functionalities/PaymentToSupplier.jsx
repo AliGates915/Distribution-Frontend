@@ -753,7 +753,7 @@ const PaymentToSupplier = () => {
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Customer Name <span className="text-red-500">*</span>
+                        Supplier Name <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={cashData.customer}
@@ -774,7 +774,7 @@ const PaymentToSupplier = () => {
                         className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       >
-                        <option value="">Select Customer</option>
+                        <option value="">Select Supplier</option>
                         {customersCash.map((c) => (
                           <option key={c._id} value={c._id}>
                             {c.customerName}
