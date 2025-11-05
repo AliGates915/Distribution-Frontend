@@ -300,14 +300,13 @@ const DefineSupplier = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1100px]">
             {/* ✅ Table Header (desktop only) */}
-            <div className="hidden lg:grid  grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid  grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>Sr</div>
-              <div>ID</div>
               <div>Name</div>
               <div>Contact</div>
               <div>Email</div>
               <div>Address</div>
-              <div>Phone</div>
+              <div>Mobile</div>
               <div>Payment</div>
               <div>Status</div>
               {userInfo?.isAdmin && <div className={`${loading ? "":"text-right"}`}>Actions</div>}
@@ -318,8 +317,8 @@ const DefineSupplier = () => {
               {loading ? (
                 <TableSkeleton
                   rows={supplierList.length > 0 ? supplierList.length : 5}
-                  cols={userInfo?.isAdmin ? 10 : 8}
-                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                  cols={userInfo?.isAdmin ? 10 : 7}
+                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : supplierList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -331,17 +330,14 @@ const DefineSupplier = () => {
                     {/* ✅ Desktop Row */}
                     <div
                       key={s._id}
-                      className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                        <div className="text-gray-900">{index + 1}</div>
-                      <div className="font-medium text-gray-900">
-                        {s._id?.slice(0, 6)}
-                      </div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactPerson}</div>
                       <div className="text-gray-600">{s.email}</div>
                       <div className="text-gray-600 truncate">{s.address}</div>
-                      <div className="text-gray-600">{s.phoneNumber}</div>
+                      <div className="text-gray-600">{s.mobileNumber}</div>
                       <div className="text-gray-600">
                         {s.paymentTerms}
                         {s.paymentTerms === "CreditCard" && s.creditLimit
