@@ -325,7 +325,7 @@ const OpeningStock = () => {
               {editingStockIndex !== null && <div>Action</div>}
 
               {showRate && (
-                 <div>Total</div>
+                 <div>Total Amount</div>
               )}
             </div>
 
@@ -395,7 +395,7 @@ const OpeningStock = () => {
                       )}
                     </div>
                       {showRate && (
-                        <div className="text-gray-600">{rec.purchase * res.s || "-"}</div>
+                        <div className="text-gray-600">{rec.purchase * rec.stock || "-"}</div>
                       )}
                     {/* Action Button */}
                     {editingStockIndex === index && (
