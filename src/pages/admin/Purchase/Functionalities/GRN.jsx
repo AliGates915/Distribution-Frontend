@@ -80,6 +80,17 @@ const staticItemOptions = [
 
 const GRN = () => {
   const [grns, setGrns] = useState([]);
+  const [records, setRecords] = useState([]);
+  const [salesmanList, setSalesmanList] = useState([]);
+  const [selectedSalesman, setSelectedSalesman] = useState("");
+  const [balance, setBalance] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [itemsList, setItemsList] = useState([]);
+  const [item, setItem] = useState("");
+  const [qty, setQty] = useState("");
+  const [rate, setRate] = useState("");
+  const [description, setDescription] = useState("");
   const [gatePassOptions, setGatePassOptions] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -88,66 +99,82 @@ const GRN = () => {
   const [date, setDate] = useState("");
   const [gatePassIn, setGatePassIn] = useState("");
   const [supplier, setSupplier] = useState("");
-  const [address, setAddress] = useState("");
-  const [phone, setPhone] = useState("");
-  const [itemsList, setItemsList] = useState([]);
-  const [item, setItem] = useState("");
-  const [qty, setQty] = useState("");
-  const [description, setDescription] = useState("");
   const [isEnable, setIsEnable] = useState(true);
   const [isView, setIsView] = useState(false);
   const [editingGrn, setEditingGrn] = useState(null);
   const [selectedGrn, setSelectedGrn] = useState(null);
   const sliderRef = useRef(null);
   const [nextGRNId, setNextGrnId] = useState("001");
-  const [rate, setRate] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [discount, setDiscount] = useState(0);
+
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
-  // Handle adding items to the table in the form
-  const handleAddItem = async () => {
-    if (!item || !description) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "⚠️ Please select an item and enter description.",
-        confirmButtonColor: "#d33",
-      });
-      return;
-    }
 
+  // 🔹 Fetch Salesman List
+  const fetchSalesmen = useCallback(async () => {
     try {
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/qualityCheck/${gatePassIn}`,
-        {
-          itemId: item,
-          description: description,
-        },
-        { headers }
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/employees`
       );
-
-      const selectedOption = itemOptions.find((opt) => opt._id === item);
-      const newItem = {
-        item: selectedOption?.itemName || "",
-        qty: selectedOption?.quantity || 0,
-        description,
-      };
-
-      setItemsList([...itemsList, newItem]);
-      setItem("");
-      setQty("");
-      setDescription("");
+      setSalesmanList(res.data || []);
     } catch (error) {
-      console.error("Error adding item:", error);
-      Swal.fire("Error!", "Failed to add item.", "error");
+      console.error("Error fetching salesmen:", error);
+      toast.error("Failed to load salesmen");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
+  // 🔹 Fetch Item Options
+  const fetchItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
+      );
+      setItemOptions(res.data || []);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      toast.error("Failed to load items");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSalesmen();
+    fetchItems();
+  }, [fetchSalesmen, fetchItems]);
+
+  // 🔹 Handle Salesman Select
+  const handleSalesmanChange = (e) => {
+    const salesmanId = e.target.value;
+    setSelectedSalesman(salesmanId);
+    const selected = salesmanList.find((s) => s._id === salesmanId);
+    if (selected) {
+      setBalance(selected.recoveryBalance || 0);
+      setPhone(selected.mobile || "N/A");
+      setAddress(selected.address || "N/A");
     }
   };
+
+  const handleItemsChange = (e) => {
+    const itemId = e.target.value;
+    setItem(itemId);
+
+    const selected = itemOptions.find((opt) => opt._id === itemId);
+    if (selected) {
+      setRate(selected.purchase || 0); // ✅ auto set rate from purchase field
+    }
+  };
+
+
+
+
 
   // Fetch gate pass options
   const fetchGatePassOptions = useCallback(async () => {
@@ -621,18 +648,30 @@ const GRN = () => {
                       Supplier <span className="text-red-500">*</span>
                     </label>
                     <select
-                      type="text"
-                      value={supplier}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                      placeholder="Enter supplier name"
+                      value={selectedSalesman}
+                      onChange={handleSalesmanChange}
+                      className="w-full p-3 border rounded-md focus:ring-2 focus:ring-newPrimary"
                     >
-                      <option value="">Select Supplier</option>
-                      {/* {suppliers.map((supplier) => (
-                        <option key={supplier._id} value={supplier._id}>
-                          {supplier.name}
+                      <option value="">Select Salesman</option>
+                      {salesmanList.map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.employeeName}
                         </option>
-                      ))} */}
+                      ))}
                     </select>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-gray-700 font-medium mb-2">
+                      Balance <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={balance}
+                      readOnly
+                      disabled
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                      placeholder="Enter phone number"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <label className="block text-gray-700 font-medium mb-2">
@@ -664,126 +703,119 @@ const GRN = () => {
                   </div>
                 </div>
 
+                {/* items section */}
                 <div className="space-y-4 border p-4 rounded-lg bg-gray-50">
                   <div className="flex gap-4">
+                    {/* Item Dropdown */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Item
-                      </label>
+                      <label className="block text-gray-700 font-medium mb-2">Item</label>
                       <select
                         value={item}
-                        onChange={(e) => {
-                          const selectedId = e.target.value;
-                          setItem(selectedId);
-                          const selectedOption = itemOptions.find(
-                            (opt) => opt._id === selectedId
-                          );
-                          if (selectedOption) {
-                            setQty(selectedOption.quantity || "");
-                          }
-                        }}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                        onChange={handleItemsChange}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                       >
+
                         <option value="">Select Item</option>
                         {itemOptions.map((opt) => (
                           <option key={opt._id} value={opt._id}>
-                            {opt.itemName}
+                            {opt.itemName} ({opt.itemUnit?.unitName})
                           </option>
                         ))}
                       </select>
                     </div>
+
+                    {/* Rate */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Quantity
-                      </label>
+                      <label className="block text-gray-700 font-medium mb-2">Rate</label>
+                      <input
+                        type="number"
+                        value={rate}
+                        onChange={(e) => setRate(parseFloat(e.target.value) || 0)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                        placeholder="Enter rate"
+                      />
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-gray-700 font-medium mb-2">Quantity</label>
                       <input
                         type="number"
                         value={qty}
-                        readOnly
-                        disabled
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary bg-gray-100"
+                        onChange={(e) => setQty(parseFloat(e.target.value) || 0)}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                         placeholder="Enter quantity"
                         min="1"
                       />
                     </div>
+
+                    {/* Total (auto calc) */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Rate
-                      </label>
+                      <label className="block text-gray-700 font-medium mb-2">Total</label>
                       <input
-                        type="text"
-                        value={rate}
-                        onChange={(e) => setRate(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter rate"
+                        type="number"
+                        value={qty && rate ? qty * rate : ""}
+                        readOnly
+                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-100"
+                        placeholder="Auto Total"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">
-                        Description
-                      </label>
-                      <input
-                        type="text"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                        placeholder="Enter description"
-                      />
-                    </div>
+
+                    {/* Add Button */}
                     <div className="flex items-end">
                       <button
                         type="button"
-                        onClick={handleAddItem}
+                        onClick={() => {
+                          if (!item || !qty || !rate) {
+                            toast.error("Please fill all fields");
+                            return;
+                          }
+
+                          const selectedItem = itemOptions.find((opt) => opt._id === item);
+                          const total = qty * rate;
+
+                          const newItem = {
+                            item: selectedItem?.itemName || "Unknown",
+                            qty,
+                            rate,
+                            total,
+                          };
+
+                          setItemsList((prev) => [...prev, newItem]);
+                          setItem("");
+                          setQty("");
+                          setRate("");
+                        }}
+
                         className="w-20 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
                       >
                         + Add
                       </button>
                     </div>
                   </div>
+
+                  {/* Items Table */}
                   {itemsList.length > 0 && (
                     <div className="overflow-x-auto">
                       <div className="border border-gray-200 rounded-lg overflow-hidden">
                         <table className="w-full border-collapse">
                           <thead className="bg-gray-100 text-gray-600 text-sm">
                             <tr>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Sr #
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Item
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Qty
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Rate
-                              </th>
-                              <th className="px-4 py-2 border border-gray-300">
-                                Description
-                              </th>
+                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
+                              <th className="px-4 py-2 border border-gray-300">Item</th>
+                              <th className="px-4 py-2 border border-gray-300">Qty</th>
+                              <th className="px-4 py-2 border border-gray-300">Rate</th>
+                              <th className="px-4 py-2 border border-gray-300">Total</th>
                             </tr>
                           </thead>
                           <tbody className="text-gray-700 text-sm">
-                            {itemsList.map((item, idx) => (
-                              <tr
-                                key={idx}
-                                className="hover:bg-gray-50 text-center"
-                              >
-                                <td className="px-4 py-2 border border-gray-300 text-center">
-                                  {idx + 1}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.item}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300 text-center">
-                                  {item.qty}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.rate}
-                                </td>
-                                <td className="px-4 py-2 border border-gray-300">
-                                  {item.description}
-                                </td>
+                            {itemsList.map((it, idx) => (
+                              <tr key={idx} className="hover:bg-gray-50 text-center">
+                                <td className="px-4 py-2 border border-gray-300">{idx + 1}</td>
+                                <td className="px-4 py-2 border border-gray-300">{it.item}</td>
+                                <td className="px-4 py-2 border border-gray-300">{it.qty}</td>
+                                <td className="px-4 py-2 border border-gray-300">{it.rate}</td>
+                                <td className="px-4 py-2 border border-gray-300">{it.total}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -791,7 +823,61 @@ const GRN = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Summary Section */}
+                  {itemsList.length > 0 && (
+                    <div className="mt-4 border-t pt-4 flex justify-between items-start text-sm text-gray-700">
+                      {/* LEFT SIDE: Total Items + Total Qty */}
+                      <div>
+                        <p className="font-semibold">
+                          Total Items:{" "}
+                          <span className="font-normal">{itemsList.length}</span>
+                        </p>
+                        <p className="font-semibold">
+                          Total Qty:{" "}
+                          <span className="font-normal">
+                            {itemsList.reduce((sum, i) => sum + i.qty, 0)}
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* RIGHT SIDE: Total Amount + Discount + Payable */}
+                      <div className="text-right">
+                        <p className="font-semibold">
+                          Total Amount:{" "}
+                          <span className="font-normal">
+                            {itemsList
+                              .reduce((sum, i) => sum + i.total, 0)
+                              .toLocaleString()}
+                          </span>
+                        </p>
+
+                        <div className="flex items-center justify-end gap-2 mt-1">
+                          <label className="font-semibold">Discount:</label>
+                          <input
+                            type="number"
+                            value={discount}
+                            onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                            className="w-28 p-2 border rounded-md text-right"
+                            placeholder="0"
+                          />
+                        </div>
+
+                        <p className="font-semibold mt-1">
+                          Payable:{" "}
+                          <span className="font-bold text-green-600">
+                            {(
+                              itemsList.reduce((sum, i) => sum + i.total, 0) -
+                              (discount || 0)
+                            ).toLocaleString()}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
+
 
                 <button
                   type="submit"
@@ -801,8 +887,8 @@ const GRN = () => {
                   {loading
                     ? "Saving..."
                     : editingGrn
-                    ? "Update GRN"
-                    : "Save GRN"}
+                      ? "Update GRN"
+                      : "Save GRN"}
                 </button>
               </form>
             </div>
