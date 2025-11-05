@@ -290,6 +290,104 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   win.print();
 };
 
+export const handleDateWisePrint = (ledgerEntries = []) => {
+  if (!ledgerEntries.length) return;
+
+  const firstEntry = ledgerEntries[0];
+
+  // 🧮 Totals
+  const totalAmount = ledgerEntries.reduce(
+    (sum, e) => sum + (parseFloat(e.totalAmount) || 0),
+    0
+  );
+
+  const win = window.open("", "", "width=900,height=700");
+  win.document.write(`
+    <html>
+      <head>
+        <title>DateWise Ledger Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1, h2, p { margin: 0; text-align: center; }
+          h1 { font-size: 22px; font-weight: bold; }
+          h2 { margin-top: 8px; text-decoration: underline; }
+          p { font-size: 14px; color: #555; }
+          hr { border: none; border-top: 1px solid #aaa; margin: 10px 0 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th, td { border: 1px solid #999; padding: 6px; text-align: center; }
+          th { background: #f2f2f2; }
+          tfoot td { font-weight: bold; background: #fafafa; }
+          .note { font-size: 11px; color: #777; margin-top: 20px; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>Distribution System Pvt. Ltd.</h1>
+        <p>Mall of Lahore, Cantt</p>
+        <p>Phone: 0318-4486979</p>
+        <hr />
+        <h2>Supplier GRN Report</h2>
+
+        <div style="margin-bottom:10px; font-size:13px;">
+          <b>Date:</b> ${new Date().toLocaleDateString()}<br/>
+          <b>Supplier:</b> ${firstEntry.SupplierName || "-"}<br/>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Date</th>
+              <th>GRN ID</th>
+              <th>Item(s)</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ledgerEntries
+              .map(
+                (entry, i) => {
+                  const item = entry.products?.[0]?.item || "-";
+                  const qty = entry.products?.[0]?.qty || 0;
+                  const rate = entry.products?.[0]?.rate || 0;
+                  const total = entry.totalAmount || 0;
+                  const formattedDate = new Date(entry.grnDate).toLocaleDateString("en-GB");
+
+                  return `
+                    <tr>
+                      <td>${i + 1}</td>
+                      <td>${formattedDate}</td>
+                      <td>${entry.grnId || "-"}</td>
+                      <td>${item}</td>
+                      <td>${qty}</td>
+                      <td>${rate.toLocaleString()}</td>
+                      <td>${total.toLocaleString()}</td>
+                    </tr>`;
+                }
+              )
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="6" style="text-align:right;">Total Amount:</td>
+              <td>${totalAmount.toLocaleString()}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <p class="note">
+          This is a system-generated supplier GRN report and does not require a signature.
+        </p>
+      </body>
+    </html>
+  `);
+
+  win.document.close();
+  win.print();
+};
+
+
 
 
 export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
