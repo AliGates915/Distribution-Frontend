@@ -54,9 +54,15 @@ const GRN = () => {
       setSalesmanList(res.data || []);
     } catch (error) {
       console.error("Error fetching salesmen:", error);
-      toast.error("Failed to load salesmen");
+      setTimeout(() => {
+        toast.error("Failed to load salesmen");
+      }, 2000);
+      
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+      
     }
   }, []);
 
@@ -72,9 +78,12 @@ const GRN = () => {
       console.error("Error fetching items:", error);
       setTimeout(() => {
         toast.error("Failed to load items");
-      }, 2000);
+      }, 3000);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+         setLoading(false);
+      }, 2000);
+     
     }
   }, []);
 
@@ -140,9 +149,12 @@ const GRN = () => {
       console.error("Failed to fetch GRNs:", error);
       setTimeout(() => {
         toast.error(error.response?.data?.error || "Failed to fetch GRNs.");
-      }, 2000);
+      }, 3000);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+         setLoading(false);
+      }, 3000);
+     
     }
   }, []);
 
@@ -150,10 +162,6 @@ const GRN = () => {
     fetchGrns();
   }, [fetchGrns]);
 
-  // Debug grns state
-  useEffect(() => {
-    console.log("Current grns state:", grns);
-  }, [grns]);
 
   // Next GRN ID
   useEffect(() => {
@@ -275,7 +283,7 @@ const GRN = () => {
       totalAmount: payableAmount,
     };
 
-    console.log({ newGrn });
+    // console.log({ newGrn });
 
     // 🔸 Step 4: API call
     try {
@@ -401,13 +409,13 @@ const GRN = () => {
           <div className="overflow-x-auto">
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1200px] w-full align-middle">
-                <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.2fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>Sr</div>
                   <div>GRN ID</div>
                   <div>GRN Date</div>
                   <div>Supplier</div>
                   <div>Total Amount</div>
-                  <div className="text-right">Actions</div>
+                  <div className={`${loading?"":"text-right"}`}>Actions</div>
                 </div>
 
                 <div className="flex flex-col divide-y divide-gray-100">
@@ -415,7 +423,7 @@ const GRN = () => {
                     <TableSkeleton
                       rows={grns.length || 5}
                       cols={6}
-                      className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr]"
+                      className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.2fr]"
                     />
                   ) : grns.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -425,7 +433,7 @@ const GRN = () => {
                     currentRecords.map((grn, i) => (
                       <div
                         key={grn._id}
-                        className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                        className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.2fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
                         <div className="text-gray-600">{indexOfFirstRecord + i + 1}</div>
                         <div className="text-gray-600">{grn.grnId || "-"}</div>
@@ -584,7 +592,7 @@ const GRN = () => {
                     <select
                       value={selectedSalesman}
                       onChange={handleSalesmanChange}
-                      className="w-full p-3 border rounded-md focus:ring-2 focus:ring-newPrimary"
+                      className="w-full outline-none p-3 border rounded-md focus:ring-2 focus:ring-newPrimary"
                     >
                       <option value="">Select Supplier</option>
                       {salesmanList.map((s) => (
@@ -648,7 +656,7 @@ const GRN = () => {
                       <select
                         value={item}
                         onChange={handleItemsChange}
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                        className="w-full outline-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                       >
                         <option value="">Select Item</option>
                         {itemOptions.map((opt) => (
@@ -670,7 +678,7 @@ const GRN = () => {
                         onChange={(e) =>
                           setRate(parseFloat(e.target.value) || 0)
                         }
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                        className="w-full outline-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                         placeholder="Enter rate"
                       />
                     </div>
@@ -683,12 +691,13 @@ const GRN = () => {
                       <input
                         type="number"
                         value={qty}
+                        min={1}
                         onChange={(e) =>
                           setQty(parseFloat(e.target.value) || 0)
                         }
-                        className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                        className="w-full outline-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                         placeholder="Enter quantity"
-                        min="1"
+                       
                       />
                     </div>
 
@@ -701,7 +710,7 @@ const GRN = () => {
                         type="number"
                         value={qty && rate ? qty * rate : ""}
                         readOnly
-                        className="w-full p-3 border border-gray-300 rounded-md bg-gray-100"
+                        className="w-full outline-none p-3 border border-gray-300 rounded-md bg-gray-100"
                         placeholder="Auto Total"
                       />
                     </div>
