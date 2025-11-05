@@ -4,7 +4,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { Printer } from "lucide-react";
-import { handleLedgerPrint } from "../../../../helper/SalesPrintView";
+import { handleDateWisePrint} from "../../../../helper/SalesPrintView";
 
 const DateWisePurchase = () => {
   const [receivables, setReceivables] = useState([]);
@@ -66,7 +66,8 @@ const DateWisePurchase = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = receivables.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(receivables.length / recordsPerPage);
-
+  console.log({currentRecords});
+  
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -78,7 +79,7 @@ const DateWisePurchase = () => {
 
           {receivables.length > 0 && (
             <button
-              onClick={() => handleLedgerPrint(receivables)}
+              onClick={() => handleDateWisePrint(receivables)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
               <Printer size={18} />
