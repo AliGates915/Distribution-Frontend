@@ -63,7 +63,7 @@ const purchaseReports = [
   },
     {
     to: "/admin/report/opening-stock-supplierwise",
-    label: "Opening Stock",
+    label: "Stock Position",
     icon: <Scale strokeWidth={3} size={40} />,
   }
 ];
