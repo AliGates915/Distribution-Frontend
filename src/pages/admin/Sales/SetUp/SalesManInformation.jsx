@@ -118,7 +118,6 @@ const validateSalesmanForm = () => {
  
   if (!address) errors.push("Address is required");
   if (!city) errors.push("City is required");
- if (!gender) errors.push("Gender is required");
 
   return errors;
 };
@@ -470,7 +469,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Address 
+                    Address <span className="text-red-500">*</span>{" "}
                   </label>
                   <input
                     type="text"
@@ -481,7 +480,7 @@ const validateSalesmanForm = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    City 
+                    City <span className="text-red-500">*</span>{" "}
                   </label>
                   <input
                     type="text"
