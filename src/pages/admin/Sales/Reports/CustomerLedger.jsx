@@ -14,7 +14,8 @@ const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
+  const today = new Date().toISOString().split("T")[0];
+  const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
