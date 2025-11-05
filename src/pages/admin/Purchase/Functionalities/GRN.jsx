@@ -182,7 +182,7 @@ const GRN = () => {
   const handleAddClick = () => {
     setEditingGrn(null);
     setGrnId("");
-    setDate(new Date().toISOString().split("T")[0]);
+    setDate(new Date().toLocaleDateString('en-CA'));
     setGatePassIn("");
     setSelectedSalesman(""); // ✅ clear selected supplier dropdown
     setBalance(""); // ✅ clear balance
@@ -578,6 +578,7 @@ const GRN = () => {
                     <input
                       type="date"
                       value={date}
+                      disabled
                       onChange={(e) => setDate(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                       required

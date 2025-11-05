@@ -169,7 +169,7 @@ const OrderTaking = () => {
       setOrderId("ORD-001");
     }
 
-    setOrderDate(new Date().toISOString().split("T")[0]);
+    setOrderDate(new Date().toLocaleDateString('en-CA'));
   }, [orders, editingOrder, isSliderOpen]);
 
   // Auto calculate total
@@ -535,7 +535,7 @@ const OrderTaking = () => {
                 {/* ID and Date */}
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-gray-700 mb-2">Order ID</label>
+                    <label className="block text-gray-700 mb-2">Order ID  <span className="text-red-500">*</span></label> 
                     <input
                       type="text"
                       value={orderId}
@@ -544,7 +544,7 @@ const OrderTaking = () => {
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-gray-700 mb-2">Date</label>
+                    <label className="block text-gray-700 mb-2">Date  <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={orderDate}
@@ -556,7 +556,7 @@ const OrderTaking = () => {
 
                 {/* Salesman */}
                 <div className="w-[400px]">
-                  <label className="block text-gray-700 mb-2">Salesman</label>
+                  <label className="block text-gray-700 mb-2">Salesman  <span className="text-red-500">*</span></label>
                   <select
                     value={salesman}
                     onChange={(e) => setSalesman(e.target.value)}
@@ -577,7 +577,7 @@ const OrderTaking = () => {
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <label className="block text-gray-700 mb-2">
-                        Customer
+                        Customer  <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={customer}
