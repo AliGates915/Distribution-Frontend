@@ -5,8 +5,9 @@ import { LedgerTemplate } from "../../../../helper/LedgerReportTemplate";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import TableSkeleton from "../../Components/Skeleton";
-import { handleLedgerPrint } from "../../../../helper/SalesPrintView";
+import {  handleSupplierLedgerPrint } from "../../../../helper/SalesPrintView";
 import { Printer } from "lucide-react";
+import toast from "react-hot-toast";
 
 const SupplierLedger = () => {
   const [supplierList, setSupplierList] = useState([]);
@@ -26,7 +27,7 @@ const SupplierLedger = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/suppliers/isPending`
+        `${import.meta.env.VITE_API_BASE_URL}/suppliers`
       );
       setSupplierList(response.data?.data || response.data || []);
     } catch (error) {
@@ -38,58 +39,58 @@ const SupplierLedger = () => {
   }, []);
 
   // 2️⃣ FETCH SUPPLIER LEDGER ENTRIES
-  const fetchSupplierLedger = useCallback(async () => {
-    if (!selectedSupplier) return;
+const fetchSupplierLedger = async (supplierId) => {
+  if (!supplierId) return;
 
-    try {
-      setLoading(true);
-      let query = `/supplier-ledger?supplier=${selectedSupplier}`;
-      if (dateFrom && dateTo) {
-        query += `&from=${dateFrom}&to=${dateTo}`;
-      }
-
-      const response = await api.get(query);
-      const transformedData = (response.data?.data || response.data || []).map(
-        (entry) => ({
-          ...entry,
-          Debit: entry.Paid || "0.00", // amount supplier paid
-          Credit: entry.Received || "0.00", // amount received from supplier (if any)
-          SR: entry.SR,
-          ID: entry.ID,
-          Date: entry.Date,
-          SupplierName: entry.SupplierName,
-          Description: entry.Description,
-          Balance: entry.Balance,
-        })
-      );
-
-      setLedgerEntries(transformedData);
-    } catch (error) {
-      console.error("Failed to fetch supplier ledger:", error);
-      Swal.fire("Error", "Failed to load ledger entries", "error");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    let query = `/supplier-ledger?supplier=${supplierId}`;
+    if (dateFrom && dateTo) {
+      query += `&from=${dateFrom}&to=${dateTo}`;
     }
-  }, [selectedSupplier, dateFrom, dateTo]);
+
+    const response = await api.get(query);
+   
+    setLedgerEntries(response.data);
+  } catch (error) {
+    toast.error(error?.response?.data?.error || "Failed to fetch ledger entries");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // INITIAL LOAD
   useEffect(() => {
     fetchSuppliers();
   }, [fetchSuppliers]);
 
-  // REFETCH WHEN FILTER CHANGES
-  useEffect(() => {
-    fetchSupplierLedger();
-    setCurrentPage(1);
-  }, [fetchSupplierLedger]);
+
+  const handleSupplierChange = (e) => {
+  const supplierId = e.target.value;
+  setSelectedSupplier(supplierId);
+
+  if (supplierId) {
+    fetchSupplierLedger(supplierId); // ✅ call API when selected
+  } else {
+    setLedgerEntries([]); // clear table if deselected
+  }
+};
+
+useEffect(() => {
+  if (selectedSupplier && dateFrom && dateTo) {
+    fetchSupplierLedger(selectedSupplier);
+  }
+}, [dateFrom, dateTo]);
+
 
   // 3️⃣ TOTALS
   const totalDebit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Debit) || 0),
+    (sum, e) => sum + (parseFloat(e.Paid) || 0),
     0
   );
   const totalCredit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Credit) || 0),
+    (sum, e) => sum + (parseFloat(e.Received) || 0),
     0
   );
 
@@ -101,6 +102,7 @@ const SupplierLedger = () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+// console.log({ledgerEntries});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -114,7 +116,7 @@ const SupplierLedger = () => {
 
           {ledgerEntries.length > 0 && (
             <button
-              onClick={() => handleLedgerPrint(ledgerEntries)}
+              onClick={() => handleSupplierLedgerPrint(ledgerEntries)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
               <Printer size={18} /> 
@@ -131,7 +133,7 @@ const SupplierLedger = () => {
             </label>
             <select
               value={selectedSupplier}
-              onChange={(e) => setSelectedSupplier(e.target.value)}
+              onChange={(e) => handleSupplierChange(e)} 
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             >
               <option value="">Select Supplier</option>
@@ -193,8 +195,8 @@ const SupplierLedger = () => {
                 <div>Date</div>
                 <div>ID</div>
                 <div>Description</div>
-                <div>Debit</div>
-                <div>Credit</div>
+                <div>Paid</div>
+                <div>Received</div>
                 <div>Balance</div>
               </div>
 
@@ -208,8 +210,8 @@ const SupplierLedger = () => {
                     <div>{entry.Date}</div>
                     <div>{entry.ID || "-"}</div>
                     <div>{entry.Description || "-"}</div>
-                    <div>{entry.Debit || "-"}</div>
-                    <div>{entry.Credit || "-"}</div>
+                    <div>{entry.Paid || "-"}</div>
+                    <div>{entry.Received || "-"}</div>
                     <div>{entry.Balance || "-"}</div>
                   </div>
                 ))}
@@ -219,10 +221,10 @@ const SupplierLedger = () => {
               <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
                 <div className="text-red-600">
-                  Total Debit: {totalDebit.toLocaleString()}
+                  Total Paid: {totalDebit.toLocaleString()}
                 </div>
                 <div className="text-green-600">
-                  Total Credit: {totalCredit.toLocaleString()}
+                  Total Received: {totalCredit.toLocaleString()}
                 </div>
               </div>
             </>

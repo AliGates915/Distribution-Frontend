@@ -92,6 +92,111 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
 
   const firstEntry = ledgerEntries[0];
 
+  // 🧮 Totals
+  const totalQty = ledgerEntries.reduce(
+    (sum, e) => sum + (parseFloat(e.Qty) || 0),
+    0
+  );
+  const totalAmount = ledgerEntries.reduce(
+    (sum, e) => sum + (parseFloat(e.Amount) || 0),
+    0
+  );
+  const totalOverall = ledgerEntries.reduce(
+    (sum, e) => sum + (parseFloat(e.Total) || 0),
+    0
+  );
+
+  // 🪟 Open printable window
+  const win = window.open("", "", "width=900,height=700");
+  win.document.write(`
+    <html>
+      <head>
+        <title>Supplier Wise Purchase Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1, h2, p { margin: 0; text-align: center; }
+          h1 { font-size: 22px; font-weight: bold; }
+          h2 { margin-top: 8px; text-decoration: underline; }
+          p { font-size: 14px; color: #555; }
+          hr { border: none; border-top: 1px solid #aaa; margin: 10px 0 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th, td { border: 1px solid #999; padding: 6px; text-align: center; }
+          th { background: #f2f2f2; }
+          tfoot td { font-weight: bold; background: #fafafa; }
+          .note { font-size: 11px; color: #777; margin-top: 20px; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>Distribution System Pvt. Ltd.</h1>
+        <p>Mall of Lahore, Cantt</p>
+        <p>Phone: 0318-4486979</p>
+        <hr />
+        <h2>Supplier-Wise Purchase Report</h2>
+
+        <div style="margin-bottom:10px; font-size:13px;">
+          <b>Date:</b> ${new Date().toLocaleDateString()}<br/>
+          <b>Supplier:</b> ${firstEntry.SupplierName || "-"}<br/>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Date</th>
+              <th>ID</th>
+              <th>Supplier Name</th>
+              <th>Item</th>
+              <th>Rate</th>
+              <th>Qty</th>
+              <th>Amount</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ledgerEntries
+              .map(
+                (entry, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${entry.Date || "-"}</td>
+                    <td>${entry.ID || "-"}</td>
+                    <td>${entry.SupplierName || "-"}</td>
+                    <td>${entry.Item || "-"}</td>
+                    <td>${parseFloat(entry.Rate || 0).toLocaleString()}</td>
+                    <td>${parseFloat(entry.Qty || 0).toLocaleString()}</td>
+                    <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
+                    <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
+                  </tr>`
+              )
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" style="text-align:right;">Totals:</td>
+              <td>-</td>
+              <td>${totalQty.toLocaleString()}</td>
+              <td>${totalAmount.toLocaleString()}</td>
+              <td>${totalOverall.toLocaleString()}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <p class="note">
+          This is a system-generated supplier-wise purchase report and does not require a signature.
+        </p>
+      </body>
+    </html>
+  `);
+  win.document.close();
+  win.print();
+};
+
+export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
+  if (!ledgerEntries.length) return;
+// console.log({ledgerEntries});
+
+  const firstEntry = ledgerEntries[0];
+
   // Totals
   const totalPaid = ledgerEntries.reduce(
     (sum, e) => sum + (parseFloat(e.Paid) || 0),
@@ -130,11 +235,11 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
         <p>Mall of Lahore, Cantt</p>
         <p>Phone: 0318-4486979</p>
         <hr />
-        <h2>Customer Ledger Report</h2>
+        <h2>Supplier Ledger Report</h2>
 
         <div style="margin-bottom:10px; font-size:13px;">
           <b>Date:</b> ${new Date().toLocaleDateString()}<br/>
-          <b>Customer:</b> ${firstEntry.CustomerName || "-"}<br/>
+          <b>Supplier:</b> ${firstEntry.SupplierName || "-"}<br/>
         </div>
 
         <table>
@@ -184,8 +289,6 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
   win.document.close();
   win.print();
 };
-
-
 
 
 
