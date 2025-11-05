@@ -17,7 +17,7 @@ const AmountReceivables = () => {
     try {
       setLoading(true);
       const response = await api.get(
-        `/customer-ledger/receivables?withZero=${showZero}`
+        `/supplier-ledger/payables?withZero=${showZero}`
       );
       // ✅ API returns "data" inside response.data
       setReceivables(response.data || []);
@@ -128,7 +128,7 @@ const AmountReceivables = () => {
                       className="grid grid-cols-1 lg:grid-cols-3 items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{cust.Customer}</div>
+                      <div>{cust.Supplier}</div>
                       <div>
                         {parseFloat(cust.Balance).toLocaleString("en-PK", {
                           style: "currency",
@@ -159,11 +159,10 @@ const AmountReceivables = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Previous
                     </button>
@@ -172,11 +171,10 @@ const AmountReceivables = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Next
                     </button>
