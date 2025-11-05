@@ -61,6 +61,11 @@ const purchaseReports = [
     label: "Supplierwise Purchase",
     icon: <FaUserTie className="text-4xl" />,
   },
+    {
+    to: "/admin/report/opening-stock-supplierwise",
+    label: "Opening Stock",
+    icon: <Scale strokeWidth={3} size={40} />,
+  }
 ];
 
 // 🔹 Setup

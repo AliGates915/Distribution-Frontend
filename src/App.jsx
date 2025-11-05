@@ -69,6 +69,7 @@ import SalesManInformation from "./pages/admin/Sales/SetUp/SalesManInformation.j
 import SupplierList from "./pages/admin/Sales/SetUp/Supplier.jsx";
 import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
+import OpeningStockSupplierwise from "./pages/admin/Purchase/Reports/OpeningStockSupplierwise.jsx";
 import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 
 function AppContent() {
@@ -121,7 +122,8 @@ function AppContent() {
               path="report/productwise-orders"
               element={<ProductWiseOrder />}
             />
- <Route path="report/opening-stock" element={<OpeningStock />} />
+            <Route path="report/opening-stock" element={<OpeningStock />} />
+            <Route path="report/opening-stock-supplierwise" element={<OpeningStockSupplierwise />} />
             <Route
               path="report/customerwise-orders"
               element={<CustomerwiseOrders />}
@@ -198,7 +200,7 @@ function AppContent() {
               path="accounts/expense-voucher"
               element={<ExpenseVoucher />}
             />
-           
+
 
             {/* Reports */}
             <Route path="accounts/bank-ledger" element={<BankLedger />} />
