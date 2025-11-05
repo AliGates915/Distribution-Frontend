@@ -325,7 +325,7 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
         <p>Mall of Lahore, Cantt</p>
         <p>Phone: 0318-4486979</p>
         <hr />
-        <h2>Supplier GRN Report</h2>
+        <h2>DateWise Ledger Report</h2>
 
         <div style="margin-bottom:10px; font-size:13px;">
           <b>Date:</b> ${new Date().toLocaleDateString()}<br/>
@@ -377,7 +377,7 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
         </table>
 
         <p class="note">
-          This is a system-generated supplier GRN report and does not require a signature.
+          This is a system-generated Date wise Ledger and does not require a signature.
         </p>
       </body>
     </html>
