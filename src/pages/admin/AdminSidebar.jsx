@@ -31,11 +31,11 @@ import { IoBagCheckSharp } from "react-icons/io5";
 const links = [
   { to: "/admin", label: "Dashboard", icon: <RiDashboardFill /> },
 
-  // {
-  //   to: "/admin/purchase",
-  //   label: "Purchase ",
-  //   icon: <IoBagCheckSharp />,
-  // },
+  {
+    to: "/admin/purchase",
+    label: "Purchase ",
+    icon: <IoBagCheckSharp />,
+  },
   {
     to: "/admin/sales",
     label: "Sales ",
