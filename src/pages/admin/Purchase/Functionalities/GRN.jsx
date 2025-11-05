@@ -1,85 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen, Trash2 } from "lucide-react";
+import { Eye, SquarePen, Trash2, X } from "lucide-react";
 import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import ViewModel from "../../../../helper/ViewModel";
-
-// Static data for fallback
-const staticGrns = [
-  {
-    _id: "1",
-    grnId: "GRN-001",
-    qcId: "QC-001",
-    supplier: {
-      supplierName: "ABC Suppliers",
-      address: "123 Main St, City",
-      phoneNumber: "+1234567890",
-    },
-    date: "2025-10-01",
-    items: [
-      {
-        itemName: "Widget A",
-        quantity: 10,
-        description: "High-quality widget",
-      },
-      { itemName: "Widget B", quantity: 5, description: "Standard widget" },
-    ],
-    isEnable: true,
-  },
-  {
-    _id: "2",
-    grnId: "GRN-002",
-    qcId: "QC-002",
-    supplier: {
-      supplierName: "XYZ Corp",
-      address: "456 Oak Ave, Town",
-      phoneNumber: "+0987654321",
-    },
-    date: "2025-10-05",
-    items: [
-      { itemName: "Gadget X", quantity: 20, description: "Premium gadget" },
-    ],
-    isEnable: true,
-  },
-];
-
-const staticGatePassOptions = [
-  {
-    _id: "qc1",
-    qcId: "QC-001",
-    supplier: {
-      supplierName: "ABC Suppliers",
-      address: "123 Main St, City",
-      phoneNumber: "+1234567890",
-    },
-    items: [
-      { _id: "item1", itemName: "Widget A", quantity: 10 },
-      { _id: "item2", itemName: "Widget B", quantity: 5 },
-    ],
-  },
-  {
-    _id: "qc2",
-    qcId: "QC-002",
-    supplier: {
-      supplierName: "XYZ Corp",
-      address: "456 Oak Ave, Town",
-      phoneNumber: "+0987654321",
-    },
-    items: [{ _id: "item3", itemName: "Gadget X", quantity: 20 }],
-  },
-];
-
-const staticItemOptions = [
-  { _id: "item1", itemName: "Widget A", quantity: 10 },
-  { _id: "item2", itemName: "Widget B", quantity: 5 },
-  { _id: "item3", itemName: "Gadget X", quantity: 20 },
-];
+import { ScaleLoader } from "react-spinners";
 
 const GRN = () => {
   const [grns, setGrns] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
+
   const [records, setRecords] = useState([]);
   const [salesmanList, setSalesmanList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
@@ -108,16 +42,14 @@ const GRN = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [discount, setDiscount] = useState(0);
 
-
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-
 
   // 🔹 Fetch Salesman List
   const fetchSalesmen = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/employees`
+        `${import.meta.env.VITE_API_BASE_URL}/suppliers`
       );
       setSalesmanList(res.data || []);
     } catch (error) {
@@ -127,7 +59,6 @@ const GRN = () => {
       setLoading(false);
     }
   }, []);
-
 
   // 🔹 Fetch Item Options
   const fetchItems = useCallback(async () => {
@@ -139,7 +70,9 @@ const GRN = () => {
       setItemOptions(res.data || []);
     } catch (error) {
       console.error("Error fetching items:", error);
-      toast.error("Failed to load items");
+      setTimeout(() => {
+        toast.error("Failed to load items");
+      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -156,9 +89,9 @@ const GRN = () => {
     setSelectedSalesman(salesmanId);
     const selected = salesmanList.find((s) => s._id === salesmanId);
     if (selected) {
-      setBalance(selected.recoveryBalance || 0);
-      setPhone(selected.mobile || "N/A");
-      setAddress(selected.address || "N/A");
+      setBalance(selected.payableBalance || 0);
+      setPhone(selected.phoneNumber || "-");
+      setAddress(selected.address || "-");
     }
   };
 
@@ -171,66 +104,6 @@ const GRN = () => {
       setRate(selected.purchase || 0); // ✅ auto set rate from purchase field
     }
   };
-
-
-
-
-
-  // Fetch gate pass options
-  const fetchGatePassOptions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/qualityCheck/supplierQC`,
-        { headers }
-      );
-      setGatePassOptions(res.data.length ? res.data : staticGatePassOptions);
-    } catch (error) {
-      console.error("Failed to fetch gate pass options:", error);
-      toast.error("Failed to fetch gate pass options. Using static data.");
-      setGatePassOptions(staticGatePassOptions);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchGatePassOptions();
-  }, [fetchGatePassOptions]);
-
-  // Fetch item options
-  const fetchItemOptions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { token } = userInfo || {};
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/items`,
-        {
-          headers,
-        }
-      );
-      setItemOptions(res.data.length ? res.data : staticItemOptions);
-    } catch (error) {
-      console.error("Failed to fetch items:", error);
-      toast.error("Failed to fetch items. Using static data.");
-      setItemOptions(staticItemOptions);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchItemOptions();
-  }, [fetchItemOptions]);
 
   // Fetch GRNs
   const fetchGrns = useCallback(async () => {
@@ -245,39 +118,29 @@ const GRN = () => {
         headers,
       });
       console.log("GRN API Response:", res.data); // Debug API response
-      const transformedGrns = (res.data.length ? res.data : staticGrns).map(
-        (grn) => ({
-          _id: grn._id,
-          grnId: grn.grnId || "N/A",
-          qcId: grn.qcId || "N/A",
-          supplier: {
-            supplierName: grn.supplier?.supplierName || "N/A",
-            address: grn.supplier?.address || "N/A",
-            phoneNumber: grn.supplier?.phoneNumber || "N/A",
-          },
-          date: grn.date || null,
-          items: grn.items || [],
-          isEnable: grn.isEnable !== undefined ? grn.isEnable : true,
-        })
-      );
+      const transformedGrns = res.data.data.map((grn) => ({
+        _id: grn._id,
+        grnId: grn.grnId || "-",
+        grnDate: formatDate(grn.grnDate) || "-",
+        supplier: {
+          supplierName: grn.Supplier?.supplierName || "-",
+        },
+        items:
+          grn.products?.map((p) => ({
+            item: p.item,
+            qty: p.qty,
+            rate: p.rate,
+            total: p.total,
+          })) || [],
+        totalAmount: grn.totalAmount || 0, // ✅ added totalAmount
+      }));
+
       setGrns(transformedGrns);
     } catch (error) {
       console.error("Failed to fetch GRNs:", error);
-      toast.error("Failed to fetch GRNs. Using static data.");
-      const transformedGrns = staticGrns.map((grn) => ({
-        _id: grn._id,
-        grnId: grn.grnId || "N/A",
-        qcId: grn.qcId || "N/A",
-        supplier: {
-          supplierName: grn.supplier?.supplierName || "N/A",
-          address: grn.supplier?.address || "N/A",
-          phoneNumber: grn.supplier?.phoneNumber || "N/A",
-        },
-        date: grn.date || null,
-        items: grn.items || [],
-        isEnable: grn.isEnable !== undefined ? grn.isEnable : true,
-      }));
-      setGrns(transformedGrns);
+      setTimeout(() => {
+        toast.error(error.response?.data?.error || "Failed to fetch GRNs.");
+      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -311,70 +174,110 @@ const GRN = () => {
   const handleAddClick = () => {
     setEditingGrn(null);
     setGrnId("");
-    setDate("");
+    setDate(new Date().toISOString().split("T")[0]);
     setGatePassIn("");
-    setSupplier("");
-    setAddress("");
-    setPhone("");
+    setSelectedSalesman(""); // ✅ clear selected supplier dropdown
+    setBalance(""); // ✅ clear balance
+    setPhone(""); // ✅ clear phone
+    setAddress(""); // ✅ clear address
     setItemsList([]);
     setItem("");
     setQty("");
+    setRate("");
     setDescription("");
+    setDiscount(0);
     setIsEnable(true);
-    setDate(new Date().toISOString().split("T")[0]);
     setIsSliderOpen(true);
   };
 
   const handleEditClick = (grn) => {
+    console.log(grn);
+
+    // ✅ Fix date formatting (already correct)
+    const formattedDate = (() => {
+      const parts = grn.grnDate.split("-");
+      const day = parts[0];
+      const month = new Date(`${parts[1]} 1, ${parts[2]}`).getMonth() + 1;
+      const year = parts[2];
+      return `${year}-${month.toString().padStart(2, "0")}-${day.padStart(
+        2,
+        "0"
+      )}`;
+    })();
+
     setEditingGrn(grn);
     setGrnId(grn.grnId);
-    setDate(formatDate(grn.date));
-    const selectedGatePass = gatePassOptions.find((gp) => gp.qcId === grn.qcId);
-    setGatePassIn(selectedGatePass?._id || "");
+    setDate(formattedDate);
+
+    // ✅ Supplier section (unchanged)
+    const selectedSupplier = salesmanList.find(
+      (s) => s.supplierName === grn.supplier?.supplierName
+    );
+    setSelectedSalesman(selectedSupplier?._id || "");
     setSupplier(grn.supplier?.supplierName || "");
-    setAddress(grn.supplier?.address || "");
-    setPhone(grn.supplier?.phoneNumber || "");
+    setAddress(selectedSupplier?.address || "-");
+    setPhone(selectedSupplier?.phoneNumber || "-");
+    setBalance(selectedSupplier?.payableBalance || 0);
+
+    // ✅ Items section (unchanged)
     setItemsList(
       (grn.items || []).map((it) => ({
-        item: it.itemName,
-        qty: it.quantity,
-        description: it.description,
+        item: it.item,
+        qty: it.qty,
+        rate: it.rate || 0,
+        total: it.total || it.qty * (it.rate || 0),
       }))
     );
-    setIsEnable(grn.isEnable);
+
+    // ✅ This line ensures totalAmount (3000) appears correctly in summary section
+    setDiscount(
+      (grn.items || []).reduce((sum, i) => sum + i.total, 0) -
+        (grn.totalAmount || 0)
+    );
+
     setIsSliderOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!date || !gatePassIn) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "⚠️ Please fill in Date and Gate Pass QC.",
-        confirmButtonColor: "#d33",
-      });
+    if (!selectedSalesman) {
+      toast.error("Please select a salesman.");
       return;
     }
 
+    // 🔸 Step 2: Validate items list
+    if (itemsList.length === 0) {
+      toast.error("Please add at least one item.");
+      return;
+    }
+    setIsSaving(true);
+    // 🔸 Step 3: Build request payload
     const { token } = userInfo || {};
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
 
+    // 🧮 Calculate totals
+    const grossTotal = itemsList.reduce((sum, i) => sum + i.total, 0);
+    const payableAmount = grossTotal - (discount || 0);
+
     const newGrn = {
-      grnId: editingGrn ? grnId : `GRN-${nextGRNId}`,
-      date,
-      qcId: gatePassIn,
-      items: itemsList.map((item) => ({
-        itemName: item.item,
-        quantity: item.qty,
-        description: item.description,
+      grnDate: date,
+      supplierId: selectedSalesman,
+      products: itemsList.map((item) => ({
+        item: item.item,
+        qty: item.qty,
+        rate: item.rate,
+        total: item.total,
       })),
+      totalAmount: payableAmount,
     };
 
+    console.log({ newGrn });
+
+    // 🔸 Step 4: API call
     try {
       if (editingGrn) {
         await axios.put(
@@ -393,20 +296,20 @@ const GRN = () => {
       fetchGrns();
       setIsSliderOpen(false);
       setItemsList([]);
+      setDiscount(0);
     } catch (error) {
       console.error("Error saving GRN:", error);
-      Swal.fire("Error!", "Something went wrong while saving.", "error");
+      toast.error(error.response?.data?.error || "Failed to save GRN.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return "N/A";
-    const parsed = new Date(date);
-    if (isNaN(parsed.getTime())) return "Invalid Date";
-    const day = String(parsed.getDate()).padStart(2, "0");
-    const month = String(parsed.getMonth() + 1).padStart(2, "0");
-    const year = parsed.getFullYear();
-    return `${year}-${month}-${day}`;
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
   };
 
   const handleDelete = async (id) => {
@@ -466,25 +369,15 @@ const GRN = () => {
     setSelectedGrn(grn);
     setIsView(true);
   };
-
-  const handleGatePassChange = (e) => {
-    const selectedId = e.target.value;
-    setGatePassIn(selectedId);
-    setItemsList([]);
-    const selectedQC = gatePassOptions.find((gp) => gp._id === selectedId);
-    if (selectedQC) {
-      setSupplier(selectedQC.supplier?.supplierName || "");
-      setAddress(selectedQC.supplier?.address || "");
-      setPhone(selectedQC.supplier?.phoneNumber || "");
-      const qcItems =
-        selectedQC.items?.map((it) => ({
-          _id: it._id,
-          itemName: it.itemName,
-          quantity: it.quantity,
-        })) || [];
-      setItemOptions(qcItems);
-    }
+  const handleRemoveItem = (index) => {
+    setItemsList((prev) => prev.filter((_, i) => i !== index));
+    setDiscount(0); // ✅ reset discount after removing an item
   };
+  // Pagination calculations
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = grns.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(grns.length / recordsPerPage);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -508,57 +401,52 @@ const GRN = () => {
           <div className="overflow-x-auto">
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               <div className="inline-block min-w-[1200px] w-full align-middle">
-                <div className="hidden lg:grid grid-cols-7 gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                  <div>Sr</div>
                   <div>GRN ID</div>
-                  <div>Gate Pass QC</div>
+                  <div>GRN Date</div>
                   <div>Supplier</div>
-                  <div>Address</div>
-                  <div>Phone</div>
-                  <div>Date</div>
+                  <div>Total Amount</div>
                   <div className="text-right">Actions</div>
                 </div>
 
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
                     <TableSkeleton
-                      rows={5}
-                      cols={7}
-                      className="lg:grid-cols-7"
+                      rows={grns.length || 5}
+                      cols={6}
+                      className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr]"
                     />
                   ) : grns.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
                       No GRNs found.
                     </div>
                   ) : (
-                    grns.map((grn) => (
+                    currentRecords.map((grn, i) => (
                       <div
                         key={grn._id}
-                        className="grid grid-cols-1 lg:grid-cols-7 items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                        className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
-                        <div className="font-medium text-gray-900">
-                          {grn.grnId || "N/A"}
-                        </div>
-                        <div className="text-gray-600">{grn.qcId || "N/A"}</div>
+                        <div className="text-gray-600">{indexOfFirstRecord + i + 1}</div>
+                        <div className="text-gray-600">{grn.grnId || "-"}</div>
                         <div className="text-gray-600">
-                          {grn.supplier?.supplierName || "N/A"}
+                          {grn.grnDate || "-"}
                         </div>
                         <div className="text-gray-600">
-                          {grn.supplier?.address || "N/A"}
+                          {grn.supplier?.supplierName || "-"}
                         </div>
-                        <div className="text-gray-600">
-                          {grn.supplier?.phoneNumber || "N/A"}
-                        </div>
+
                         <div className="text-gray-500">
-                          {formatDate(grn.date)}
+                          {grn.totalAmount || "-"}
                         </div>
                         <div className="flex justify-end gap-3">
-                          <button
+                          {/* <button
                             onClick={() => handleEditClick(grn)}
                             className="py-1 text-sm rounded text-blue-600"
                             title="Edit"
                           >
                             <SquarePen size={18} />
-                          </button>
+                          </button> */}
                           <button
                             onClick={() => handleDelete(grn._id)}
                             className="py-1 text-sm text-red-600"
@@ -566,17 +454,58 @@ const GRN = () => {
                           >
                             <Trash2 size={18} />
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleView(grn)}
                             className="text-amber-600 hover:underline"
                           >
                             <Eye size={18} />
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     ))
                   )}
                 </div>
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                    <p className="text-sm text-gray-600">
+                      Showing {indexOfFirstRecord + 1} to{" "}
+                      {Math.min(indexOfLastRecord, grns.length)} of{" "}
+                      {grns.length} GRNs
+                    </p>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Previous
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -586,8 +515,13 @@ const GRN = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
+              {isSaving && (
+                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingGrn ? "Update GRN" : "Add a New GRN"}
@@ -652,10 +586,10 @@ const GRN = () => {
                       onChange={handleSalesmanChange}
                       className="w-full p-3 border rounded-md focus:ring-2 focus:ring-newPrimary"
                     >
-                      <option value="">Select Salesman</option>
+                      <option value="">Select Supplier</option>
                       {salesmanList.map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.employeeName}
+                          {s.supplierName}
                         </option>
                       ))}
                     </select>
@@ -708,13 +642,14 @@ const GRN = () => {
                   <div className="flex gap-4">
                     {/* Item Dropdown */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">Item</label>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Item
+                      </label>
                       <select
                         value={item}
                         onChange={handleItemsChange}
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                       >
-
                         <option value="">Select Item</option>
                         {itemOptions.map((opt) => (
                           <option key={opt._id} value={opt._id}>
@@ -726,11 +661,15 @@ const GRN = () => {
 
                     {/* Rate */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">Rate</label>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Rate
+                      </label>
                       <input
                         type="number"
                         value={rate}
-                        onChange={(e) => setRate(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          setRate(parseFloat(e.target.value) || 0)
+                        }
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                         placeholder="Enter rate"
                       />
@@ -738,11 +677,15 @@ const GRN = () => {
 
                     {/* Quantity */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">Quantity</label>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Quantity
+                      </label>
                       <input
                         type="number"
                         value={qty}
-                        onChange={(e) => setQty(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          setQty(parseFloat(e.target.value) || 0)
+                        }
                         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                         placeholder="Enter quantity"
                         min="1"
@@ -751,7 +694,9 @@ const GRN = () => {
 
                     {/* Total (auto calc) */}
                     <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium mb-2">Total</label>
+                      <label className="block text-gray-700 font-medium mb-2">
+                        Total
+                      </label>
                       <input
                         type="number"
                         value={qty && rate ? qty * rate : ""}
@@ -771,7 +716,9 @@ const GRN = () => {
                             return;
                           }
 
-                          const selectedItem = itemOptions.find((opt) => opt._id === item);
+                          const selectedItem = itemOptions.find(
+                            (opt) => opt._id === item
+                          );
                           const total = qty * rate;
 
                           const newItem = {
@@ -785,8 +732,8 @@ const GRN = () => {
                           setItem("");
                           setQty("");
                           setRate("");
+                          setDiscount(0);
                         }}
-
                         className="w-20 h-12 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition"
                       >
                         + Add
@@ -801,21 +748,57 @@ const GRN = () => {
                         <table className="w-full border-collapse">
                           <thead className="bg-gray-100 text-gray-600 text-sm">
                             <tr>
-                              <th className="px-4 py-2 border border-gray-300">Sr #</th>
-                              <th className="px-4 py-2 border border-gray-300">Item</th>
-                              <th className="px-4 py-2 border border-gray-300">Qty</th>
-                              <th className="px-4 py-2 border border-gray-300">Rate</th>
-                              <th className="px-4 py-2 border border-gray-300">Total</th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Sr #
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Item
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Qty
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Rate
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Total
+                              </th>
+                              <th className="px-4 py-2 border border-gray-300">
+                                Remove
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="text-gray-700 text-sm">
                             {itemsList.map((it, idx) => (
-                              <tr key={idx} className="hover:bg-gray-50 text-center">
-                                <td className="px-4 py-2 border border-gray-300">{idx + 1}</td>
-                                <td className="px-4 py-2 border border-gray-300">{it.item}</td>
-                                <td className="px-4 py-2 border border-gray-300">{it.qty}</td>
-                                <td className="px-4 py-2 border border-gray-300">{it.rate}</td>
-                                <td className="px-4 py-2 border border-gray-300">{it.total}</td>
+                              <tr
+                                key={idx}
+                                className="hover:bg-gray-50 text-center"
+                              >
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {idx + 1}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {it.item}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {it.qty}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {it.rate}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  {it.total}
+                                </td>
+                                <td className="px-4 py-2 border border-gray-300">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveItem(idx)}
+                                    className="text-red-600 hover:bg-red-100 rounded-full  transition"
+                                    title="Remove Item"
+                                  >
+                                    <X size={18} />
+                                  </button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -831,7 +814,9 @@ const GRN = () => {
                       <div>
                         <p className="font-semibold">
                           Total Items:{" "}
-                          <span className="font-normal">{itemsList.length}</span>
+                          <span className="font-normal">
+                            {itemsList.length}
+                          </span>
                         </p>
                         <p className="font-semibold">
                           Total Qty:{" "}
@@ -857,7 +842,9 @@ const GRN = () => {
                           <input
                             type="number"
                             value={discount}
-                            onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              setDiscount(parseFloat(e.target.value) || 0)
+                            }
                             className="w-28 p-2 border rounded-md text-right"
                             placeholder="0"
                           />
@@ -875,9 +862,7 @@ const GRN = () => {
                       </div>
                     </div>
                   )}
-
                 </div>
-
 
                 <button
                   type="submit"
@@ -887,8 +872,8 @@ const GRN = () => {
                   {loading
                     ? "Saving..."
                     : editingGrn
-                      ? "Update GRN"
-                      : "Save GRN"}
+                    ? "Update GRN"
+                    : "Save GRN"}
                 </button>
               </form>
             </div>
