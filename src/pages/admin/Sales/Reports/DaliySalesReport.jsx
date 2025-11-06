@@ -595,8 +595,8 @@ const DailySalesReport = () => {
                                       key={index}
                                       className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                                     >
-                                      <div>{item?.customerName}</div>
-                                      <div>{item?.total || "-"}</div>
+                                      <div>{item?.customer}</div>
+                                      <div>{item?.total}</div>
                                       <div>{item?.received}</div>
                                       <div
                                         className={
@@ -677,7 +677,7 @@ const DailySalesReport = () => {
                                       className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                                     >
                                       <div>{item?.customer}</div>
-                                      <div>{item?.dueRecovery || "-"}</div>
+                                      <div>{item?.dueRecovery}</div>
                                       <div>{item?.invoices?.join(", ") || "-"}</div>
                                       <div>{item?.totalRecovery || "-"}</div>
 

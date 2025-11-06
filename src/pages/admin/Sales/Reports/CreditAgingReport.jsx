@@ -9,6 +9,7 @@ import { Printer } from "lucide-react";
 const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
   const [apiData, setApiData] = useState([]);
+  const [selectedSalesman, setSelectedSalesman] = useState("");
   const [totals, setTotals] = useState({
     totalDebit: 0,
     totalCredit: 0,
@@ -16,6 +17,13 @@ const CreditAgingReport = () => {
     totalDue: 0,
     totalOutstanding: 0,
   });
+
+  const salesmanList = [
+    { _id: "1", employeeName: "Ali Khan" },
+    { _id: "2", employeeName: "Zain Ahmed" },
+    { _id: "3", employeeName: "Sara Malik" },
+    { _id: "4", employeeName: "Usman Tariq" },
+  ];
 
   const fetchCreditAging = useCallback(async () => {
     try {
@@ -70,7 +78,24 @@ const CreditAgingReport = () => {
             </button>
           )}
         </div>
+        <div className="flex items-center gap-6 mb-5">
+          <label className="text-gray-700 font-medium w-24">
+            Salesman <span className="text-red-500">*</span>
+          </label>
 
+          <select
+            value={selectedSalesman}
+            onChange={(e) => setSelectedSalesman(e.target.value)}
+            className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+          >
+            <option value="">Select Salesman</option>
+            {salesmanList.map((cust) => (
+              <option key={cust._id} value={cust._id}>
+                {cust.employeeName}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           <div className="overflow-x-auto">
             <div className="max-h-screen overflow-y-auto custom-scrollbar">
@@ -136,9 +161,7 @@ const CreditAgingReport = () => {
                             </div>
                             <div
                               className={`font-semibold ${
-                                inv.due > 0
-                                  ? "text-red-600"
-                                  : "text-gray-500"
+                                inv.due > 0 ? "text-red-600" : "text-gray-500"
                               }`}
                             >
                               {inv.due > 0 ? inv.due.toLocaleString() : "-"}

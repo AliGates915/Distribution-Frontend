@@ -71,6 +71,7 @@ import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
 import OpeningStockSupplierwise from "./pages/admin/Purchase/Reports/OpeningStockSupplierwise.jsx";
 import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
+import ExpenseSheet from "./pages/admin/Sales/Reports/ExpenseSheet.jsx";
 
 function AppContent() {
   return (
@@ -132,6 +133,10 @@ function AppContent() {
             <Route
               path="report/salesmanwise-orders"
               element={<SalesmanwiseOrders />}
+            />
+            <Route
+              path="report/expense-sheet"
+              element={<ExpenseSheet />}
             />
             {/* setup */}
             <Route path="define-customers" element={<DefineCustomers />} />

@@ -21,6 +21,7 @@ import {
   FaCashRegister,
   FaMapMarkerAlt,
   FaRegCreditCard,
+  FaRegFileAlt,
 } from "react-icons/fa";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
@@ -178,10 +179,15 @@ const reportsChildren = [
     icon: <FaCalendarAlt />,
   },
   {
-    to: "/admin/report/opening-stock",
-    label: "Opening Stock",
-    icon: <Scale strokeWidth={3} size={40} />,
+    to: "/admin/report/expense-sheet",
+    label: "Expense Sheet",
+    icon: <FaRegFileAlt />,
   },
+  // {
+  //   to: "/admin/report/opening-stock",
+  //   label: "Opening Stock",
+  //   icon: <Scale strokeWidth={3} size={40} />,
+  // },
 ];
 
 const SalesSidebar = () => {
