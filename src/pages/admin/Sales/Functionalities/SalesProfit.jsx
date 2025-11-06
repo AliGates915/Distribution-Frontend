@@ -10,7 +10,7 @@ const Sales = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [reportData, setReportData] = useState(null); // holds whole response
   const [selectedSalesman, setSelectedSalesman] = useState("");
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString('en-CA');
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
 

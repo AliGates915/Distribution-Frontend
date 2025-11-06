@@ -17,7 +17,7 @@ const SalesInvoice = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const [isSaving, setIsSaving] = useState(false);
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString('en-CA');
   const [date, setDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);

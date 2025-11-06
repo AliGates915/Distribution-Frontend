@@ -23,7 +23,7 @@ const DailySalesReport = () => {
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
   const [PendingOrdersList, setPeningOrdersList] = useState([]);
-  const today = new Date().toISOString().split("T")[0];
+  const today =new Date().toLocaleDateString('en-CA');
   const [selectedDate, setSelectedDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -446,7 +446,7 @@ const DailySalesReport = () => {
 
                 </div>
               </div>
-              <div className="flex justify-start gap-[40rem] w-full mt-4">
+             <div className="flex flex-wrap justify-between gap-10 w-full mt-4">
                 {/* ===== Left Section ===== */}
                 <div className="flex flex-col space-y-2">
 

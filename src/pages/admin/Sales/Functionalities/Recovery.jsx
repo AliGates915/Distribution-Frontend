@@ -8,7 +8,7 @@ import { ScaleLoader } from "react-spinners";
 import { api } from "../../../../context/ApiService";
 
 const Recovery = () => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString('en-CA');
   const [selectedDate, setSelectedDate] = useState(today);
   const [invoiceList, setInvoiceList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
