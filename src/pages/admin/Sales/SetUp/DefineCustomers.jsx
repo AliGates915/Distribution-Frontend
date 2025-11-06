@@ -36,7 +36,7 @@ const DefineCustomers = () => {
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [areaName, setAreaName] = useState("");
   const [areaNameList, setAreaNameList] = useState([]);
-
+  const [selectedSalesman, setSelectedSalesman] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
@@ -47,6 +47,13 @@ const DefineCustomers = () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(customerList.length / recordsPerPage);
+
+  const salesmanList = [
+    { _id: "s1", name: "Ali Khan" },
+    { _id: "s2", name: "Zain Ahmed" },
+    { _id: "s3", name: "Sara Malik" },
+    { _id: "s4", name: "Usman Tariq" },
+  ];
 
   const handlePageChange = (pageNumber) => {
     setLoading(true);
@@ -155,9 +162,8 @@ const DefineCustomers = () => {
     if (!address) errors.push("Address is required");
     if (!phoneNumber) errors.push("Phone Number is required");
     if (!openingBalanceDate) errors.push("Opening Balance Date is required");
- if (balanceReceived === "" || balanceReceived === null)
-  errors.push("Opening Balance is required");
-
+    if (balanceReceived === "" || balanceReceived === null)
+      errors.push("Opening Balance is required");
 
     // ✅ Credit fields (only when Payment Terms = Credit)
     if (paymentTerms === "Credit") {
@@ -170,8 +176,6 @@ const DefineCustomers = () => {
 
   // Save or Update Customer
   const handleSave = async () => {
-  
-
     setIsSaving(true);
 
     const formData = {
@@ -237,8 +241,8 @@ const DefineCustomers = () => {
 
   // Edit Customer
   const handleEdit = (customer) => {
-    console.log({customer});
-    
+    console.log({ customer });
+
     setIsEdit(true);
     setEditId(customer._id);
     setAreaName(customer.salesArea || "");
@@ -257,11 +261,11 @@ const DefineCustomers = () => {
       : "";
     setOpeningBalanceDate(formattedDate);
 
-   setBalanceReceived(
-  customer.salesBalance !== undefined && customer.salesBalance !== null
-    ? customer.salesBalance
-    : ""
-);
+    setBalanceReceived(
+      customer.salesBalance !== undefined && customer.salesBalance !== null
+        ? customer.salesBalance
+        : ""
+    );
     setPaymentTerms(customer.paymentTerms || "");
     setCreditTime(customer.creditTime || "");
     setCreditLimit(customer.creditLimit || "");
@@ -330,10 +334,10 @@ const DefineCustomers = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <CommanHeader />
       {isSaving && (
-              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
-                <ScaleLoader color="#1E93AB" size={60} />
-              </div>
-            )}
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Customers List</h1>
@@ -539,7 +543,6 @@ const DefineCustomers = () => {
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-           
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update a Customer" : "Add a New Customer"}
@@ -571,23 +574,40 @@ const DefineCustomers = () => {
             </div>
 
             <div className="space-y-4 p-4 md:p-6">
-              <div className="flex-1 w-[49%]">
-                <label className="block text-gray-700 font-medium">
-                  Area Name <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={areaName}
-                  required
-                  onChange={(e) => setAreaName(e.target.value)}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select Area</option>
-                  {areaNameList.map((area) => (
-                    <option key={area._id} value={area._id}>
-                      {area.salesArea}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex gap-4">
+                <div className="flex-1 min-w-0">
+                  <label className="block text-gray-700 font-medium">
+                    Area Name <span className="text-red-500">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    value={areaName}
+                    required
+                    onChange={(e) => setAreaName(e.target.value)}
+                    placeholder="Enter Area Name"
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label className="block text-gray-700 font-medium">
+                    Salesman <span className="text-red-500">*</span>
+                  </label>
+
+                  <select
+                    value={selectedSalesman}
+                    required
+                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesmanList.map((salesman) => (
+                      <option key={salesman._id} value={salesman._id}>
+                        {salesman.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
@@ -631,11 +651,11 @@ const DefineCustomers = () => {
                     type="text"
                     value={mobileNumber}
                     required
-                     onChange={(e) => {
+                    onChange={(e) => {
                       const value = e.target.value;
                       // ✅ Allow only digits and '+' sign at start
                       if (/^[0-9+]*$/.test(value)) {
-                       setMobileNumber(value)
+                        setMobileNumber(value);
                       }
                     }}
                     className="w-full p-2 border rounded"

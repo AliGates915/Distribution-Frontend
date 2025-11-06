@@ -195,8 +195,8 @@ useEffect(() => {
                 <div>Date</div>
                 <div>ID</div>
                 <div>Description</div>
-                <div>Paid</div>
                 <div>Received</div>
+                <div>Paid</div>
                 <div>Balance</div>
               </div>
 
@@ -210,8 +210,8 @@ useEffect(() => {
                     <div>{entry.Date}</div>
                     <div>{entry.ID || "-"}</div>
                     <div>{entry.Description || "-"}</div>
-                    <div>{entry.Paid || "-"}</div>
                     <div>{entry.Received || "-"}</div>
+                    <div>{entry.Paid || "-"}</div>
                     <div>{entry.Balance || "-"}</div>
                   </div>
                 ))}
@@ -220,11 +220,11 @@ useEffect(() => {
               {/* Totals */}
               <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
-                <div className="text-red-600">
-                  Total Paid: {totalDebit.toLocaleString()}
-                </div>
                 <div className="text-green-600">
                   Total Received: {totalCredit.toLocaleString()}
+                </div>
+                <div className="text-red-600">
+                  Total Paid: {totalDebit.toLocaleString()}
                 </div>
               </div>
             </>

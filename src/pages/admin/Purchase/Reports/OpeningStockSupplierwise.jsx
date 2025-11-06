@@ -215,7 +215,7 @@ const OpeningStock = () => {
           </div>
 
           {/* Supplier */}
-          <div className="w-full">
+          {/* <div className="w-full">
             <label className="block text-gray-700 font-medium mb-1">
               Supplier
             </label>
@@ -231,7 +231,7 @@ const OpeningStock = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
 
           {/* With/Without Rate Toggle */}
