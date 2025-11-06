@@ -4,6 +4,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
+import axios from "axios";
 
 const PaymentToSupplier = () => {
   const [deliveryChallans, setDeliveryChallans] = useState([]);
@@ -83,12 +84,11 @@ const PaymentToSupplier = () => {
     setTotal(0);
   };
 
-  const handleRemoveItem = (idx) => {
-    setItemsList(itemsList.filter((_, i) => i !== idx));
-  };
 
+
+  const today = new Date().toISOString().split("T")[0];
   const [orderNo, setOrderNo] = useState("");
-  const [orderDate, setOrderDate] = useState("");
+  const [orderDate, setOrderDate] = useState(today);
   const [orderDetails, setOrderDetails] = useState({
     customer: "",
     person: "",
@@ -110,6 +110,7 @@ const PaymentToSupplier = () => {
   const [activeTab, setActiveTab] = useState("orderDetails");
   const [nextDcNo, setNextDcNo] = useState("003");
   const [currentPage, setCurrentPage] = useState(1);
+const [supplierDeposits, setSupplierDeposits] = useState([]);
 
   const recordsPerPage = 10;
   const sliderRef = useRef(null);
@@ -119,79 +120,35 @@ const PaymentToSupplier = () => {
   const headers = {
     Authorization: `Bearer ${userInfo?.token}`,
   };
-  // fetch delivery challans
-  const fetchDeliveryChallans = useCallback(async () => {
+
+
+  // 🟢 Fetch Suppliers
+  const fetchSuppliers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/delivery-challan");
-      setDeliveryChallans(response.data);
-      console.log({ deliveryChallans: response.data });
-    } catch (error) {
-      console.error("Failed to fetch booking orders", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDeliveryChallans();
-  }, [fetchDeliveryChallans]);
-
-  // fetch booking orders
-  const fetchBookingOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/booking-order/DC-Order");
-      setBookingOrders(response.data);
-    } catch (error) {
-      console.error("Failed to fetch booking orders", error);
-    } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBookingOrders();
-  }, [fetchBookingOrders]);
-
-  // Delivery challan search
-  // 🔍 Delivery challan search (same logic as booking order search)
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      fetchDeliveryChallans(); // only when cleared
-      return;
-    }
-
-    const delayDebounce = setTimeout(() => {
-      setLoading(true);
-      const filtered = deliveryChallans.filter((challan) =>
-        challan?.dcNo?.toUpperCase().includes(searchTerm.toUpperCase())
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL
+        }/suppliers`
       );
-      setDeliveryChallans(filtered);
+      // console.log("Res ", response.data);
+
+      setCustomersCash(response.data);
+
+    } catch (error) {
+      console.error("Failed to fetch suppliers:", error);
+    } finally {
       setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm, fetchDeliveryChallans]);
-
-  // Generate next DC No
-  useEffect(() => {
-    if (deliveryChallans.length > 0) {
-      const maxNo = Math.max(
-        ...deliveryChallans.map((c) => {
-          const match = c.dcNo?.match(/DC-(\d+)/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-      );
-      setNextDcNo((maxNo + 1).toString().padStart(3, "0"));
-    } else {
-      setNextDcNo("001");
     }
-  }, [deliveryChallans]);
+  }, [headers]);
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+
+
+
+
 
   // Reset form fields
   const resetForm = () => {
@@ -281,6 +238,40 @@ const PaymentToSupplier = () => {
     return "";
   };
 
+  // 🟢 Fetch Supplier Cash Deposits
+const fetchSupplierDeposits = useCallback(async () => {
+  try {
+    setLoading(true);
+    const token = userInfo?.token;
+
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.success) {
+      setSupplierDeposits(response.data.data);
+    } else {
+      setSupplierDeposits([]);
+    }
+  } catch (error) {
+    console.error("Failed to fetch supplier deposits:", error);
+  } finally {
+    setLoading(false);
+  }
+}, [userInfo]);
+
+
+useEffect(() => {
+  fetchSupplierDeposits();
+}, []);
+
+
   const handleEditClick = (challan) => {
     setEditingChallan(challan);
     console.log({ challan });
@@ -315,10 +306,10 @@ const PaymentToSupplier = () => {
         p.rate && p.rate > 0
           ? p.rate
           : p.invoiceRate && p.invoiceRate > 0
-          ? p.invoiceRate
-          : qty > 0
-          ? total / qty
-          : 0;
+            ? p.invoiceRate
+            : qty > 0
+              ? total / qty
+              : 0;
 
       return {
         name: p.name,
@@ -369,54 +360,68 @@ const PaymentToSupplier = () => {
     setIsSliderOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // if (!validateForm()) return;
+  try {
+    if (!cashData.supplier || !cashData.date || !cashData.amountReceived) {
+      return Swal.fire("Error", "Please fill all required fields.", "error");
+    }
 
-    // ✅ Prepare payload for backend
-    const finalProducts =
-      itemsList.length > 0
-        ? itemsList
-        : availableProducts.map((p) => ({
-            name: p.name,
-            rate: p.rate || 0,
-            qty: p.deliverQty ?? p.orderedQty ?? p.qty ?? 0,
-            total: (p.rate || 0) * (p.deliverQty ?? p.orderedQty ?? p.qty ?? 0),
-          }));
-
-    // ✅ Prepare payload for backend
+    // ✅ Build payload exactly as your backend expects
     const payload = {
-      dcNo: editingChallan ? dcNo : `DC-${nextDcNo}`,
-      dcDate: date,
-      bookingOrder: orderNo, // Booking order ID
-      products: finalProducts,
-      remarks: remarks.trim(),
-      status,
+      receiptId: editingVoucher
+        ? editingVoucher.receiptId
+        : `SCD-${nextReceiptId}`,
+      date: cashData.date,
+      supplier: cashData.supplier,
+      amountReceived: Number(cashData.amountReceived),
+      remarks: cashData.remarks || "",
     };
 
-    try {
-      if (editingChallan) {
-        await api.put(`/delivery-challan/${editingChallan._id}`, payload, {
-          headers,
-        });
-        Swal.fire(
-          "Updated!",
-          "Delivery Challan updated successfully.",
-          "success"
-        );
-      } else {
-        await api.post("/delivery-challan", payload, { headers });
-        Swal.fire("Added!", "Delivery Challan added successfully.", "success");
-      }
+    console.log("Submitting payload:", payload);
 
-      fetchDeliveryChallans();
-      resetForm();
-    } catch (error) {
-      console.error("Error saving delivery challan:", error);
-      Swal.fire("Error!", "Failed to save delivery challan.", "error");
+    const token = userInfo?.token;
+
+    if (editingVoucher) {
+      // 🟡 UPDATE
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit/${editingVoucher._id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Swal.fire("Updated!", "Supplier payment updated successfully.", "success");
+    } else {
+      // 🟢 CREATE
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      Swal.fire("Added!", "Supplier payment added successfully.", "success");
     }
-  };
+
+    // ✅ Refresh supplier data after saving
+    fetchSuppliers();
+    resetForm();
+  } catch (error) {
+    console.error("Error submitting supplier payment:", error);
+    Swal.fire("Error", "Failed to save supplier payment.", "error");
+  }
+};
+
 
   const handleDelete = (id) => {
     const swalWithTailwindButtons = Swal.mixin({
@@ -444,18 +449,18 @@ const PaymentToSupplier = () => {
         if (result.isConfirmed) {
           try {
             setLoading(true);
-            await api.delete(`/delivery-challan/${id}`, { headers });
-            setDeliveryChallans((prev) => prev.filter((c) => c._id !== id));
+            await api.delete(`/supplier-cash-deposit/${id}`, { headers });
             swalWithTailwindButtons.fire(
               "Deleted!",
-              "Delivery Challan deleted successfully.",
+              "Supplier Cash Deposit deleted successfully.",
               "success"
             );
+            fetchSupplierDeposits()
           } catch (error) {
             console.error("Delete error:", error);
             swalWithTailwindButtons.fire(
               "Error!",
-              "Failed to delete delivery challan.",
+              "Failed to delete Supplier Cash Deposit.",
               "error"
             );
           } finally {
@@ -464,7 +469,7 @@ const PaymentToSupplier = () => {
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           swalWithTailwindButtons.fire(
             "Cancelled",
-            "Delivery Challan is safe 🙂",
+            "Supplier Cash Deposit is safe 🙂",
             "error"
           );
         }
@@ -541,156 +546,70 @@ const PaymentToSupplier = () => {
           </div>
         </div>
 
-        <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-          <div className="overflow-y-auto lg:overflow-x-auto max-h-[900px]">
-            <div className="min-w-[1400px]">
-              <div className="hidden lg:grid grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                <div>SR</div>
-                <div>DC No</div>
-                <div>Date</div>
-                <div>Order No</div>
-                <div>Customer</div>
-                <div>Delivery Date</div>
-                <div>Total Amount</div>
-                <div>Delivery Address</div>
-                <div>Status</div>
-                <div>Actions</div>
-              </div>
+        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
+  <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+    Supplier Payment Records
+  </div>
 
-              <div className="flex flex-col divide-y divide-gray-100">
-                {loading ? (
-                  <TableSkeleton
-                    rows={currentRecords.length || 5}
-                    cols={10}
-                    className="lg:grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                  />
-                ) : currentRecords.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 bg-white">
-                    No delivery challans found.
-                  </div>
-                ) : (
-                  currentRecords.map((challan, index) => (
-                    <div
-                      key={challan._id}
-                      className="grid grid-cols-1 lg:grid-cols-[0.4fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                    >
-                      <div className="text-gray-600">
-                        {indexOfFirstRecord + index + 1}
-                      </div>
-                      {/* DC No */}
-                      <div className="text-gray-600">{challan.dcNo}</div>
+  <div className="overflow-y-auto lg:overflow-x-auto max-h-[700px]">
+    <div className="min-w-[1000px]">
+      {/* Header Row */}
+      <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+        <div>SR</div>
+        <div>Receipt ID</div>
+        <div>Date</div>
+        <div>Supplier</div>
+        <div>Amount Received</div>
+        <div>New Balance</div>
+        <div>Remarks</div>
+        <div>Action</div>
+      </div>
 
-                      {/* DC Date */}
-                      <div className="text-gray-600">
-                        {new Date(challan.dcDate).toLocaleDateString()}
-                      </div>
-
-                      {/* Order No */}
-                      <div className="text-gray-600">
-                        {challan.bookingOrder?.orderNo || "-"}
-                      </div>
-
-                      {/* Customer */}
-                      <div className="text-gray-600">
-                        {challan.bookingOrder?.customer?.customerName || "-"}
-                      </div>
-
-                      {/* Delivery Date */}
-                      <div className="text-gray-600">
-                        {new Date(
-                          challan.bookingOrder?.deliveryDate
-                        ).toLocaleDateString()}
-                      </div>
-
-                      {/* Total Amount */}
-                      <div className="text-gray-600">
-                        {challan.products
-                          ?.reduce((sum, item) => sum + (item.total || 0), 0)
-                          .toLocaleString()}
-                      </div>
-
-                      {/* Delivery Address */}
-                      <div className="text-gray-600">
-                        {challan.bookingOrder?.deliveryAddress || "-"}
-                      </div>
-
-                      {/* Status */}
-                      <div
-                        className={`font-semibold ${
-                          challan.status === "Pending"
-                            ? "text-yellow-600"
-                            : challan.status === "Approved"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {challan.status}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-3 justify-start">
-                        {challan.status !== "Dispatched" && (
-                          <>
-                            <button
-                              onClick={() => handleEditClick(challan)}
-                              className="py-1 text-sm rounded text-blue-600 hover:bg-blue-50 transition-colors"
-                              title="Edit"
-                            >
-                              <SquarePen size={18} />
-                            </button>
-
-                            <button
-                              onClick={() => handleDelete(challan._id)}
-                              className="py-1 text-sm rounded text-red-600 hover:bg-red-50 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+      {/* Body */}
+      <div className="flex flex-col divide-y divide-gray-100">
+        {loading ? (
+          <TableSkeleton rows={5} cols={8} />
+        ) : supplierDeposits.length === 0 ? (
+          <div className="text-center py-6 text-gray-500 bg-white">
+            No supplier deposits found.
           </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-between my-4 px-10">
-              <div className="text-sm text-gray-600">
-                Showing {indexOfFirstRecord + 1} to{" "}
-                {Math.min(indexOfLastRecord, deliveryChallans.length)} of{" "}
-                {deliveryChallans.length} records
-              </div>
-              <div className="flex gap-2">
+        ) : (
+          supplierDeposits.map((deposit, index) => (
+            <div
+              key={deposit._id}
+              className="grid grid-cols-1 lg:grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] items-center gap-4 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
+            >
+              <div>{index + 1}</div>
+              <div>{deposit.receiptId}</div>
+              <div>{deposit.date}</div>
+              <div>{deposit.supplier?.supplierName || "-"}</div>
+              <div>{deposit.amountReceived?.toLocaleString()}</div>
+              <div>{deposit.newBalance?.toLocaleString()}</div>
+              <div className="truncate max-w-[250px]">{deposit.remarks || "-"}</div>
+              <div className="flex gap-3 justify-start">
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === 1
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
+                  onClick={() => handleEditClick(deposit)}
+                  className="text-blue-600 hover:text-blue-800"
+                  title="Edit"
                 >
-                  Previous
+                  <SquarePen size={18} />
                 </button>
                 <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === totalPages
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                  }`}
+                  onClick={() => handleDelete(deposit._id)}
+                  className="text-red-600 hover:text-red-800"
+                  title="Delete"
                 >
-                  Next
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+</div>
+
 
         {isSliderOpen && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
@@ -756,31 +675,35 @@ const PaymentToSupplier = () => {
                         Supplier Name <span className="text-red-500">*</span>
                       </label>
                       <select
-                        value={cashData.customer}
+                        value={cashData.supplier}
                         onChange={(e) => {
                           const selectedId = e.target.value;
-                          const selectedCustomer = customers.find(
-                            (c) => c._id === selectedId
-                          );
+                          const selectedSupplier = customersCash.find((s) => s._id === selectedId);
 
                           setCashData({
                             ...cashData,
-                            customer: selectedCustomer?._id || "",
-                            balance: selectedCustomer?.balance || 0, // ✅ store actual balance
-                            newBalance: selectedCustomer?.balance || 0,
-                            amountReceived: 0, // reset when new customer selected
+                            supplier: selectedSupplier?._id || "",
+                            balance: selectedSupplier?.payableBalance || 0, // ✅ supplier balance
+                            newBalance: selectedSupplier?.payableBalance || 0,
+                            amountReceived: 0,
                           });
                         }}
                         className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       >
                         <option value="">Select Supplier</option>
-                        {customersCash.map((c) => (
-                          <option key={c._id} value={c._id}>
-                            {c.customerName}
-                          </option>
-                        ))}
+                        {Array.isArray(customersCash) && customersCash.length > 0 ? (
+                          customersCash.map((s) => (
+                            <option key={s._id} value={s._id}>
+                              {s.supplierName}
+                            </option>
+                          ))
+                        ) : (
+                          <option disabled>No suppliers found</option>
+                        )}
+
                       </select>
+
                     </div>
 
                     {/* Balance field */}
@@ -808,16 +731,17 @@ const PaymentToSupplier = () => {
                         value={cashData.amountReceived}
                         onChange={(e) => {
                           const amount = parseFloat(e.target.value) || 0;
-                          const newBalance = cashData.balance - amount; // ✅ live calculation
+                          const newBalance = (cashData.balance || 0) - amount;
                           setCashData({
                             ...cashData,
                             amountReceived: amount,
-                            newBalance,
+                            newBalance: newBalance < 0 ? 0 : newBalance, // never negative
                           });
                         }}
                         className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
+
                     </div>
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
@@ -825,14 +749,14 @@ const PaymentToSupplier = () => {
                       </label>
                       <input
                         type="text"
-                        value={Math.max(0, Math.round(cashData.newBalance))} // prevent negative display
+                        value={cashData.newBalance.toFixed(2)}
                         readOnly
-                        className={`w-full p-3 border rounded-md ${
-                          cashData.newBalance < 0
-                            ? "bg-red-100 text-red-600"
-                            : "bg-gray-100"
-                        }`}
+                        className={`w-full p-3 border rounded-md ${cashData.newBalance < 0
+                          ? "bg-red-100 text-red-600"
+                          : "bg-gray-100"
+                          }`}
                       />
+
                     </div>
                   </div>
                   {/* Remarks Field */}
