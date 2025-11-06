@@ -665,3 +665,97 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
   win.document.close();
   win.print();
 };
+
+
+
+export const handleSaleInvoicePrint = (orders = []) => {
+  if (!orders.length) return;
+
+  const order = orders[0];
+  const products = order.products || [];
+
+  const totalQty = products.reduce((sum, p) => sum + (parseFloat(p.qty) || 0), 0);
+  const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.totalAmount) || 0), 0);
+
+  const win = window.open("", "", "width=900,height=700");
+  win.document.write(`
+    <html>
+      <head>
+        <title>Sales Invoice</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1, h2, p { margin: 0; text-align: center; }
+          h1 { font-size: 22px; font-weight: bold; }
+          h2 { margin-top: 8px; text-decoration: underline; }
+          p { font-size: 14px; color: #555; }
+          hr { border: none; border-top: 1px solid #aaa; margin: 10px 0 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+          th, td { border: 1px solid #999; padding: 6px; text-align: center; }
+          th { background: #f2f2f2; }
+          tfoot td { font-weight: bold; background: #fafafa; }
+          .note { font-size: 11px; color: #777; margin-top: 20px; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h1>Distribution System Pvt. Ltd.</h1>
+        <p>Mall of Lahore, Cantt</p>
+        <p>Phone: 0318-4486979</p>
+        <hr />
+        <h2>Sales Invoice</h2>
+
+        <div style="margin-bottom:15px; font-size:13px;">
+          <b>Date:</b> ${new Date(order.date).toLocaleDateString()}<br/>
+          <b>Order ID:</b> ${order.orderId}<br/>
+          <b>Salesman:</b> ${order.salesmanId?.employeeName || "-"}<br/>
+          <b>Customer:</b> ${order.customerId?.customerName || "-"}<br/>
+          <b>Address:</b> ${order.customerId?.address || "-"}<br/>
+          <b>Phone:</b> ${order.customerId?.phoneNumber || "-"}<br/>
+          <b>Status:</b> ${order.status || "-"}<br/>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Sr</th>
+              <th>Item</th>
+              <th>Unit</th>
+              <th>Qty</th>
+              <th>Rate</th>
+              <th>Total Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products
+              .map(
+                (p, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${p.itemName}</td>
+                    <td>${p.itemUnit}</td>
+                    <td>${p.qty}</td>
+                    <td>${p.rate.toLocaleString()}</td>
+                    <td>${p.totalAmount.toLocaleString()}</td>
+                  </tr>`
+              )
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="text-align:right;">Totals:</td>
+              <td>${totalQty}</td>
+              <td>-</td>
+              <td>${totalAmount.toLocaleString()}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <p class="note">
+          This is a system-generated sales Invoice and does not require a signature.
+        </p>
+      </body>
+    </html>
+  `);
+
+  win.document.close();
+  win.print();
+};
