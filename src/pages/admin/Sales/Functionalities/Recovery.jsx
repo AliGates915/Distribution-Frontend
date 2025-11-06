@@ -20,7 +20,7 @@ const Recovery = () => {
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 2;
+  const recordsPerPage = 10;
   const [salesmanLodaing, setSalesmanLodaing] = useState(false)
   // Form fields for edit modal
   const [discountAmount, setDiscountAmount] = useState("");

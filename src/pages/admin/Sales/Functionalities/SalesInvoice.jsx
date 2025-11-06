@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, Loader, SquarePen } from "lucide-react";
+import { Eye, Loader, Printer, SquarePen } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
@@ -9,6 +9,7 @@ import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
 import axios from "axios";
 import { use } from "react";
 import { api } from "../../../../context/ApiService";
+import {  handleSaleInvoicePrint } from "../../../../helper/SalesPrintView";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
@@ -69,7 +70,10 @@ const SalesInvoice = () => {
       // console.log("✅ Pending Orders Response:", res.data);
     } catch (error) {
       console.error("❌ Failed to fetch SalesInvoice:", error);
-      toast.error("Failed to fetch pending orders");
+      setTimeout(() => {
+         toast.error("Failed to fetch pending orders");
+      }, 2000);
+     
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
@@ -222,6 +226,7 @@ const handleEdit = (invoice) => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = invoices.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(invoices.length / recordsPerPage);
+console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -236,6 +241,14 @@ const handleEdit = (invoice) => {
             <h1 className="text-2xl font-bold text-newPrimary">
               Pending Orders
             </h1>
+             {currentRecords.length > 0 && (
+            <button
+              onClick={() => handleSaleInvoicePrint(currentRecords)}
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+            >
+              <Printer size={18} /> 
+            </button>
+          )}
           </div>
 
           {/* 🔹 Filter Fields */}
