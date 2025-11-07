@@ -72,6 +72,7 @@ import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
 import OpeningStockSupplierwise from "./pages/admin/Purchase/Reports/OpeningStockSupplierwise.jsx";
 import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 import ExpenseSheet from "./pages/admin/Sales/Reports/ExpenseSheet.jsx";
+import Expense from "./pages/admin/Sales/Functionalities/Expense.jsx";
 
 function AppContent() {
   return (
@@ -106,6 +107,7 @@ function AppContent() {
             <Route path="sales/sales" element={<Sales />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />
+            <Route path="sales/expense" element={<Expense />} />
 
             {/* Reports */}
             <Route

@@ -22,6 +22,7 @@ import {
   FaMapMarkerAlt,
   FaRegCreditCard,
   FaRegFileAlt,
+  FaWallet,
 } from "react-icons/fa";
 import { TbFileInvoice } from "react-icons/tb";
 import { FaMoneyCheckDollar, FaUsersViewfinder } from "react-icons/fa6";
@@ -55,21 +56,26 @@ const salesChildren = [
   //   label: "Load Sheet",
   //   icon: <FileSpreadsheet strokeWidth={3} size={40} />,
   // },
-  
+
   {
     to: "/admin/sales/sales-invoice",
     label: "Sales Invoice",
     icon: <FileChartColumnIncreasing strokeWidth={3} size={40} />,
   },
-   {
+  {
     to: "/admin/sales/recovery",
     label: "Recovery",
-    icon: <FileMinus  strokeWidth={3} size={40} />,
+    icon: <FileMinus strokeWidth={3} size={40} />,
   },
-   {
+  {
     to: "/admin/sales/sales",
     label: "Sales Profit",
     icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
+  },
+  {
+    to: "/admin/sales/expense",
+    label: "Expense",
+    icon: <FaWallet strokeWidth={3} size={40} />,
   },
   // {
   //   to: "/admin/sales/cash-deposite",
@@ -92,9 +98,9 @@ const setupChildren = [
   },
   { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
 
-   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
+  { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 
-    {
+  {
     to: "/admin/manufacture",
     label: "Manufacture",
     icon: <FaIndustry />,
@@ -109,7 +115,7 @@ const setupChildren = [
     label: "List Of Items",
     icon: <AiOutlineProduct />,
   },
-    {
+  {
     to: "/admin/sales-area",
     label: "Sales Area",
     icon: <FaMapMarkerAlt />,
