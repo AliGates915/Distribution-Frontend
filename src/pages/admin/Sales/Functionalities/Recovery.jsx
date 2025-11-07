@@ -12,7 +12,7 @@ const Recovery = () => {
   const [selectedDate, setSelectedDate] = useState(today);
   const [invoiceList, setInvoiceList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
-  const [salesmanList, setSalesmanList] = useState([]);
+  const [customersList, setCustomersList] = useState([]);
   const [selectedOrders, setSelectedOrders] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
@@ -30,28 +30,23 @@ const Recovery = () => {
   const [received, setReceived] = useState("");
   const [balance, setBalance] = useState("");
 
-  const customerList = [
-    { _id: "c1", name: "Naeem Traders" },
-    { _id: "c2", name: "Al-Faisal Store" },
-    { _id: "c3", name: "City Mart" },
-    { _id: "c4", name: "Karim Brothers" },
-  ];
+ 
 
   // salesmanList
-  const fetchSaleman = async () => {
+  const fetchcustomersList = async () => {
     try {
       setSalesmanLodaing(true);
-      const response = await api.get(`/employees/salesman`);
+      const response = await api.get(`/customers`);
 
-      setSalesmanList(response.employees);
+      setCustomersList(response);
     } catch (error) {
-      console.error(" Failed to fetch customers by salesman:", error);
+      console.error(" Failed to fetch customers by fetchcustomersList:", error);
     } finally {
       setTimeout(() => setSalesmanLodaing(false), 2000);
     }
   };
   useEffect(() => {
-    fetchSaleman();
+    fetchcustomersList();
   }, []);
 
   // 🔹 Fetch Recovery Data when salesman changes
@@ -81,19 +76,19 @@ const Recovery = () => {
   };
   // 🔹 Re-fetch Recovery Data when date changes (if salesman already selected)
   useEffect(() => {
-    if (selectedSalesman) {
-      fetchRecoveryData(selectedSalesman);
+    if (selectedCustomer) {
+      fetchRecoveryData(selectedCustomer);
     }
   }, [selectedDate]);
 
   // 🔹 Fetch Recovery Data by Invoice No for specific salesman
-  const fetchRecoveryByInvoice = async (salesmanId, invoiceNo) => {
-    if (!salesmanId || !invoiceNo) return;
+  const fetchRecoveryByInvoice = async (selectedCustomer, invoiceNo) => {
+    if (!selectedCustomer || !invoiceNo) return;
 
     try {
       setLoading(true);
       const res = await api.get(
-        `/sales-invoice/recovery/${salesmanId}/${invoiceNo}`
+        `/sales-invoice/recovery/${selectedCustomer}/${invoiceNo}`
       );
 
       // console.log("✅ Recovery Data by Invoice:", res);
@@ -117,13 +112,13 @@ const Recovery = () => {
   };
 
   // 🔹 Fetch Invoice List by Salesman and Date
-  const fetchInvoicesByDate = async (salesmanId, date) => {
-    if (!salesmanId || !date) return;
+  const fetchInvoicesByDate = async (selectedCustomer, date) => {
+    if (!selectedCustomer || !date) return;
 
     try {
       setSalesmanLodaing(true);
       const res = await api.get(
-        `/sales-invoice/invoice-no?salesmanId=${salesmanId}&date=${date}`
+        `/sales-invoice/invoice-no?salesmanId=${selectedCustomer}&date=${date}`
       );
       // console.log("✅ Invoices by Date:", res);
 
@@ -142,12 +137,12 @@ const Recovery = () => {
   };
 
   useEffect(() => {
-    if (selectedSalesman) {
+    if (selectedCustomer) {
       // 🔸 Update Invoice dropdown when date changes
-      fetchInvoicesByDate(selectedSalesman, selectedDate);
+      fetchInvoicesByDate(selectedCustomer, selectedDate);
 
       // 🔸 Also refresh table data
-      fetchRecoveryData(selectedSalesman);
+      fetchRecoveryData(selectedCustomer);
     }
   }, [selectedDate]);
 
@@ -180,6 +175,18 @@ const Recovery = () => {
     // ✅ Fetch Recovery data for that salesman & date
     fetchRecoveryData(id);
   };
+
+  // ✅ Fetch Recovery Data whenever customer changes
+useEffect(() => {
+  if (selectedCustomer) {
+    fetchRecoveryData(selectedCustomer);
+    fetchInvoicesByDate(selectedCustomer, selectedDate);
+  } else {
+    setData([]);
+    setInvoiceList([]);
+  }
+}, [selectedCustomer]);
+
   const handleEdit = (invoice) => {
     console.log("Editing Invoice:", invoice);
 
@@ -191,7 +198,7 @@ const Recovery = () => {
     setReceived(""); // user will type new recovery amount
     setBalance(invoice.receivable || 0); // initially same as remaining due
 
-    setPreviousBalance(invoice.previousBalance || 0);
+    setPreviousBalance(invoice.balance || 0);
     setSelectedDate(today);
     setIsSliderOpen(true);
   };
@@ -232,7 +239,7 @@ const Recovery = () => {
         });
 
         // ✅ Optionally refresh data table
-        fetchRecoveryData(selectedSalesman);
+        fetchRecoveryData(selectedCustomer);
         setIsSliderOpen(false);
       } else {
         toast.error(res.message || "Failed to add recovery");
@@ -301,24 +308,6 @@ const Recovery = () => {
 
               <div className="flex items-center gap-6">
                 <label className="text-gray-700 font-medium w-24">
-                  Salesman <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={selectedSalesman}
-                  onChange={handleSalesmanChange}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                >
-                  <option value="">Select Salesman</option>
-                  {salesmanList.map((cust) => (
-                    <option key={cust._id} value={cust._id}>
-                      {cust.employeeName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
                   Customer <span className="text-red-500">*</span>
                 </label>
 
@@ -328,16 +317,16 @@ const Recovery = () => {
                   className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                 >
                   <option value="">Select Customer</option>
-                  {customerList.map((cust) => (
+                  {customersList.map((cust) => (
                     <option key={cust._id} value={cust._id}>
-                      {cust.name}
+                      {cust.customerName}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
+            {/* <div className="flex items-center gap-6">
               <label className="text-gray-700 font-medium w-24">
                 Invoice <span className="text-red-500">*</span>
               </label>
@@ -346,8 +335,8 @@ const Recovery = () => {
                 onChange={(e) => {
                   const invoiceNo = e.target.value;
                   setSelectedOrders(invoiceNo);
-                  if (selectedSalesman && invoiceNo) {
-                    fetchRecoveryByInvoice(selectedSalesman, invoiceNo);
+                  if (selectedCustomer  && invoiceNo) {
+                    fetchRecoveryByInvoice(selectedCustomer , invoiceNo);
                   }
                 }}
                 className="w-full md:w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
@@ -359,12 +348,12 @@ const Recovery = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
           </div>
 
           {/* 🔹 Table */}
           <div className="p-0 mt-6">
-            {selectedSalesman && (
+            {selectedCustomer && (
               <div>
                 <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
                   <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar">
@@ -501,7 +490,7 @@ const Recovery = () => {
                       <label className="block text-gray-700 font-medium">
                         Recovery Id :
                       </label>
-                      <p>{`${editingInvoice.recoveryNo}`}</p>
+                      <p>{`${editingInvoice.recoveryNo ||"REC-001"}`}</p>
                     </div>
 
                     <div className="flex gap-2 items-center">
@@ -546,7 +535,7 @@ const Recovery = () => {
                       <label className="block text-gray-700 font-medium mb-2">
                         Previous Balance :
                       </label>
-                      <p>{editingInvoice.previousBalance}</p>
+                      <p>{editingInvoice.balance}</p>
                     </div>
                   </div>
 
@@ -571,7 +560,7 @@ const Recovery = () => {
                         </div>
                         <div className="px-4 py-2">Total</div>
                       </div>
-                      {editingInvoice.items.map((item, i) => (
+                      {editingInvoice?.items.map((item, i) => (
                         <div
                           key={i}
                           className="grid grid-cols-[60px_2fr_1fr_1fr_1fr] text-sm text-gray-700 bg-gray-100 even:bg-white border-t border-gray-300"
@@ -643,9 +632,9 @@ const Recovery = () => {
 
                     <div className="flex w-full items-start gap-6">
                       <div className="flex-1">
-                        <p className="ml-auto font-bold ">
+                        {/* <p className="ml-auto font-bold ">
                           Allow Days : {editingInvoice.allowDays || "-"}
-                        </p>
+                        </p> */}
                         <p className="ml-auto font-bold ">
                           Over Days : {editingInvoice.overDays || "-"}
                         </p>

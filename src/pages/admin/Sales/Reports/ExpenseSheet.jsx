@@ -12,7 +12,7 @@ const ExpensePage = () => {
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [viewExpense, setViewExpense] = useState(null);
-
+const [expenseAmount, setExpenseAmount] = useState("");
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
   // ✅ Fetch Salesman List
@@ -55,8 +55,10 @@ const ExpensePage = () => {
             amount: e.amount,
           })),
           totalAmount: exp.totalAmount,
+          
         }));
         setExpenses(mapped);
+        setExpenseAmount(data.totalExpense || 0);
       } else {
         setExpenses([]);
       }
@@ -77,6 +79,7 @@ const ExpensePage = () => {
   useEffect(() => {
     if (selectedSalesman) fetchExpenses();
   }, [selectedSalesman, selectedDate]);
+console.log({expenses});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -93,8 +96,9 @@ const ExpensePage = () => {
         )}
 
         {/* 🔹 Filters */}
-        <div className="flex gap-4 mb-5">
-          {/* Salesman Selection */}
+        <div className="flex justify-between items-center w-full gap-4 mb-5">
+          <div className="flex gap-4">
+                {/* Salesman Selection */}
           <div className="w-[300px]">
             <label className="block text-gray-700 font-medium mb-2">
               Select Salesman *
@@ -123,6 +127,21 @@ const ExpensePage = () => {
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
           </div>
+          </div>
+           {selectedSalesman && (
+             <div className="w-[200px] whitespace-nowrap">
+                 <label className=" text-newPrimary inline-flex gap-2 items-center font-medium mb-2">Today Expense Amount: <p className="text-black ">{expenseAmount}</p></label>
+{/* 
+            <input
+              type="text"
+              value={expenseAmount}
+             disabled
+              className="w-full p-3 border h-[40px] border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            /> */}
+          </div>
+           )}
+         
+        
         </div>
 
         {/* ===== TABLE ===== */}
