@@ -1,171 +1,82 @@
-import React, { useState, useEffect, useRef } from "react";
-import { SquarePen, Trash2, X, Eye } from "lucide-react";
-import gsap from "gsap";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { SquarePen, Trash2, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import CommanHeader from "../../Components/CommanHeader";
 
 const ExpensePage = () => {
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [expenses, setExpenses] = useState([
-    {
-      id: 1,
-      date: "2025-11-07",
-      salesman: "Ali Khan",
-      items: [
-        { name: "Food", amount: 120 },
-        { name: "Transport", amount: 80 },
-      ],
-      totalAmount: 200,
-    },
-    {
-      id: 2,
-      date: "2025-11-06",
-      salesman: "Zain Ahmed",
-      items: [
-        { name: "Stationery", amount: 50 },
-        { name: "Snacks", amount: 30 },
-      ],
-      totalAmount: 80,
-    },
-  ]);
-  const [filteredExpenses, setFilteredExpenses] = useState([]);
-  const [expenseDate, setExpenseDate] = useState("");
-  const [expenseName, setExpenseName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [salesmanList, setSalesmanList] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedItem, setSelectedItem] = useState("");
   const [viewExpense, setViewExpense] = useState(null);
 
-  // Dummy salesman list
-  const salesmanListData = ["John Doe", "Jane Smith", "Ali Khan"];
-  const sliderRef = useRef(null);
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-  const [expenseItems, setExpenseItems] = useState([
-    // example: { name: "Food", amount: 100 }
-  ]);
-
-  const handleRemoveItem = (indexToRemove) => {
-    setExpenseItems((prevItems) =>
-      prevItems.filter((_, index) => index !== indexToRemove)
-    );
-  };
-
+  // ✅ Fetch Salesman List
   useEffect(() => {
-    let filtered = expenses;
+    const fetchSalesmen = async () => {
+      try {
+        const { data } = await axios.get(`${API_BASE}/employees`);
+        setSalesmanList(data || []);
+      } catch (error) {
+        toast.error("Failed to load salesmen");
+      }
+    };
+    fetchSalesmen();
+  }, []);
 
-    if (selectedSalesman) {
-      filtered = filtered.filter(
-        (exp) => exp.salesman === selectedSalesman
+  // ✅ Fetch Expenses based on salesman/date
+  const fetchExpenses = async () => {
+    try {
+      if (!selectedSalesman) {
+        setExpenses([]);
+        return;
+      }
+
+      setIsLoading(true);
+      const dateQuery = selectedDate
+        ? `?date=${selectedDate}`
+        : ""; // Optional date
+
+      const { data } = await axios.get(
+        `${API_BASE}/salesman-expense/salesman/${selectedSalesman}${dateQuery}`
       );
+
+      if (data.success) {
+        const mapped = data.data.map((exp) => ({
+          id: exp._id,
+          date: exp.date.split("T")[0],
+          salesman: exp.salesmanId?.employeeName || "N/A",
+          items: exp.expenses.map((e) => ({
+            name: e.expenseName,
+            amount: e.amount,
+          })),
+          totalAmount: exp.totalAmount,
+        }));
+        setExpenses(mapped);
+      } else {
+        setExpenses([]);
+      }
+    } catch (error) {
+      toast.error("Failed to fetch expenses");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    if (selectedDate) {
-      filtered = filtered.filter(
-        (exp) => exp.date === selectedDate
-      );
-    }
-
-    setFilteredExpenses(filtered);
-  }, [selectedSalesman, selectedDate, expenses]);
-
-  // Dummy salesman list
-  const salesmanList = [
-    { _id: "s1", name: "Ali Khan" },
-    { _id: "s2", name: "Zain Ahmed" },
-    { _id: "s3", name: "Sara Malik" },
-    { _id: "s4", name: "Usman Tariq" },
-  ];
-
-  // GSAP Animation
+  // ✅ Auto load today's date and data
   useEffect(() => {
-    if (isSliderOpen) {
-      if (sliderRef.current) sliderRef.current.style.display = "block";
-      gsap.fromTo(
-        sliderRef.current,
-        { scale: 0.7, opacity: 0, y: -50 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
-      );
-    } else {
-      gsap.to(sliderRef.current, {
-        scale: 0.7,
-        opacity: 0,
-        y: -50,
-        duration: 0.3,
-        ease: "power3.in",
-        onComplete: () => {
-          if (sliderRef.current) sliderRef.current.style.display = "none";
-        },
-      });
-    }
-  }, [isSliderOpen]);
+    const today = new Date().toISOString().split("T")[0];
+    setSelectedDate(today);
+  }, []);
 
-  // Add expense item
-  const handleAddExpenseItem = () => {
-    if (!expenseName || !amount) {
-      toast.error("Please enter expense name and amount!");
-      return;
-    }
-
-    const newItem = {
-      name: expenseName,
-      amount: parseFloat(amount),
-    };
-    setExpenseItems([...expenseItems, newItem]);
-    setExpenseName("");
-    setAmount("");
-  };
-
-  // Handle save expense
-  const handleSaveExpense = (e) => {
-    e.preventDefault();
-    if (!expenseDate || !selectedSalesman || expenseItems.length === 0) {
-      toast.error("Please complete all fields!");
-      return;
-    }
-
-    const newExpense = {
-      id: Date.now(),
-      date: expenseDate,
-      salesman: salesmanList.find((s) => s._id === selectedSalesman)?.name,
-      items: expenseItems,
-      totalAmount: expenseItems.reduce((sum, item) => sum + item.amount, 0),
-    };
-
-    if (editingExpense) {
-      setExpenses(
-        filteredExpenses.map((exp) => (exp.id === editingExpense.id ? newExpense : exp))
-      );
-      toast.success("Expense updated successfully!");
-    } else {
-      setExpenses([...expenses, newExpense]);
-      toast.success("Expense added successfully!");
-    }
-
-    setIsSliderOpen(false);
-    setExpenseDate("");
-    setSelectedSalesman("");
-    setExpenseItems([]);
-    setEditingExpense(null);
-  };
-
-  const handleEdit = (exp) => {
-    setEditingExpense(exp);
-    setExpenseDate(exp.date);
-    setSelectedSalesman(
-      salesmanList.find((s) => s.name === exp.salesman)?._id || ""
-    );
-    setExpenseItems(exp.items);
-    setIsSliderOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    setExpenses(expenses.filter((exp) => exp.id !== id));
-    toast.success("Expense deleted!");
-  };
+  // ✅ Auto-refresh when salesman or date changes
+  useEffect(() => {
+    if (selectedSalesman) fetchExpenses();
+  }, [selectedSalesman, selectedDate]);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -174,12 +85,14 @@ const ExpensePage = () => {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-newPrimary">Expenses Sheet</h1>
         </div>
-        {isSaving && (
+
+        {isLoading && (
           <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-[9999]">
             <ScaleLoader color="#1E93AB" size={60} />
           </div>
         )}
 
+        {/* 🔹 Filters */}
         <div className="flex gap-4 mb-5">
           {/* Salesman Selection */}
           <div className="w-[300px]">
@@ -193,8 +106,8 @@ const ExpensePage = () => {
             >
               <option value="">Choose Salesman</option>
               {salesmanList.map((item) => (
-                <option key={item._id} value={item.name}>
-                  {item.name}
+                <option key={item._id} value={item._id}>
+                  {item.employeeName}
                 </option>
               ))}
             </select>
@@ -219,40 +132,36 @@ const ExpensePage = () => {
               <div className="hidden lg:grid grid-cols-[80px_150px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
                 <div>Sr</div>
                 <div>Date</div>
-                <div>Salesman</div>
-                <div>Expenses</div>
+                <div className="text-center">Salesman</div>
+                <div className="text-center">Expenses</div>
                 <div>Amount</div>
                 <div className="text-center">Actions</div>
               </div>
 
               <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-                {filteredExpenses.length === 0 ? (
+                {expenses.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No expenses found.
                   </div>
                 ) : (
-                  filteredExpenses.map((exp, index) => (
+                  expenses.map((exp, index) => (
                     <div
                       key={exp.id}
                       className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div>{index + 1}</div>
+                      <div  >{index + 1}</div>
                       <div>{exp.date}</div>
-                      <div>{exp.salesman}</div>
-                      <div>{exp.items.map((i) => i.name).join(", ")}</div>
-                      <div className="font-semibold text-blue-600">
-                        {exp.totalAmount}
-                      </div>
+                      <div className="text-center">{exp.salesman}</div>
+                      <div className="text-center">{exp.items.map((i) => i.name).join(", ")}</div>
+                      <div className="font-semibold text-blue-600">{exp.totalAmount}</div>
                       <div className="flex justify-center gap-2">
-                        <button onClick={() => setViewExpense(exp)} className="text-yellow-500 hover:text-yellow-600">
+                        <button
+                          onClick={() => setViewExpense(exp)}
+                          className="text-yellow-500 hover:text-yellow-600"
+                        >
                           <Eye size={18} />
                         </button>
-                        <button onClick={() => handleEdit(exp)} className="text-blue-600 hover:text-blue-800">
-                          <SquarePen size={18} />
-                        </button>
-                        <button onClick={() => handleDelete(exp.id)} className="text-red-600 hover:text-red-800">
-                          <Trash2 size={18} />
-                        </button>
+                      
                       </div>
                     </div>
                   ))
@@ -262,12 +171,17 @@ const ExpensePage = () => {
           </div>
         </div>
 
+        {/* ===== VIEW MODAL ===== */}
         {viewExpense && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
               <h2 className="text-xl font-bold text-newPrimary mb-4">Expense Details</h2>
-              <p><strong>Date:</strong> {viewExpense.date}</p>
-              <p><strong>Salesman:</strong> {viewExpense.salesman}</p>
+              <p>
+                <strong>Date:</strong> {viewExpense.date}
+              </p>
+              <p>
+                <strong>Salesman:</strong> {viewExpense.salesman}
+              </p>
               <div className="mt-3">
                 <h3 className="font-semibold mb-2">Items:</h3>
                 <ul className="space-y-1">
@@ -282,7 +196,6 @@ const ExpensePage = () => {
               <p className="mt-4 font-semibold text-blue-600">
                 Total Amount: {viewExpense.totalAmount}
               </p>
-
               <button
                 onClick={() => setViewExpense(null)}
                 className="mt-6 w-full bg-newPrimary text-white py-2 rounded-lg hover:bg-newPrimary/80"
@@ -292,7 +205,6 @@ const ExpensePage = () => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

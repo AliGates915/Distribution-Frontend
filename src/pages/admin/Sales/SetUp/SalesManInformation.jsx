@@ -115,7 +115,7 @@ const validateSalesmanForm = () => {
   const errors = [];
 
   if (!employeeName) errors.push("Employee Name is required");
- 
+ if(!gender) errors.push("Gender is required");
   if (!address) errors.push("Address is required");
   if (!city) errors.push("City is required");
 
@@ -493,7 +493,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Gender 
+                    Gender <span className="text-red-500">*</span>{" "}
                   </label>
                   <select
                     value={gender}
