@@ -36,6 +36,7 @@ const DefineCustomers = () => {
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [areaName, setAreaName] = useState("");
   const [areaNameList, setAreaNameList] = useState([]);
+  const [salesManList, setSalesManList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -48,12 +49,7 @@ const DefineCustomers = () => {
   );
   const totalPages = Math.ceil(customerList.length / recordsPerPage);
 
-  const salesmanList = [
-    { _id: "s1", name: "Ali Khan" },
-    { _id: "s2", name: "Zain Ahmed" },
-    { _id: "s3", name: "Sara Malik" },
-    { _id: "s4", name: "Usman Tariq" },
-  ];
+ 
 
   const handlePageChange = (pageNumber) => {
     setLoading(true);
@@ -106,28 +102,29 @@ const DefineCustomers = () => {
     fetchCustomersList();
   }, [fetchCustomersList]);
 
-  const fetchSalesAreaList = useCallback(async () => {
+  const fetchSalesManList = useCallback(async () => {
     try {
       setIsSaving(true);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/sales-area`
+        `${import.meta.env.VITE_API_BASE_URL}/employees`
       );
-      setAreaNameList(res.data);
+      setSalesManList(res.data);
     } catch (error) {
-      console.error("Failed to fetch Customers", error);
+      console.error("Failed to fetch Salesman", error);
     } finally {
       setTimeout(() => setIsSaving(false), 1000);
     }
   }, []);
 
   useEffect(() => {
-    fetchSalesAreaList();
-  }, [fetchSalesAreaList]);
+    fetchSalesManList();
+  }, [fetchSalesManList]);
 
   // Handlers
   const handleAddCustomer = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
+    setSelectedSalesman("")
     setEditId(null);
     setCustomerName("");
     setContactPerson("");
@@ -158,6 +155,7 @@ const DefineCustomers = () => {
     const errors = [];
 
     if (!areaName) errors.push("Area Name is required");
+    if (!selectedSalesman) errors.push("Salesman is required");
     if (!customerName) errors.push("Customer Name is required");
     if (!address) errors.push("Address is required");
     if (!phoneNumber) errors.push("Phone Number is required");
@@ -176,27 +174,36 @@ const DefineCustomers = () => {
 
   // Save or Update Customer
   const handleSave = async () => {
-    setIsSaving(true);
+  const errors = validateCustomerForm();
+ if (errors.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        html: errors.join("<br/>"),
+      });
+      return;
+    }
+      setIsSaving(true);
+   const formData = {
+  salesArea: areaName,
+  customerName,
+  email,
+  contactPerson,
+  address,
+  salesman: selectedSalesman, 
+  mobileNumber,
+  phoneNumber,
+  designation,
+  ntn,
+  gst,
+  paymentTerms,
+  creditTime: paymentTerms === "Credit" ? Number(creditTime) : undefined,
+  creditLimit: paymentTerms === "Credit" ? Number(creditLimit) : undefined,
+  openingBalanceDate,
+  salesBalance: Number(balanceReceived) || 0,
+};
 
-    const formData = {
-      salesArea: areaName,
-      customerName,
-      email,
-      contactPerson,
-      address,
-      mobileNumber,
-      phoneNumber,
-      designation,
-      ntn,
-      gst,
-      paymentTerms: paymentTerms === "Credit" ? "Credit" : paymentTerms,
-      creditTime: paymentTerms === "Credit" ? creditTime : undefined,
-      creditLimit: paymentTerms === "Credit" ? creditLimit : undefined,
-      status: "Pending",
-      openingBalanceDate,
-      salesBalance: balanceReceived,
-    };
-    console.log({ formData });
+   
 
     try {
       const { token } = userInfo || {};
@@ -247,6 +254,7 @@ const DefineCustomers = () => {
     setEditId(customer._id);
     setAreaName(customer.salesArea || "");
     setCustomerName(customer.customerName);
+    setSelectedSalesman(customer.salesman._id);
     setContactPerson(customer.contactPerson);
     setEmail(customer.email);
     setAddress(customer.address);
@@ -601,9 +609,9 @@ const DefineCustomers = () => {
                     className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-newPrimary"
                   >
                     <option value="">Select Salesman</option>
-                    {salesmanList.map((salesman) => (
+                    {salesManList.map((salesman) => (
                       <option key={salesman._id} value={salesman._id}>
-                        {salesman.name}
+                        {salesman.employeeName}
                       </option>
                     ))}
                   </select>
