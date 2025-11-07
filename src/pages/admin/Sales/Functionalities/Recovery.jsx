@@ -30,8 +30,6 @@ const Recovery = () => {
   const [received, setReceived] = useState("");
   const [balance, setBalance] = useState("");
 
- 
-
   // salesmanList
   const fetchcustomersList = async () => {
     try {
@@ -177,15 +175,15 @@ const Recovery = () => {
   };
 
   // ✅ Fetch Recovery Data whenever customer changes
-useEffect(() => {
-  if (selectedCustomer) {
-    fetchRecoveryData(selectedCustomer);
-    fetchInvoicesByDate(selectedCustomer, selectedDate);
-  } else {
-    setData([]);
-    setInvoiceList([]);
-  }
-}, [selectedCustomer]);
+  useEffect(() => {
+    if (selectedCustomer) {
+      fetchRecoveryData(selectedCustomer);
+      fetchInvoicesByDate(selectedCustomer, selectedDate);
+    } else {
+      setData([]);
+      setInvoiceList([]);
+    }
+  }, [selectedCustomer]);
 
   const handleEdit = (invoice) => {
     console.log("Editing Invoice:", invoice);
@@ -199,7 +197,14 @@ useEffect(() => {
     setBalance(invoice.receivable || 0); // initially same as remaining due
 
     setPreviousBalance(invoice.balance || 0);
-    setSelectedDate(today);
+    setSelectedDate(
+      invoice.recoveryDate
+        ? invoice.recoveryDate.split("T")[0]
+        : invoice.invoiceDate
+        ? invoice.invoiceDate.split("T")[0]
+        : today
+    );
+
     setIsSliderOpen(true);
   };
 
@@ -490,7 +495,7 @@ useEffect(() => {
                       <label className="block text-gray-700 font-medium">
                         Recovery Id :
                       </label>
-                      <p>{`${editingInvoice.recoveryNo ||"REC-001"}`}</p>
+                      <p>{`${editingInvoice.recoveryNo || "REC-001"}`}</p>
                     </div>
 
                     <div className="flex gap-2 items-center">
