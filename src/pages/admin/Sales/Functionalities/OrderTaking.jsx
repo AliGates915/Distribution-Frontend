@@ -37,9 +37,10 @@ const OrderTaking = () => {
   const [unit, setUnit] = useState("");
   const [unitList, setUnitList] = useState([]);
   const [rate, setRate] = useState("");
+  const [purchase, setPurchase] = useState("");
   const [total, setTotal] = useState("");
   const [items, setItems] = useState([]);
-
+  const [rateError, setRateError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -179,6 +180,8 @@ const OrderTaking = () => {
   }, [qty, rate]);
 
   const handleAddItem = () => {
+    setRateError(""); // reset previous error
+
     if (!product) {
       toast.error("Please select a Product");
       return;
@@ -195,23 +198,37 @@ const OrderTaking = () => {
       toast.error("Rate is missing or invalid");
       return;
     }
+    if (!purchase || purchase <= 0) {
+      toast.error("Purchase value is missing or invalid");
+      return;
+    }
+
+    if (Number(rate) <= Number(purchase)) {
+      setRateError("Rate should be greater than Purchase!");
+      return;
+    }
 
     const newItem = {
       id: items.length + 1,
       product,
-      qty,
       unit,
-      rate,
-      total,
+      purchase,       // API price
+      rate,           // Manual rate typed by user
+      qty,
+      total,          // total can be rate * qty
     };
 
     setItems([...items, newItem]);
+
+    // Reset inputs
     setProduct("");
     setQty("");
     setUnit("");
     setRate("");
+    setPurchase("");
     setTotal("");
   };
+
 
   const handleSaveOrder = async (e) => {
     e.preventDefault();
@@ -249,8 +266,7 @@ const OrderTaking = () => {
       if (editingOrder) {
         // ✅ UPDATE EXISTING ORDER (PUT)
         await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/order-taker/${
-            editingOrder._id
+          `${import.meta.env.VITE_API_BASE_URL}/order-taker/${editingOrder._id
           }`,
           payload,
           headers // ✅ include token here
@@ -289,7 +305,7 @@ const OrderTaking = () => {
   };
 
   const handleEdit = (order) => {
-    // console.log(order, "osder");
+    console.log(order, "osder");
 
     setEditingOrder(order);
 
@@ -314,6 +330,7 @@ const OrderTaking = () => {
       order.products?.map((p, i) => ({
         id: i + 1,
         product: p.itemName,
+        purchase: p.purchase,
         qty: p.qty,
         unit: p.itemUnit,
         rate: p.rate,
@@ -321,6 +338,7 @@ const OrderTaking = () => {
       })) || [];
 
     setItems(formattedItems);
+    // console.log("HI", formattedItems);
 
     setIsSliderOpen(true);
   };
@@ -337,6 +355,7 @@ const OrderTaking = () => {
     setQty("");
     setUnit("");
     setRate("");
+    setPurchase("");
     setTotal("");
     setItems([]);
     setCreditsDays("");
@@ -397,6 +416,11 @@ const OrderTaking = () => {
     const options = { day: "2-digit", month: "short", year: "numeric" };
     return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
   };
+
+
+  console.log("Hi", items);
+
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -483,11 +507,10 @@ const OrderTaking = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Previous
                     </button>
@@ -496,11 +519,10 @@ const OrderTaking = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Next
                     </button>
@@ -535,7 +557,7 @@ const OrderTaking = () => {
                 {/* ID and Date */}
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-gray-700 mb-2">Order ID  <span className="text-red-500">*</span></label> 
+                    <label className="block text-gray-700 mb-2">Order ID  <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       value={orderId}
@@ -555,7 +577,7 @@ const OrderTaking = () => {
                 </div>
 
                 {/* Salesman */}
-                <div className="w-[400px]">
+                <div className="w-[49%]">
                   <label className="block text-gray-700 mb-2">Salesman  <span className="text-red-500">*</span></label>
                   <select
                     value={salesman}
@@ -670,8 +692,8 @@ const OrderTaking = () => {
                 </div>
 
                 {/* Product Entry */}
-                <div className="border p-4 rounded-lg  space-y-3">
-                  <div className="grid grid-cols-6 gap-3 items-end">
+                <div className="border p-4 rounded-lg space-y-3">
+                  <div className="grid grid-cols-7 gap-3 items-end">
                     <div>
                       <label className="text-gray-700 text-sm">Product</label>
                       <select
@@ -680,11 +702,9 @@ const OrderTaking = () => {
                           const selected = productsList.find(
                             (p) => p.itemName === e.target.value
                           );
-                          // console.log({ selected });
-
                           setProduct(e.target.value);
-                          setRate(selected?.price ?? "");
                           setUnit(selected?.itemUnit.unitName || "");
+                          setPurchase(selected?.purchase || ""); // Auto-fill Purchase field with product price
                         }}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       >
@@ -694,6 +714,38 @@ const OrderTaking = () => {
                         ))}
                       </select>
                     </div>
+
+                    <div>
+                      <label className="text-gray-700 text-sm">Unit</label>
+                      <input
+                        type="text"
+                        value={unit}
+                        disabled
+                        className="w-full p-2 border border-gray-300 rounded-md bg-gray-50"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-gray-700 text-sm">Purchase</label>
+                      <input
+                        type="number"
+                        value={purchase}
+                        disabled
+                        onChange={(e) => setPurchase(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-gray-700 text-sm">Rate</label>
+                      <input
+                        type="number"
+                        value={rate}
+                        onChange={(e) => setRate(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                    </div>
+
                     <div>
                       <label className="text-gray-700 text-sm">Qty</label>
                       <input
@@ -704,36 +756,7 @@ const OrderTaking = () => {
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                     </div>
-                    <div>
-                      <label className="text-gray-700 text-sm">Unit</label>
-                      <input
-                        type="text"
-                        value={unit}
-                        disabled
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      />
-                      {/* <select
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      >
-                        <option value="">Select</option>
-                        {
-                          unitList?.map((un)=><option key={un._id || un.itemUnit} value={un.itemUnit}>{un.itemUnit}</option>)
-                        }
-                      
-                      </select> */}
-                    </div>
-                    <div>
-                      <label className="text-gray-700 text-sm">Rate</label>
-                      <input
-                        type="number"
-                        value={rate}
-                        onChange={(e) => setRate(e.target.value)}
-                        disabled
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      />
-                    </div>
+
                     <div>
                       <label className="text-gray-700 text-sm">Total</label>
                       <input
@@ -743,6 +766,7 @@ const OrderTaking = () => {
                         className="w-full p-2 border border-gray-300 rounded-md bg-gray-50"
                       />
                     </div>
+
                     <div>
                       <button
                         type="button"
@@ -754,17 +778,23 @@ const OrderTaking = () => {
                     </div>
                   </div>
 
+                  {/* Show Rate error here */}
+                  {rateError && (
+                    <div className="text-red-600 font-medium mt-2">{rateError}</div>
+                  )}
+
                   {/* Items Table */}
                   <div className="mt-4 border border-gray-200 rounded-lg">
-                    <div className="grid grid-cols-[0.2fr_2.3fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
-                      <div className="px-4 py-2">SR</div>
+                    <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
                       <div className="px-4 py-2">Product</div>
-                      <div className="px-4 py-2">Qty</div>
                       <div className="px-4 py-2">Unit</div>
+                      {/* <div className="px-4 py-2">Purchase</div> */}
                       <div className="px-4 py-2">Rate</div>
+                      <div className="px-4 py-2">Qty</div>
                       <div className="px-4 py-2">Total</div>
-                      <div className="px-4 py-2">Remove</div>
+                      <div className="px-4 py-2">Add</div>
                     </div>
+
                     {items.length === 0 ? (
                       <div className="text-center py-3 text-gray-500 bg-white">
                         No items added yet.
@@ -773,19 +803,19 @@ const OrderTaking = () => {
                       items.map((it, i) => (
                         <div
                           key={i}
-                          className="grid grid-cols-[0.2fr_2.3fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
+                          className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
                         >
-                          <div className="px-4 py-2">{i + 1}</div>
                           <div className="px-4 py-2">{it.product}</div>
-                          <div className="px-4 py-2">{it.qty}</div>
                           <div className="px-4 py-2">{it.unit}</div>
-                          <div className="px-4 py-2">{it.rate}</div>
+                          {/* <div className="px-4 py-2">{it.purchase}</div>  */}
+                          <div className="px-4 py-2">{it.rate}</div>     {/* Manual rate */}
+                          <div className="px-4 py-2">{it.qty}</div>
                           <div className="px-4 py-2">{it.total}</div>
                           <div className="flex justify-center py-2">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(i)}
-                              className="text-red-600 hover:bg-red-100 rounded-full  transition"
+                              className="text-red-600 hover:bg-red-100 rounded-full transition"
                               title="Remove Item"
                             >
                               <X size={18} />
@@ -795,18 +825,6 @@ const OrderTaking = () => {
                       ))
                     )}
                   </div>
-                  {items.length > 0 && (
-                    <div className="flex flex-col gap-3 items-end mt-3 text-sm font-semibold text-gray-700 ">
-                      <div className="text-[18px]">
-                        Total Qty:{" "}
-                        <span className=" text-newPrimary">{totalQty}</span>
-                      </div>
-                      <div className="text-[18px]">
-                        Total:{" "}
-                        <span className=" text-newPrimary">{grandTotal}</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <button

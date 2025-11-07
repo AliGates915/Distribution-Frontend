@@ -162,8 +162,7 @@ const ListOfItems = () => {
     const fetchItemTypes = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${
-            itemCategory.name
+          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${itemCategory.name
           }`
         );
         setItemTypeList(res.data);
@@ -263,9 +262,9 @@ const ListOfItems = () => {
     setShelveLocation("");
     setItemUnit("");
     setPerUnit("");
-    setPurchase("");
-    setSales("");
-    setStock("");
+    // setPurchase("");
+    // setSales("");
+    // setStock("");
     setPrice("");
     setBarcode("");
     setReorder("");
@@ -287,9 +286,9 @@ const ListOfItems = () => {
     if (!itemName) errors.push("Item Name is required");
     if (!itemUnit) errors.push("Item Unit is required");
     if (!perUnit) errors.push("Per Unit is required");
-    if (!purchase) errors.push("Purchase is required");
-    if (!sales) errors.push("Sales is required");
-    if (!stock) errors.push("Stock is required");
+    // if (!purchase) errors.push("Purchase is required");
+    // if (!sales) errors.push("Sales is required");
+    // if (!stock) errors.push("Stock is required");
     if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
@@ -323,10 +322,10 @@ const ListOfItems = () => {
     formData.append("itemCategory", itemCategory.id);
     formData.append("manufacturer", manufacture);
     formData.append("supplier", supplier);
-    formData.append("purchase", parseFloat(purchase) || 0);
+    // formData.append("purchase", parseFloat(purchase) || 0);
     formData.append("itemType", itemType);
-    formData.append("stock", parseInt(stock) || 0);
-    formData.append("price", parseFloat(sales) || 0);
+    // formData.append("stock", parseInt(stock) || 0);
+    // formData.append("price", parseFloat(sales) || 0);
     formData.append("shelveLocation", shelveLocation);
     formData.append("itemUnit", itemUnit);
     formData.append("perUnit", parseInt(perUnit) || 0);
@@ -334,7 +333,7 @@ const ListOfItems = () => {
     formData.append("isEnable", enabled);
     formData.append("primaryBarcode", primaryBarcode);
     formData.append("secondaryBarcode", barcode);
-    formData.append("itemKind", itemKind);
+    // formData.append("itemKind", itemKind);
     // ✅ expiry logic
     if (expiryOption === "HasExpiry") {
       formData.append("hasExpiry", parseInt(expiryDay) || 0);
@@ -391,9 +390,9 @@ const ListOfItems = () => {
     setShelveLocation("");
     setItemUnit("");
     setPerUnit("");
-    setPurchase("");
-    setSales("");
-    setStock("");
+    // setPurchase("");
+    // setSales("");
+    // setStock("");
     setPrice("");
     setBarcode("");
     setReorder("");
@@ -425,9 +424,9 @@ const ListOfItems = () => {
     // Normal fields
     setItemName(item.itemName || "");
     setPerUnit(item.perUnit ? item.perUnit.toString() : "");
-    setPurchase(item.purchase ? item.purchase.toString() : "");
-    setSales(item.price.toString() ?? "");
-    setStock(item.stock ? item.stock.toString() : "");
+    // setPurchase(item.purchase ? item.purchase.toString() : "");
+    // setSales(item.price.toString() ?? "");
+    // setStock(item.stock ? item.stock.toString() : "");
     setBarcode(item.secondaryBarcode || "");
     setReorder(item.reorder ? item.reorder.toString() : "");
     setItemKind(item.itemKind || "");
@@ -581,13 +580,13 @@ const ListOfItems = () => {
           <div className="max-h-screen overflow-y-auto custom-scrollbar">
             <div className="inline-block w-full align-middle">
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.5fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                 <div>Sr</div>
                 <div>Item Category</div>
                 <div>Item Name</div>
-                <div>Purchase</div>
-                <div>Sales</div>
-                <div>Stock</div>
+                {/* <div>Purchase</div> */}
+                {/* <div>Sales</div>
+                <div>Stock</div> */}
                 {userInfo?.isAdmin && <div className="">Actions</div>}
               </div>
 
@@ -597,7 +596,7 @@ const ListOfItems = () => {
                   <TableSkeleton
                     rows={itemList.length || 5}
                     cols={userInfo?.isAdmin ? 7 : 6}
-                    className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                    className="lg:grid-cols-[0.2fr_1fr_1fr_0.5fr]"
                   />
                 ) : itemList.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -607,7 +606,7 @@ const ListOfItems = () => {
                   currentRecords.map((item, index) => (
                     <div
                       key={item._id}
-                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_0.5fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       {indexOfFirstRecord + index + 1}
                       {/* Item Category (with icon) */}
@@ -628,19 +627,19 @@ const ListOfItems = () => {
                       </div>
 
                       {/* Purchase */}
-                      <div className="font-semibold text-gray-600">
+                      {/* <div className="font-semibold text-gray-600">
                         {item.purchase || "-"}
-                      </div>
+                      </div> */}
 
                       {/* Sales */}
-                      <div className="font-semibold text-gray-600">
+                      {/* <div className="font-semibold text-gray-600">
                         {item.price ?? "-"}
-                      </div>
+                      </div> */}
 
                       {/* Stock */}
-                      <div className="font-semibold text-gray-600">
+                      {/* <div className="font-semibold text-gray-600">
                         {item.stock || "-"}
-                      </div>
+                      </div> */}
 
                       {/* Actions */}
                       {userInfo?.isAdmin && (
@@ -677,11 +676,10 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Previous
                     </button>
@@ -690,11 +688,10 @@ const ListOfItems = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Next
                     </button>
@@ -731,9 +728,9 @@ const ListOfItems = () => {
                   setShelveLocation("");
                   setItemUnit("");
                   setPerUnit("");
-                  setPurchase("");
-                  setSales("");
-                  setStock("");
+                  // setPurchase("");
+                  // setSales("");
+                  // setStock("");
                   setPrice("");
                   setBarcode("");
                   setReorder("");
@@ -895,7 +892,6 @@ const ListOfItems = () => {
                       <select
                         value={shelveLocation}
                         required
-                        disabled
                         onChange={(e) => setShelveLocation(e.target.value)}
                         className="w-full p-2 border rounded"
                       >
@@ -961,7 +957,7 @@ const ListOfItems = () => {
                     </div>
 
                     {/* Purchase */}
-                    <div className="flex-1 block min-w-0">
+                    {/* <div className="flex-1 block min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Purchase <span className="text-red-500">*</span>
                       </label>
@@ -972,12 +968,12 @@ const ListOfItems = () => {
                         onChange={(e) => setPurchase(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="flex gap-5">
                     {/* Sales */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Sales <span className="text-red-500">*</span>
                       </label>
@@ -988,10 +984,10 @@ const ListOfItems = () => {
                         onChange={(e) => setSales(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Stock */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Stock <span className="text-red-500">*</span>
                       </label>
@@ -1002,7 +998,7 @@ const ListOfItems = () => {
                         onChange={(e) => setStock(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="flex gap-4">
@@ -1171,14 +1167,12 @@ const ListOfItems = () => {
                 <button
                   type="button"
                   onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    enabled ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      enabled ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
               </div>
