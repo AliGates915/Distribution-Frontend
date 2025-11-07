@@ -23,7 +23,7 @@ const DailySalesReport = () => {
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
   const [PendingOrdersList, setPeningOrdersList] = useState([]);
-  const today =new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [selectedDate, setSelectedDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -94,7 +94,6 @@ const DailySalesReport = () => {
       setLoading(true);
       const response = await api.get(`/customers/isPending/${salesmanId}`);
 
-
       // 🧠 Ensure it’s always an array
       const data = response.data;
       if (Array.isArray(data)) {
@@ -132,8 +131,6 @@ const DailySalesReport = () => {
     }
   }, [customersList]);
 
-
-
   useEffect(() => {
     if (selectedCustomer) {
       fetchOrdersByCustomer(selectedCustomer);
@@ -163,7 +160,6 @@ const DailySalesReport = () => {
       setLoading(true);
       const response = await api.get("/employees/salesman");
       setSalesman(response.employees || []);
-
     } catch (error) {
       console.error("Failed to fetch salesman list", error);
     } finally {
@@ -198,9 +194,6 @@ const DailySalesReport = () => {
     fetchPendingOrdersList();
   }, [fetchPendingOrdersList]);
 
-
-
-
   // console.log({ PendingOrdersList });
 
   // ✅ Fetch Pending Orders Data (Sales Items, Payment Received, Recoveries)
@@ -212,11 +205,10 @@ const DailySalesReport = () => {
         `/sales-invoice/daily-report/${selectedSalesman}`
       );
       setSalesmanList({
-        salesItems: response.data?.salesItems || [],
-        paymentReceived: response.data?.customerPayments || [], // match backend field
-        recoveries: response.data?.recoveries || [],
+        salesItems: response?.salesItems || [],
+        paymentReceived: response?.customerPayments || [],
+        recoveries: response?.recoveries || [],
       });
-
     } catch (error) {
       console.error(" Failed to fetch pending order data:", error);
       toast.error("Failed to load pending order data");
@@ -227,7 +219,6 @@ const DailySalesReport = () => {
 
   useEffect(() => {
     if (selectedSalesman) {
-
       fetchPendingOrderData(); // for table data
     }
   }, [selectedSalesman, fetchPendingOrderData]);
@@ -239,14 +230,14 @@ const DailySalesReport = () => {
     try {
       setLoading(true);
       const response = await api.get(
-        `/sales-invoice/daily-report/null/${selectedOrders}?date=${selectedDate}`
+        `/sales-invoice/daily-report/${selectedSalesman}/${selectedOrders}?date=${selectedDate}`
       );
 
       setSalesmanList({
-        salesItems: response.data?.salesItems || [],
-        paymentReceived: response.data?.customerPayments || [],
+        salesItems: response?.salesItems || [],
+        paymentReceived: response?.customerPayments || [],
+        recoveries: response?.recoveries || [],
       });
-
 
       setSelectedOrder(response);
     } catch (error) {
@@ -263,9 +254,6 @@ const DailySalesReport = () => {
     }
   }, [selectedOrders, selectedDate, fetchOrderBasedData]);
 
-
-  
-  
   useEffect(() => {
     if (selectedSalesman && selectedDate) {
       const fetchPendingOrdersWithDate = async () => {
@@ -276,7 +264,7 @@ const DailySalesReport = () => {
           );
           setSalesmanList({
             salesItems: response.salesItems || [],
-            paymentReceived: response.paymentReceived || [],
+            paymentReceived: response.customerPayments || [],
             recoveries: response.recoveries || [],
           });
         } catch (error) {
@@ -291,8 +279,6 @@ const DailySalesReport = () => {
       fetchPendingOrdersWithDate();
     }
   }, [selectedSalesman, selectedDate]);
-
-
 
   // Reset invoices when customer changes
   useEffect(() => {
@@ -326,7 +312,6 @@ const DailySalesReport = () => {
       mode: paymentType,
       amount: enterAmount,
     };
-
 
     const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
     const headers = {
@@ -381,7 +366,6 @@ const DailySalesReport = () => {
     setPaymentType("Cash");
   };
 
-
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentSalesItems =
@@ -409,596 +393,597 @@ const DailySalesReport = () => {
     selectedInvoices.length === filteredInvoices.length;
   console.log({ salesmanList });
 
-
-
-
-
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      {
-        loading ?
-          <div className="w-full flex justify-center items-center h-screen"><Loader size={70} color="#1E93AB" className=" animate-spin" /></div> :
-          (
-            <div className="px-6 mx-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold text-newPrimary">
-                  Daily Sales Report
-                </h1>
-                <div className="flex items-center gap-4">
-                  {selectedSalesman &&
-                    (salesmanList?.salesItems?.length > 0 ||
-                      salesmanList?.paymentReceived?.length > 0 ||
-                      salesmanList?.recoveries?.length > 0) && (
-                      <button
-                        onClick={() =>
-                          handleDailySalesPrint(
-                            salesmanList,
-                            salesman.find((s) => s._id === selectedSalesman)
-                              ?.employeeName
-                          )
-                        }
-                        className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
-                      >
-                        <Printer size={18} />
-                      </button>
-                    )}
-
-                </div>
+      {loading ? (
+        <div className="w-full flex justify-center items-center h-screen">
+          <Loader size={70} color="#1E93AB" className=" animate-spin" />
+        </div>
+      ) : (
+        <div className="px-6 mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-newPrimary">
+              Daily Sales Report
+            </h1>
+            <div className="flex items-center gap-4">
+              {selectedSalesman &&
+                (salesmanList?.salesItems?.length > 0 ||
+                  salesmanList?.paymentReceived?.length > 0 ||
+                  salesmanList?.recoveries?.length > 0) && (
+                  <button
+                    onClick={() =>
+                      handleDailySalesPrint(
+                        salesmanList,
+                        salesman.find((s) => s._id === selectedSalesman)
+                          ?.employeeName
+                      )
+                    }
+                    className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+                  >
+                    <Printer size={18} />
+                  </button>
+                )}
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-between gap-10 w-full mt-4">
+            {/* ===== Left Section ===== */}
+            <div className="flex flex-col space-y-2">
+              {/* Date Field */}
+              <div className="flex items-center gap-6">
+                <label className="text-gray-700 font-medium w-24">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  max={today}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                />
               </div>
-             <div className="flex flex-wrap justify-between gap-10 w-full mt-4">
-                {/* ===== Left Section ===== */}
-                <div className="flex flex-col space-y-2">
-
-
-                  {/* Date Field */}
-                  <div className="flex items-center gap-6">
-                    <label className="text-gray-700 font-medium w-24">
-                      Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      max={today}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    />
-                  </div>
-                  {/* Salesman Field */}
-                  <div className="flex items-center gap-6">
-                    <label className="text-gray-700 font-medium w-24">
-                      Salesman <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={selectedSalesman}
-                      onChange={(e) => setSelectedSalesman(e.target.value)}
-                      className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-newPrimary"
-                    >
-                      <option value="">Select Salesman</option>
-                      {salesman?.map((cust) => (
-                        <option key={cust._id} value={cust._id}>
-                          {cust.employeeName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* ===== Right Section ===== */}
-                <div className="flex flex-col justify-start">
-                  <div className="flex items-center gap-6">
-                    <label className="text-gray-700 font-medium w-24">
-                      Orders <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={selectedOrders}
-                      onChange={(e) => setSelectedOrders(e.target.value)}
-                      className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                    >
-                      <option value="">Select Orders</option>
-                      {PendingOrdersList?.map((order) => (
-                        <option key={order._id} value={order.invoiceNo}>
-                          {order.invoiceNo}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+              {/* Salesman Field */}
+              <div className="flex items-center gap-6">
+                <label className="text-gray-700 font-medium w-24">
+                  Salesman <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedSalesman}
+                  onChange={(e) => setSelectedSalesman(e.target.value)}
+                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-newPrimary"
+                >
+                  <option value="">Select Salesman</option>
+                  {salesman?.map((cust) => (
+                    <option key={cust._id} value={cust._id}>
+                      {cust.employeeName}
+                    </option>
+                  ))}
+                </select>
               </div>
+            </div>
 
-              <div className="p-0 mt-6">
-                {(selectedSalesman || selectedOrders) && (
-                  <div>
-                    {/* Sales Items Table */}
-                    <h1 className="text-xl font-bold py-2">Sales Items</h1>
-                    <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
-                      <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
-                        <div className="min-w-full custom-scrollbar">
-                          <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                            <div>Invoice No</div>
-                            <div>Items</div>
-                            <div>Rate</div>
-                            <div>Qty</div>
-                            <div>Total</div>
+            {/* ===== Right Section ===== */}
+            <div className="flex flex-col justify-start">
+              <div className="flex items-center gap-6">
+                <label className="text-gray-700 font-medium w-24">
+                  Orders <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedOrders}
+                  onChange={(e) => setSelectedOrders(e.target.value)}
+                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                >
+                  <option value="">Select Orders</option>
+                  {PendingOrdersList?.map((order) => (
+                    <option key={order._id} value={order.invoiceNo}>
+                      {order.invoiceNo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-0 mt-6">
+            {(selectedSalesman || selectedOrders) && (
+              <div>
+                {/* Sales Items Table */}
+                <h1 className="text-xl font-bold py-2">Sales Items</h1>
+                <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+                  <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
+                    <div className="min-w-full custom-scrollbar">
+                      <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                        <div>Invoice No</div>
+                        <div>Items</div>
+                        <div>Rate</div>
+                        <div>Qty</div>
+                        <div>Total</div>
+                      </div>
+                      <div className="flex flex-col divide-y divide-gray-100">
+                        {loading ? (
+                          <TableSkeleton
+                            rows={currentSalesItems.length || 5}
+                            cols={5}
+                            className="lg:grid-cols-[1fr_1fr_1fr_1fr_1fr]"
+                          />
+                        ) : currentSalesItems.length === 0 ? (
+                          <div className="text-center py-4 text-gray-500 bg-white">
+                            No records found.
                           </div>
-                          <div className="flex flex-col divide-y divide-gray-100">
-                            {loading ? (
-                              <TableSkeleton
-                                rows={currentSalesItems.length || 5}
-                                cols={5}
-                                className="lg:grid-cols-[1fr_1fr_1fr_1fr_1fr]"
-                              />
-                            ) : currentSalesItems.length === 0 ? (
-                              <div className="text-center py-4 text-gray-500 bg-white">
-                                No records found.
+                        ) : (
+                          <>
+                            {currentSalesItems.map((item, index) => (
+                              <div
+                                key={index}
+                                className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                              >
+                                <div>{item.invoiceNo || "-"}</div>
+                                <div>{item?.itemName || "-"}</div>
+                                <div>{item?.rate || "-"}</div>
+                                <div>{item?.qty || "-"}</div>
+                                <div>{item?.total || "-"}</div>
                               </div>
-                            ) : (
-                              <>
-                                {currentSalesItems.map((item, index) => (
+                            ))}
+                            {/* Total Row with Colors */}
+                            <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div></div>
+                              <div className="text-blue-800">
+                                Total:{" "}
+                                {currentSalesItems
+                                  .reduce((sum, item) => sum + item.total, 0)
+                                  .toLocaleString()}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Received Table */}
+                <div className="">
+                  <h1 className="text-xl font-bold py-2">Payment Received</h1>
+                  <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
+                    <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
+                      <div className="min-w-full custom-scrollbar">
+                        <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                          <div>Customer</div>
+                          <div>Total</div>
+                          <div>Received</div>
+                          <div>Balance</div>
+                        </div>
+                        <div className="flex flex-col divide-y divide-gray-100">
+                          {loading ? (
+                            <TableSkeleton
+                              rows={currentPaymentReceived.length || 5}
+                              cols={4}
+                            />
+                          ) : currentPaymentReceived.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500 bg-white">
+                              No records found.
+                            </div>
+                          ) : (
+                            <>
+                              {currentPaymentReceived.map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                                >
+                                  <div>{item?.customer}</div>
+                                  <div>{item?.total}</div>
+                                  <div>{item?.received}</div>
                                   <div
-                                    key={index}
-                                    className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                                    className={
+                                      item.balance < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                    }
                                   >
-                                    <div>{item.invoiceNo || "-"}</div>
-                                    <div>{item?.itemName || "-"}</div>
-                                    <div>{item?.rate || "-"}</div>
-                                    <div>{item?.qty || "-"}</div>
-                                    <div>{item?.total || "-"}</div>
-                                  </div>
-                                ))}
-                                {/* Total Row with Colors */}
-                                <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                                  <div></div>
-                                  <div></div>
-                                  <div></div>
-                                  <div></div>
-                                  <div className="text-blue-800">
-                                    Total:{" "}
-                                    {currentSalesItems
-                                      .reduce((sum, item) => sum + item.total, 0)
-                                      .toLocaleString()}
+                                    {item.balance || "-"}
                                   </div>
                                 </div>
-                              </>
-                            )}
-                          </div>
+                              ))}
+                              {/* Total Row with Colors */}
+                              <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                                <div></div>
+                                <div className="text-blue-600">
+                                  Total:{" "}
+                                  {currentPaymentReceived
+                                    .reduce((sum, item) => sum + item.total, 0)
+                                    .toLocaleString()}
+                                </div>
+                                <div className="text-green-600">
+                                  Total Rec:{" "}
+                                  {currentPaymentReceived
+                                    .reduce(
+                                      (sum, item) => sum + item.received,
+                                      0
+                                    )
+                                    .toLocaleString()}
+                                </div>
+                                <div
+                                  className={
+                                    currentPaymentReceived.reduce(
+                                      (sum, item) => sum + item.balance,
+                                      0
+                                    ) < 0
+                                      ? "text-red-600"
+                                      : "text-blue-800"
+                                  }
+                                >
+                                  Total Bal:{" "}
+                                  {currentPaymentReceived
+                                    .reduce(
+                                      (sum, item) => sum + item.balance,
+                                      0
+                                    )
+                                    .toLocaleString()}
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
-
-                    {/* Payment Received Table */}
-                    <div className="">
-                      <h1 className="text-xl font-bold py-2">Payment Received</h1>
-                      <div className="rounded-xl shadow border border-gray-200 overflow-hidden mb-6">
-                        <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
-                          <div className="min-w-full custom-scrollbar">
-                            <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                              <div>Customer</div>
-                              <div>Total</div>
-                              <div>Received</div>
-                              <div>Balance</div>
-                            </div>
-                            <div className="flex flex-col divide-y divide-gray-100">
-                              {loading ? (
-                                <TableSkeleton
-                                  rows={currentPaymentReceived.length || 5}
-                                  cols={4}
-                                />
-                              ) : currentPaymentReceived.length === 0 ? (
-                                <div className="text-center py-4 text-gray-500 bg-white">
-                                  No records found.
-                                </div>
-                              ) : (
-                                <>
-                                  {currentPaymentReceived.map((item, index) => (
-                                    <div
-                                      key={index}
-                                      className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                                    >
-                                      <div>{item?.customer}</div>
-                                      <div>{item?.total}</div>
-                                      <div>{item?.received}</div>
-                                      <div
-                                        className={
-                                          item.balance < 0
-                                            ? "text-red-600"
-                                            : "text-gray-700"
-                                        }
-                                      >
-                                        {item.balance || "-"}
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {/* Total Row with Colors */}
-                                  <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                                    <div></div>
-                                    <div className="text-blue-600">
-                                      Total:{" "}
-                                      {currentPaymentReceived
-                                        .reduce((sum, item) => sum + item.total, 0)
-                                        .toLocaleString()}
-                                    </div>
-                                    <div className="text-green-600">
-                                      Total Rec:{" "}
-                                      {currentPaymentReceived
-                                        .reduce((sum, item) => sum + item.received, 0)
-                                        .toLocaleString()}
-                                    </div>
-                                    <div
-                                      className={
-                                        currentPaymentReceived.reduce(
-                                          (sum, item) => sum + item.balance,
-                                          0
-                                        ) < 0
-                                          ? "text-red-600"
-                                          : "text-blue-800"
-                                      }
-                                    >
-                                      Total Bal:{" "}
-                                      {currentPaymentReceived
-                                        .reduce((sum, item) => sum + item.balance, 0)
-                                        .toLocaleString()}
-                                    </div>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                  </div>
+                </div>
+                {/* Recoveries Table */}
+                <div className="">
+                  <h1 className="text-xl font-bold py-2">Recovery</h1>
+                  <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
+                    <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
+                      <div className="min-w-full custom-scrollbar">
+                        <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                          <div>Customer</div>
+                          <div>Due Recovery</div>
+                          <div>Sales Invoices</div>
+                          <div>Recovery</div>
                         </div>
-                      </div>
-                    </div>
-                    {/* Recoveries Table */}
-                    <div className="">
-                      <h1 className="text-xl font-bold py-2">Recovery</h1>
-                      <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
-                        <div className="overflow-y-auto lg:overflow-x-auto max-h-[300px]">
-                          <div className="min-w-full custom-scrollbar">
-                            <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                              <div>Customer</div>
-                              <div>Due Recovery</div>
-                              <div>Sales Invoices</div>
-                              <div>Recovery</div>
+                        <div className="flex flex-col divide-y divide-gray-100">
+                          {loading ? (
+                            <TableSkeleton
+                              rows={currentRecoveries.length || 5}
+                              cols={4}
+                            />
+                          ) : currentRecoveries.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500 bg-white">
+                              No records found.
                             </div>
-                            <div className="flex flex-col divide-y divide-gray-100">
-                              {loading ? (
-                                <TableSkeleton
-                                  rows={currentRecoveries.length || 5}
-                                  cols={4}
-                                />
-                              ) : currentRecoveries.length === 0 ? (
-                                <div className="text-center py-4 text-gray-500 bg-white">
-                                  No records found.
+                          ) : (
+                            <>
+                              {currentRecoveries.map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                                >
+                                  <div>{item?.customer}</div>
+                                  <div>{item?.dueRecovery}</div>
+                                  <div>{item?.invoices?.join(", ") || "-"}</div>
+                                  <div>{item?.totalRecovery || "-"}</div>
                                 </div>
-                              ) : (
-                                <>
-                                  {currentRecoveries.map((item, index) => (
-                                    <div
-                                      key={index}
-                                      className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                                    >
-                                      <div>{item?.customer}</div>
-                                      <div>{item?.dueRecovery}</div>
-                                      <div>{item?.invoices?.join(", ") || "-"}</div>
-                                      <div>{item?.totalRecovery || "-"}</div>
-
-                                    </div>
-                                  ))}
-                                  {/* Total Row with Colors */}
-                                  <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                                    <div></div>
-                                    <div className="text-blue-600">
-                                      Total Due:{" "}
-                                      {currentRecoveries
-                                        .reduce(
-                                          (sum, item) => sum + item.dueRecovery,
-                                          0
-                                        )
-                                        .toLocaleString()}
-                                    </div>
-                                    <div></div>
-                                    {/* <div className="text-green-600">
+                              ))}
+                              {/* Total Row with Colors */}
+                              <div className="grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                                <div></div>
+                                <div className="text-blue-600">
+                                  Total Due:{" "}
+                                  {currentRecoveries
+                                    .reduce(
+                                      (sum, item) => sum + item.dueRecovery,
+                                      0
+                                    )
+                                    .toLocaleString()}
+                                </div>
+                                <div></div>
+                                {/* <div className="text-green-600">
                               Total Rec:{" "}
                               {currentRecoveries
                                 .reduce((sum, item) => sum + item.recovery, 0)
                                 .toLocaleString() || "-"}
                             </div> */}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
+            )}
+          </div>
 
-              {isView && selectedOrder && (
-                <ViewModal
-                  type="dailySales"
-                  data={selectedOrder}
-                  onClose={() => setIsView(false)}
-                />
-              )}
+          {isView && selectedOrder && (
+            <ViewModal
+              type="dailySales"
+              data={selectedOrder}
+              onClose={() => setIsView(false)}
+            />
+          )}
 
-              {isSliderOpen && (
-                <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-                  <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
-                    {loading && (
-                      <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
-                        <ScaleLoader color="#1E93AB" size={60} />
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center p-4 border-b bg-white rounded-t-2xl">
-                      <h2 className="text-xl font-bold text-newPrimary">
-                        Add Receivable
-                      </h2>
-                      <button
-                        className="text-2xl text-gray-500 hover:text-gray-700"
-                        onClick={resetForm}
-                      >
-                        ×
-                      </button>
-                    </div>
+          {isSliderOpen && (
+            <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
+              <div className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]">
+                {loading && (
+                  <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
+                    <ScaleLoader color="#1E93AB" size={60} />
+                  </div>
+                )}
+                <div className="flex justify-between items-center p-4 border-b bg-white rounded-t-2xl">
+                  <h2 className="text-xl font-bold text-newPrimary">
+                    Add Receivable
+                  </h2>
+                  <button
+                    className="text-2xl text-gray-500 hover:text-gray-700"
+                    onClick={resetForm}
+                  >
+                    ×
+                  </button>
+                </div>
 
-                    <form onSubmit={handleSaveReceivable} className="space-y-4 p-6">
-                      {/* Payment Type Radio Buttons */}
-                      <div className="flex gap-6">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="Cash"
-                            checked={paymentType === "Cash"}
-                            onChange={(e) => setPaymentType(e.target.value)}
-                            className="mr-2"
-                          />
-                          Cash
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            value="Recovery"
-                            checked={paymentType === "Recovery"}
-                            onChange={(e) => setPaymentType(e.target.value)}
-                            className="mr-2"
-                          />
-                          Recovery
-                        </label>
-                      </div>
+                <form onSubmit={handleSaveReceivable} className="space-y-4 p-6">
+                  {/* Payment Type Radio Buttons */}
+                  <div className="flex gap-6">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="Cash"
+                        checked={paymentType === "Cash"}
+                        onChange={(e) => setPaymentType(e.target.value)}
+                        className="mr-2"
+                      />
+                      Cash
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="Recovery"
+                        checked={paymentType === "Recovery"}
+                        onChange={(e) => setPaymentType(e.target.value)}
+                        className="mr-2"
+                      />
+                      Recovery
+                    </label>
+                  </div>
 
-                      {/* Conditional Fields */}
-                      {(paymentType === "Cash" || paymentType === "Recovery") && (
-                        <div className="space-y-4">
-                          {/* ✅ If multiple customers -> show dropdown */}
-                          {customersList.length > 1 ? (
-                            <div className="w-[400px]">
-                              <label className="block text-gray-700 mb-2">
-                                Select Customer
+                  {/* Conditional Fields */}
+                  {(paymentType === "Cash" || paymentType === "Recovery") && (
+                    <div className="space-y-4">
+                      {/* ✅ If multiple customers -> show dropdown */}
+                      {customersList.length > 1 ? (
+                        <div className="w-[400px]">
+                          <label className="block text-gray-700 mb-2">
+                            Select Customer
+                          </label>
+                          <select
+                            value={selectedCustomer}
+                            onChange={(e) =>
+                              setSelectedCustomer(e.target.value)
+                            }
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                          >
+                            <option value="">Select Customer</option>
+                            {customersList.map((cust) => (
+                              <option key={cust._id} value={cust._id}>
+                                {cust.customerName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : customersList.length === 1 ? (
+                        // ✅ If only one customer, show directly
+                        <div className="w-[400px]">
+                          <label className="block text-gray-700 mb-2">
+                            Customer
+                          </label>
+                          <p className="p-3 border border-gray-300 rounded-md bg-gray-50">
+                            {customersList[0].customerName}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {/* Checkbox-based Invoice Selection */}
+                      {selectedCustomer && (
+                        <div className="w-full border rounded-md p-4 bg-gray-50">
+                          <div className="flex justify-between items-center mb-3">
+                            <label className="block text-gray-700 font-medium mb-2">
+                              Select Invoice No. ({selectedInvoices.length}{" "}
+                              selected)
+                            </label>
+                            {filteredInvoices.length > 0 && (
+                              <label className="flex items-center text-sm text-gray-600">
+                                <input
+                                  type="checkbox"
+                                  checked={allSelected}
+                                  onChange={handleSelectAll}
+                                  className="mr-2"
+                                />
+                                Select All
                               </label>
-                              <select
-                                value={selectedCustomer}
-                                onChange={(e) => setSelectedCustomer(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-md"
-                              >
-                                <option value="">Select Customer</option>
-                                {customersList.map((cust) => (
-                                  <option key={cust._id} value={cust._id}>
-                                    {cust.customerName}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          ) : customersList.length === 1 ? (
-                            // ✅ If only one customer, show directly
-                            <div className="w-[400px]">
-                              <label className="block text-gray-700 mb-2">
-                                Customer
-                              </label>
-                              <p className="p-3 border border-gray-300 rounded-md bg-gray-50">
-                                {customersList[0].customerName}
-                              </p>
-                            </div>
-                          ) : null}
+                            )}
+                          </div>
 
-                          {/* Checkbox-based Invoice Selection */}
-                          {selectedCustomer && (
-                            <div className="w-full border rounded-md p-4 bg-gray-50">
-                              <div className="flex justify-between items-center mb-3">
-                                <label className="block text-gray-700 font-medium mb-2">
-                                  Select Invoice No. ({selectedInvoices.length}{" "}
-                                  selected)
-                                </label>
-                                {filteredInvoices.length > 0 && (
-                                  <label className="flex items-center text-sm text-gray-600">
+                          {filteredInvoices.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500">
+                              No invoices found for this customer.
+                            </div>
+                          ) : (
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {filteredInvoices.map((invoice, idx) => (
+                                <label
+                                  key={idx}
+                                  className="flex items-center justify-between p-3 bg-white rounded border hover:bg-gray-50 cursor-pointer"
+                                >
+                                  <div className="flex items-center space-x-3">
                                     <input
                                       type="checkbox"
-                                      checked={allSelected}
-                                      onChange={handleSelectAll}
-                                      className="mr-2"
+                                      checked={selectedInvoices.includes(
+                                        invoice.orderId
+                                      )}
+                                      onChange={(e) =>
+                                        handleInvoiceCheckboxChange(
+                                          invoice.orderId,
+                                          e.target.checked
+                                        )
+                                      }
+                                      className="rounded border-gray-300 text-newPrimary focus:ring-newPrimary"
                                     />
-                                    Select All
-                                  </label>
-                                )}
-                              </div>
-
-                              {filteredInvoices.length === 0 ? (
-                                <div className="text-center py-4 text-gray-500">
-                                  No invoices found for this customer.
-                                </div>
-                              ) : (
-                                <div className="space-y-2 max-h-48 overflow-y-auto">
-                                  {filteredInvoices.map((invoice, idx) => (
-                                    <label
-                                      key={idx}
-                                      className="flex items-center justify-between p-3 bg-white rounded border hover:bg-gray-50 cursor-pointer"
-                                    >
-                                      <div className="flex items-center space-x-3">
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedInvoices.includes(
-                                            invoice.orderId
-                                          )}
-                                          onChange={(e) =>
-                                            handleInvoiceCheckboxChange(
-                                              invoice.orderId,
-                                              e.target.checked
-                                            )
-                                          }
-                                          className="rounded border-gray-300 text-newPrimary focus:ring-newPrimary"
-                                        />
-                                        <span className="font-medium">
-                                          {invoice.orderId}
-                                        </span>
-                                      </div>
-                                      <span
-                                        className={`font-medium ${invoice.totalAmount < 0
-                                            ? "text-red-600"
-                                            : "text-gray-700"
-                                          }`}
-                                      >
-                                        {invoice.totalAmount.toLocaleString()}
-                                      </span>
-                                    </label>
-                                  ))}
-                                </div>
-                              )}
+                                    <span className="font-medium">
+                                      {invoice.orderId}
+                                    </span>
+                                  </div>
+                                  <span
+                                    className={`font-medium ${
+                                      invoice.totalAmount < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                    }`}
+                                  >
+                                    {invoice.totalAmount.toLocaleString()}
+                                  </span>
+                                </label>
+                              ))}
                             </div>
                           )}
+                        </div>
+                      )}
 
-                          {/* Selected Invoices Display */}
-                          {selectedInvoices.length > 0 && (
-                            <div className="border rounded-md p-3 bg-blue-50">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium text-blue-800">
-                                  Selected Invoices ({selectedInvoices.length}):
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={clearAllInvoices}
-                                  className="text-sm text-red-600 hover:text-red-800"
-                                >
-                                  Clear All
-                                </button>
-                              </div>
-                              <div className="space-y-2 max-h-32 overflow-y-auto">
-                                {selectedInvoices.map((invoiceId) => {
-                                  const invoice = staticInvoices.find(
-                                    (inv) => inv._id === invoiceId
-                                  );
-                                  return invoice ? (
-                                    <div
-                                      key={invoiceId}
-                                      className="flex justify-between items-center bg-white p-2 rounded border"
-                                    >
-                                      <span className="font-medium">
-                                        {invoice._id}
-                                      </span>
-                                      <div className="flex items-center space-x-2">
-                                        <span
-                                          className={`font-medium ${invoice.dueAmount < 0
-                                              ? "text-red-600"
-                                              : "text-gray-700"
-                                            }`}
-                                        >
-                                          {invoice.dueAmount.toLocaleString()}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeInvoice(invoiceId)}
-                                          className="text-red-500 hover:text-red-700 text-lg"
-                                        >
-                                          ×
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="flex gap-4">
-                            <div className="w-1/3">
-                              <label className="block text-gray-700 mb-2">
-                                Total Due Amount
-                              </label>
-                              <input
-                                type="number"
-                                value={dueAmount}
-                                readOnly
-                                className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
-                              />
-                            </div>
-                            <div className="w-1/3">
-                              <label className="block text-gray-700 mb-2">
-                                Balance
-                              </label>
-                              <input
-                                type="text"
-                                value={balance}
-                                readOnly
-                                className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
-                              />
-                            </div>
-                            <div className="w-1/3">
-                              <label className="block text-gray-700 mb-2">
-                                Enter Amount
-                              </label>
-                              <input
-                                type="number"
-                                value={enterAmount}
-                                onChange={(e) => setEnterAmount(e.target.value)}
-                                className="w-full p-3 border border-gray-300 rounded-md"
-                                max={dueAmount}
-                              />
-                            </div>
+                      {/* Selected Invoices Display */}
+                      {selectedInvoices.length > 0 && (
+                        <div className="border rounded-md p-3 bg-blue-50">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium text-blue-800">
+                              Selected Invoices ({selectedInvoices.length}):
+                            </span>
+                            <button
+                              type="button"
+                              onClick={clearAllInvoices}
+                              className="text-sm text-red-600 hover:text-red-800"
+                            >
+                              Clear All
+                            </button>
                           </div>
-                          <div className="w-1/3">
-                            <label className="block text-gray-700 mb-2">
-                              New Balance
-                            </label>
-                            <input
-                              type="number"
-                              value={newBalance}
-                              readOnly
-                              className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
-                            />
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {selectedInvoices.map((invoiceId) => {
+                              const invoice = staticInvoices.find(
+                                (inv) => inv._id === invoiceId
+                              );
+                              return invoice ? (
+                                <div
+                                  key={invoiceId}
+                                  className="flex justify-between items-center bg-white p-2 rounded border"
+                                >
+                                  <span className="font-medium">
+                                    {invoice._id}
+                                  </span>
+                                  <div className="flex items-center space-x-2">
+                                    <span
+                                      className={`font-medium ${
+                                        invoice.dueAmount < 0
+                                          ? "text-red-600"
+                                          : "text-gray-700"
+                                      }`}
+                                    >
+                                      {invoice.dueAmount.toLocaleString()}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeInvoice(invoiceId)}
+                                      className="text-red-500 hover:text-red-700 text-lg"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : null;
+                            })}
                           </div>
                         </div>
                       )}
 
-                      <button
-                        type="submit"
-                        className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 "
-                      >
-                        {isSaving ? "Saving..." : `Save Receivable `}
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              )}
+                      <div className="flex gap-4">
+                        <div className="w-1/3">
+                          <label className="block text-gray-700 mb-2">
+                            Total Due Amount
+                          </label>
+                          <input
+                            type="number"
+                            value={dueAmount}
+                            readOnly
+                            className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                          />
+                        </div>
+                        <div className="w-1/3">
+                          <label className="block text-gray-700 mb-2">
+                            Balance
+                          </label>
+                          <input
+                            type="text"
+                            value={balance}
+                            readOnly
+                            className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                          />
+                        </div>
+                        <div className="w-1/3">
+                          <label className="block text-gray-700 mb-2">
+                            Enter Amount
+                          </label>
+                          <input
+                            type="number"
+                            value={enterAmount}
+                            onChange={(e) => setEnterAmount(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                            max={dueAmount}
+                          />
+                        </div>
+                      </div>
+                      <div className="w-1/3">
+                        <label className="block text-gray-700 mb-2">
+                          New Balance
+                        </label>
+                        <input
+                          type="number"
+                          value={newBalance}
+                          readOnly
+                          className="w-full p-3 border border-gray-300 rounded-md bg-gray-50"
+                        />
+                      </div>
+                    </div>
+                  )}
 
-              <style jsx>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #edf2f7;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #a0aec0;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-          }
-        `}</style>
+                  <button
+                    type="submit"
+                    className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 "
+                  >
+                    {isSaving ? "Saving..." : `Save Receivable `}
+                  </button>
+                </form>
+              </div>
             </div>
-          )
-      }
+          )}
 
+          <style jsx>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #edf2f7;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #a0aec0;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #718096;
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 };
