@@ -110,7 +110,7 @@ const PaymentToSupplier = () => {
   const [activeTab, setActiveTab] = useState("orderDetails");
   const [nextDcNo, setNextDcNo] = useState("003");
   const [currentPage, setCurrentPage] = useState(1);
-const [supplierDeposits, setSupplierDeposits] = useState([]);
+  const [supplierDeposits, setSupplierDeposits] = useState([]);
 
   const recordsPerPage = 10;
   const sliderRef = useRef(null);
@@ -239,37 +239,37 @@ const [supplierDeposits, setSupplierDeposits] = useState([]);
   };
 
   // 🟢 Fetch Supplier Cash Deposits
-const fetchSupplierDeposits = useCallback(async () => {
-  try {
-    setLoading(true);
-    const token = userInfo?.token;
+  const fetchSupplierDeposits = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = userInfo?.token;
 
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setSupplierDeposits(response.data.data);
+      } else {
+        setSupplierDeposits([]);
       }
-    );
-
-    if (response.data.success) {
-      setSupplierDeposits(response.data.data);
-    } else {
-      setSupplierDeposits([]);
+    } catch (error) {
+      console.error("Failed to fetch supplier deposits:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Failed to fetch supplier deposits:", error);
-  } finally {
-    setLoading(false);
-  }
-}, [userInfo]);
+  }, [userInfo]);
 
 
-useEffect(() => {
-  fetchSupplierDeposits();
-}, []);
+  useEffect(() => {
+    fetchSupplierDeposits();
+  }, []);
 
 
   const handleEditClick = (challan) => {
@@ -360,67 +360,67 @@ useEffect(() => {
     setIsSliderOpen(true);
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    if (!cashData.supplier || !cashData.date || !cashData.amountReceived) {
-      return Swal.fire("Error", "Please fill all required fields.", "error");
+    try {
+      if (!cashData.supplier || !cashData.date || !cashData.amountReceived) {
+        return Swal.fire("Error", "Please fill all required fields.", "error");
+      }
+
+      // ✅ Build payload exactly as your backend expects
+      const payload = {
+        receiptId: editingVoucher
+          ? editingVoucher.receiptId
+          : `SCD-${nextReceiptId}`,
+        date: cashData.date,
+        supplier: cashData.supplier,
+        amountReceived: Number(cashData.amountReceived),
+        remarks: cashData.remarks || "",
+      };
+
+      console.log("Submitting payload:", payload);
+
+      const token = userInfo?.token;
+
+      if (editingVoucher) {
+        // 🟡 UPDATE
+        await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit/${editingVoucher._id}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        Swal.fire("Updated!", "Supplier payment updated successfully.", "success");
+      } else {
+        // 🟢 CREATE
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        Swal.fire("Added!", "Supplier payment added successfully.", "success");
+      }
+
+      // ✅ Refresh supplier data after saving
+      fetchSuppliers();
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting supplier payment:", error);
+      Swal.fire("Error", "Failed to save supplier payment.", "error");
     }
-
-    // ✅ Build payload exactly as your backend expects
-    const payload = {
-      receiptId: editingVoucher
-        ? editingVoucher.receiptId
-        : `SCD-${nextReceiptId}`,
-      date: cashData.date,
-      supplier: cashData.supplier,
-      amountReceived: Number(cashData.amountReceived),
-      remarks: cashData.remarks || "",
-    };
-
-    console.log("Submitting payload:", payload);
-
-    const token = userInfo?.token;
-
-    if (editingVoucher) {
-      // 🟡 UPDATE
-      await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit/${editingVoucher._id}`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      Swal.fire("Updated!", "Supplier payment updated successfully.", "success");
-    } else {
-      // 🟢 CREATE
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/supplier-cash-deposit`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      Swal.fire("Added!", "Supplier payment added successfully.", "success");
-    }
-
-    // ✅ Refresh supplier data after saving
-    fetchSuppliers();
-    resetForm();
-  } catch (error) {
-    console.error("Error submitting supplier payment:", error);
-    Swal.fire("Error", "Failed to save supplier payment.", "error");
-  }
-};
+  };
 
 
   const handleDelete = (id) => {
@@ -547,68 +547,68 @@ const handleSubmit = async (e) => {
         </div>
 
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
-  <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
-    Supplier Payment Records
-  </div>
-
-  <div className="overflow-y-auto lg:overflow-x-auto max-h-[700px]">
-    <div className="min-w-[1000px]">
-      {/* Header Row */}
-      <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-        <div>SR</div>
-        <div>Receipt ID</div>
-        <div>Date</div>
-        <div>Supplier</div>
-        <div>Amount Received</div>
-        <div>New Balance</div>
-        <div>Remarks</div>
-        <div>Action</div>
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-col divide-y divide-gray-100">
-        {loading ? (
-          <TableSkeleton rows={5} cols={8} />
-        ) : supplierDeposits.length === 0 ? (
-          <div className="text-center py-6 text-gray-500 bg-white">
-            No supplier deposits found.
+          <div className="bg-newPrimary text-white py-2 px-4 font-semibold">
+            Supplier Payment Records
           </div>
-        ) : (
-          supplierDeposits.map((deposit, index) => (
-            <div
-              key={deposit._id}
-              className="grid grid-cols-1 lg:grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] items-center gap-4 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
-            >
-              <div>{index + 1}</div>
-              <div>{deposit.receiptId}</div>
-              <div>{deposit.date}</div>
-              <div>{deposit.supplier?.supplierName || "-"}</div>
-              <div>{deposit.amountReceived?.toLocaleString()}</div>
-              <div>{deposit.newBalance?.toLocaleString()}</div>
-              <div className="truncate max-w-[250px]">{deposit.remarks || "-"}</div>
-              <div className="flex gap-3 justify-start">
-                <button
-                  onClick={() => handleEditClick(deposit)}
-                  className="text-blue-600 hover:text-blue-800"
-                  title="Edit"
-                >
-                  <SquarePen size={18} />
-                </button>
-                <button
-                  onClick={() => handleDelete(deposit._id)}
-                  className="text-red-600 hover:text-red-800"
-                  title="Delete"
-                >
-                  <Trash2 size={18} />
-                </button>
+
+          <div className="overflow-y-auto lg:overflow-x-auto max-h-[700px]">
+            <div className="min-w-[1000px]">
+              {/* Header Row */}
+              <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div>SR</div>
+                <div>Receipt ID</div>
+                <div>Date</div>
+                <div>Supplier</div>
+                <div>Amount Received</div>
+                <div>New Balance</div>
+                <div>Remarks</div>
+                <div>Action</div>
+              </div>
+
+              {/* Body */}
+              <div className="flex flex-col divide-y divide-gray-100">
+                {loading ? (
+                  <TableSkeleton rows={5} cols={8} />
+                ) : supplierDeposits.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500 bg-white">
+                    No supplier deposits found.
+                  </div>
+                ) : (
+                  supplierDeposits.map((deposit, index) => (
+                    <div
+                      key={deposit._id}
+                      className="grid grid-cols-1 lg:grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] items-center gap-4 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
+                    >
+                      <div>{index + 1}</div>
+                      <div>{deposit.receiptId}</div>
+                      <div>{deposit.date}</div>
+                      <div>{deposit.supplier?.supplierName || "-"}</div>
+                      <div>{deposit.amountReceived?.toLocaleString()}</div>
+                      <div>{deposit.newBalance?.toLocaleString()}</div>
+                      <div className="truncate max-w-[250px]">{deposit.remarks || "-"}</div>
+                      <div className="flex gap-3 justify-start">
+                        <button
+                          onClick={() => handleEditClick(deposit)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Edit"
+                        >
+                          <SquarePen size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(deposit._id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-          ))
-        )}
-      </div>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
 
 
         {isSliderOpen && (
