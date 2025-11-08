@@ -5,10 +5,11 @@ import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import axios from "axios";
+import { ScaleLoader } from "react-spinners";
 
 const PaymentToSupplier = () => {
   const [deliveryChallans, setDeliveryChallans] = useState([]);
-
+  const [isSaving, setIsSaving] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dcNo, setDcNo] = useState("");
@@ -116,6 +117,37 @@ const PaymentToSupplier = () => {
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
 
+
+  // seraching
+  const filteredDeposits = supplierDeposits.filter((deposit) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      deposit.receiptId?.toLowerCase().includes(term) ||
+      deposit.supplier?.supplierName?.toLowerCase().includes(term) ||
+      deposit.date?.toLowerCase().includes(term) ||
+      deposit.remarks?.toLowerCase().includes(term)
+    );
+  });
+
+// move to first page wqhen sercahing
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm]);
+
+  useEffect(() => {
+    if (!editingVoucher && supplierDeposits.length > 0) {
+      const maxNo = Math.max(
+        ...supplierDeposits.map((v) => {
+          const match = v.receiptId?.match(/SCD-(\d+)/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+      );
+      setNextReceiptId((maxNo + 1).toString().padStart(3, "0"));
+    } else if (!editingVoucher && supplierDeposits.length === 0) {
+      setNextReceiptId("001");
+    }
+  }, [supplierDeposits, editingVoucher, isSliderOpen]);
+
   // Simulate fetching delivery challans
   const headers = {
     Authorization: `Bearer ${userInfo?.token}`,
@@ -206,8 +238,20 @@ const PaymentToSupplier = () => {
   // Handlers for form and table actions
   const handleAddChallan = () => {
     resetForm();
-    setDate(new Date().toISOString().split("T")[0]);
+    setEditingVoucher(null);
     setIsSliderOpen(true);
+    const today = new Date().toLocaleDateString("en-CA")
+    setCashData({
+      receiptId: `SCD-${nextReceiptId}`,
+      date: today,
+      supplier: "",
+      balance: 0,
+      amountReceived: 0,
+      newBalance: 0,
+      remarks: "",
+    });
+
+
   };
 
   // ✅ Helper function to convert "16-Oct-2025" → "2025-10-16"
@@ -272,97 +316,51 @@ const PaymentToSupplier = () => {
   }, []);
 
 
-  const handleEditClick = (challan) => {
-    setEditingChallan(challan);
-    console.log({ challan });
+  const handleEditClick = (voucher) => {
+    console.log(voucher);
 
-    // ✅ DC basic info
-    setDcNo(challan.dcNo || "");
-    setDate(formatToISODate(challan.dcDate));
+    setEditingVoucher(voucher);
 
-    // ✅ Booking order info
-    setOrderNo(challan.bookingOrder?._id || "");
-    setOrderDate(formatToISODate(challan.bookingOrder?.orderDate));
-
-    // ✅ Customer and delivery details
-    setOrderDetails({
-      customer: challan.bookingOrder?.customer?.customerName || "",
-      phone: challan.bookingOrder?.customer?.phoneNumber || "",
-      address: challan.bookingOrder?.customer?.address || "",
-      deliveryAddress: challan.bookingOrder?.deliveryAddress || "",
-    });
-
-    // ✅ Source of product list (fallback if bookingOrder.products missing)
-    const productSource =
-      challan.bookingOrder?.products?.length > 0
-        ? challan.bookingOrder.products
-        : challan.products || [];
-
-    // ✅ Format products for editable table
-    const formattedProducts = productSource.map((p) => {
-      const qty = p.qty || p.orderedQty || 0;
-      const total = p.total || 0;
-      const rate =
-        p.rate && p.rate > 0
-          ? p.rate
-          : p.invoiceRate && p.invoiceRate > 0
-            ? p.invoiceRate
-            : qty > 0
-              ? total / qty
-              : 0;
-
-      return {
-        name: p.name,
-        rate,
-        orderedQty: qty,
-        deliverQty: p.qty || qty,
-        remainingQty: p.remainingQty || 0,
-        total,
-        details: p.details || "",
+    // 🔹 Convert "08-Nov-2025" → "2025-11-08"
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "";
+      if (dateStr.includes("T")) return dateStr.split("T")[0];
+      const [day, mon, year] = dateStr.split("-");
+      const months = {
+        Jan: "01",
+        Feb: "02",
+        Mar: "03",
+        Apr: "04",
+        May: "05",
+        Jun: "06",
+        Jul: "07",
+        Aug: "08",
+        Sep: "09",
+        Oct: "10",
+        Nov: "11",
+        Dec: "12",
       };
+      return `${year}-${months[mon]}-${day.padStart(2, "0")}`;
+    };
+
+    setCashData({
+      receiptId: voucher.receiptId || "",
+      date: formatDate(voucher.date),
+      supplier: voucher.supplier?._id || "",
+      balance: voucher.newBalance || 0,
+      amountReceived: voucher.amountReceived || 0,
+      newBalance: voucher.newBalance || 0,
+      remarks: voucher.remarks || "",
     });
 
-    // ✅ Load into state for editable product table
-    setAvailableProducts(formattedProducts);
-
-    // ✅ Also populate itemsList for submit payload
-    setItemsList(
-      challan.products?.map((item) => ({
-        name: item.name,
-        qty: item.qty,
-        rate: item.invoiceRate || item.rate || 0,
-        total: item.total,
-        specification: item.specification || "",
-      })) || []
-    );
-
-    // ✅ Fill current product fields (auto-select first one for editing)
-    if (formattedProducts.length > 0) {
-      const firstProd = formattedProducts[0];
-      setProduct(firstProd.name);
-      setRate(firstProd.rate);
-      setQty(firstProd.deliverQty || firstProd.orderedQty);
-      setSpecification(firstProd.details || "");
-      setTotal(firstProd.total || firstProd.rate * (firstProd.deliverQty || 1));
-    } else {
-      setProduct("");
-      setRate("");
-      setQty(1);
-      setSpecification("");
-      setTotal(0);
-    }
-
-    // ✅ Other details
-    setRemarks(challan.remarks || "");
-    setApprovalRemarks(challan.approvalRemarks || "");
-    setStatus(challan.status || "Pending");
-    setErrors({});
     setIsSliderOpen(true);
   };
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsSaving(true)
     try {
       if (!cashData.supplier || !cashData.date || !cashData.amountReceived) {
         return Swal.fire("Error", "Please fill all required fields.", "error");
@@ -415,10 +413,13 @@ const PaymentToSupplier = () => {
 
       // ✅ Refresh supplier data after saving
       fetchSuppliers();
+      fetchSupplierDeposits()
       resetForm();
     } catch (error) {
       console.error("Error submitting supplier payment:", error);
       Swal.fire("Error", "Failed to save supplier payment.", "error");
+    } finally {
+      setIsSaving(false)
     }
   };
 
@@ -477,13 +478,12 @@ const PaymentToSupplier = () => {
   };
 
   // Pagination logic
+  // ✅ Pagination logic based on filtered deposits
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = deliveryChallans.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-  const totalPages = Math.ceil(deliveryChallans.length / recordsPerPage);
+  const currentRecords = filteredDeposits.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredDeposits.length / recordsPerPage);
+
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -517,7 +517,7 @@ const PaymentToSupplier = () => {
       setTotal(0);
     }
   };
-  console.log({ deliveryChallans, total });
+  console.log({ supplierDeposits });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -532,7 +532,7 @@ const PaymentToSupplier = () => {
           <div className="flex items-center gap-3">
             <input
               type="text"
-              placeholder="Enter DC No eg: DC-001"
+              placeholder="Search by Receipt ID or Supplier Name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="px-3 py-2 w-[250px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
@@ -569,12 +569,12 @@ const PaymentToSupplier = () => {
               <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
                   <TableSkeleton rows={5} cols={8} />
-                ) : supplierDeposits.length === 0 ? (
+                ) : currentRecords.length === 0 ? (
                   <div className="text-center py-6 text-gray-500 bg-white">
                     No supplier deposits found.
                   </div>
                 ) : (
-                  supplierDeposits.map((deposit, index) => (
+                  currentRecords.map((deposit, index) => (
                     <div
                       key={deposit._id}
                       className="grid grid-cols-1 lg:grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_2fr_0.5fr] items-center gap-4 px-6 py-3 text-sm bg-white hover:bg-gray-50 transition"
@@ -606,6 +606,41 @@ const PaymentToSupplier = () => {
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1} to{" "}
+                    {Math.min(indexOfLastRecord, filteredDeposits.length)} of{" "}
+                    {filteredDeposits.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Previous
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
+
             </div>
           </div>
         </div>
@@ -615,8 +650,13 @@ const PaymentToSupplier = () => {
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div
               ref={sliderRef}
-              className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+              className=" relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
             >
+              {isSaving && (
+                <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
+                  <ScaleLoader color="#1E93AB" size={60} />
+                </div>
+              )}
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingVoucher
@@ -647,6 +687,7 @@ const PaymentToSupplier = () => {
                         onChange={(e) =>
                           setCashData({ ...cashData, date: e.target.value })
                         }
+                        disabled
                         className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
@@ -660,8 +701,9 @@ const PaymentToSupplier = () => {
                         value={
                           editingVoucher
                             ? editingVoucher.receiptId
-                            : nextReceiptId
+                            : `REC-${nextReceiptId}`
                         }
+                        disabled
                         className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                       />
