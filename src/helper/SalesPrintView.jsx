@@ -1,7 +1,9 @@
 import Swal from "sweetalert2";
 
-export const handleDirectPrint = (ledgerEntries = []) => {
-  if (!ledgerEntries.length) {
+export const handleDirectPrint = (reportData = {}) => {
+  const { productSection = [], customerSection = [], totals = {}, salesman, date } = reportData;
+
+  if (!productSection.length && !customerSection.length) {
     Swal.fire("No Data", "There is no data to print!", "warning");
     return;
   }
@@ -10,79 +12,134 @@ export const handleDirectPrint = (ledgerEntries = []) => {
   win.document.write(`
     <html>
       <head>
-        <title>Sales Report</title>
+        <title>Salesman Report</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1, h2, p { margin: 0; text-align: center; }
-          h1 { font-size: 24px; font-weight: bold; color: #333; }
-          h2 { font-size: 20px; margin-top: 10px; margin-bottom: 20px;  }
-          p { font-size: 14px; color: #555; }
+          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+          h1, h2, h3, p { margin: 0; text-align: center; }
+          h1 { font-size: 24px; font-weight: bold; }
+          h2 { font-size: 18px; margin-top: 15px; text-decoration: underline; }
+          p { font-size: 13px; color: #555; margin: 4px 0; }
           hr { border: 0; border-top: 1px solid #ccc; margin: 10px 0 20px 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-          th { background: #f3f3f3; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+          th { background: #f3f3f3; font-weight: bold; }
+          tfoot td { font-weight: bold; background: #fafafa; }
         </style>
       </head>
       <body>
-        <!-- 🔹 Company Header -->
+        <!-- 🔹 Header -->
         <h1>Distribution System Pvt. Ltd.</h1>
         <p>Mall of Lahore, Cantt</p>
         <p>Phone: 0318-4486979</p>
         <hr />
 
-        <!-- 🔹 Report Title -->
-        <h2>Sales Report</h2>
+        <h2>Salesman Daily Report</h2>
+        <p><b>Salesman:</b> ${salesman || "-"} | <b>Date:</b> ${new Date(date).toLocaleDateString()}</p>
 
-        <!-- 🔹 Sales Table -->
-        <table>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Order ID</th>
-              <th>Date</th>
-              <th>Salesman</th>
-              <th>Customer</th>
-              <th>Supplier</th>
-              <th>Product</th>
-              <th>Weight</th>
-              <th>Purchase Price</th>
-              <th>Sale Price</th>
-              <th>Qty</th>
-              <th>Purchase Total</th>
-              <th>Sale Total</th>
-              <th>Profit</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ledgerEntries
-              .map(
-                (item, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${item.orderId || "-"}</td>
-                  <td>${new Date(item.date).toLocaleDateString()}</td>
-                  <td>${item.salesman || "-"}</td>
-                  <td>${item.customer || "-"}</td>
-                  <td>${item.supplier || "-"}</td>
-                  <td>${item.product || "-"}</td>
-                  <td>${item.weight || "-"}</td>
-                  <td>${item.purchasePrice || 0}</td>
-                  <td>${item.salePrice || 0}</td>
-                  <td>${item.qty || 0}</td>
-                  <td>${item.purchaseTotal || 0}</td>
-                  <td>${item.saleTotal || 0}</td>
-                  <td>${(item.saleTotal || 0) - (item.purchaseTotal || 0)}</td>
-                </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
+        <!-- 🔹 PRODUCT SECTION -->
+        ${productSection.length
+      ? `
+          <h3 style="text-align:left; margin-top:25px;">Product-wise Sales</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Supplier</th>
+                <th>Product</th>
+                <th>Purchase Price</th>
+                <th>Sale Price</th>
+                <th>Qty</th>
+                <th>Purchase Total</th>
+                <th>Sale Total</th>
+                <th>Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productSection
+        .map(
+          (p, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${p.supplier || "-"}</td>
+                    <td>${p.product || "-"}</td>
+                    <td>${p.purchasePrice?.toLocaleString() || 0}</td>
+                    <td>${p.salePrice?.toLocaleString() || 0}</td>
+                    <td>${p.qty || 0}</td>
+                    <td>${p.purchaseTotal?.toLocaleString() || 0}</td>
+                    <td>${p.saleTotal?.toLocaleString() || 0}</td>
+                    <td>${((p.saleTotal || 0) - (p.purchaseTotal || 0)).toLocaleString()}</td>
+                  </tr>`
+        )
+        .join("")}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="6" style="text-align:right;">Totals:</td>
+                <td>${totals.totalPurchase?.toLocaleString() || 0}</td>
+                <td>${totals.totalSales?.toLocaleString() || 0}</td>
+                <td>${((totals.totalSales || 0) - (totals.totalPurchase || 0)).toLocaleString()}</td>
+              </tr>
+            </tfoot>
+          </table>
+          `
+      : "<p style='text-align:center;margin-top:10px;color:#999;'>No product data found.</p>"
+    }
+
+        <!-- 🔹 CUSTOMER SECTION -->
+        ${customerSection.length
+      ? `
+          <h3 style="text-align:left; margin-top:35px;">Customer-wise Sales & Recovery</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr</th>
+                <th>Customer</th>
+                <th>Sales Area</th>
+                <th>Address</th>
+                <th>Sales</th>
+                <th>Recovery</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customerSection
+        .map(
+          (c, i) => `
+                  <tr>
+                    <td>${i + 1}</td>
+                    <td>${c.customer || "-"}</td>
+                    <td>${c.salesArea || "-"}</td>
+                    <td>${c.customerAddress || "-"}</td>
+                    <td>${c.sales?.toLocaleString() || 0}</td>
+                    <td>${c.recovery?.toLocaleString() || 0}</td>
+                  </tr>`
+        )
+        .join("")}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" style="text-align:right;">Totals:</td>
+                <td>${totals.totalSales?.toLocaleString() || 0}</td>
+                <td>${customerSection
+        .reduce((sum, c) => sum + (c.recovery || 0), 0)
+        .toLocaleString()}</td>
+              </tr>
+            </tfoot>
+          </table>
+          `
+      : "<p style='text-align:center;margin-top:10px;color:#999;'>No customer data found.</p>"
+    }
+
+        <p style="margin-top:30px; font-size:11px; color:#777; text-align:center;">
+          This is a system-generated Salesman Report and does not require a signature.
+        </p>
       </body>
     </html>
   `);
+
   win.document.close();
   win.print();
 };
+
 
 
 
@@ -154,8 +211,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -167,8 +224,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -193,7 +250,7 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
 
 export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   if (!ledgerEntries.length) return;
-// console.log({ledgerEntries});
+  // console.log({ledgerEntries});
 
   const firstEntry = ledgerEntries[0];
 
@@ -256,8 +313,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -267,8 +324,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Balance || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -346,15 +403,15 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => {
-                  const item = entry.products?.[0]?.item || "-";
-                  const qty = entry.products?.[0]?.qty || 0;
-                  const rate = entry.products?.[0]?.rate || 0;
-                  const total = entry.totalAmount || 0;
-                  const formattedDate = new Date(entry.grnDate).toLocaleDateString("en-GB");
+      .map(
+        (entry, i) => {
+          const item = entry.products?.[0]?.item || "-";
+          const qty = entry.products?.[0]?.qty || 0;
+          const rate = entry.products?.[0]?.rate || 0;
+          const total = entry.totalAmount || 0;
+          const formattedDate = new Date(entry.grnDate).toLocaleDateString("en-GB");
 
-                  return `
+          return `
                     <tr>
                       <td>${i + 1}</td>
                       <td>${formattedDate}</td>
@@ -364,9 +421,9 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
                       <td>${rate.toLocaleString()}</td>
                       <td>${total.toLocaleString()}</td>
                     </tr>`;
-                }
-              )
-              .join("")}
+        }
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -437,16 +494,15 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
           </thead>
           <tbody>
             ${apiData
-              .map(
-                (group, i) => `
+      .map(
+        (group, i) => `
                   <tr class="customer-row">
                     <td>${i + 1}</td>
                     <td colspan="10">${group.customerName}</td>
                   </tr>
-                  ${
-                    group.invoices
-                      ?.map(
-                        (inv) => `
+                  ${group.invoices
+            ?.map(
+              (inv) => `
                         <tr>
                           <td></td>
                           <td></td>
@@ -460,12 +516,12 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
                           <td>${inv.due?.toLocaleString() || 0}</td>
                           <td>${inv.outstanding?.toLocaleString() || 0}</td>
                         </tr>`
-                      )
-                      .join("") || ""
-                  }
+            )
+            .join("") || ""
+          }
                 `
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -499,18 +555,18 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
       !salesmanList.paymentReceived?.length &&
       !salesmanList.recoveries?.length)
   ) {
-   
     return;
   }
 
   const { salesItems = [], paymentReceived = [], recoveries = [] } = salesmanList;
 
-  // Totals
+  // 🔹 Totals
   const totalSales = salesItems.reduce((sum, s) => sum + (s.total || 0), 0);
   const totalPayment = paymentReceived.reduce((sum, p) => sum + (p.total || 0), 0);
   const totalReceived = paymentReceived.reduce((sum, p) => sum + (p.received || 0), 0);
   const totalBalance = paymentReceived.reduce((sum, p) => sum + (p.balance || 0), 0);
   const totalDueRecovery = recoveries.reduce((sum, r) => sum + (r.dueRecovery || 0), 0);
+  const totalRecovered = recoveries.reduce((sum, r) => sum + (r.totalRecovery || 0), 0);
 
   const win = window.open("", "", "width=950,height=700");
   win.document.write(`
@@ -543,7 +599,8 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
         <table>
           <thead>
             <tr>
-              <th>Order ID</th>
+              <th>Invoice No</th>
+              <th>Customer</th>
               <th>Item Name</th>
               <th>Rate</th>
               <th>Qty</th>
@@ -551,26 +608,26 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
             </tr>
           </thead>
           <tbody>
-            ${
-              salesItems.length
-                ? salesItems
-                    .map(
-                      (s) => `
+            ${salesItems.length
+      ? salesItems
+        .map(
+          (s) => `
                     <tr>
                       <td>${s.invoiceNo || "-"}</td>
+                      <td>${s.customer || "-"}</td>
                       <td>${s.itemName || "-"}</td>
                       <td>${s.rate || 0}</td>
                       <td>${s.qty || 0}</td>
                       <td>${(s.total || 0).toLocaleString()}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="5">No sales records found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="6">No sales records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="4" style="text-align:right;">Total:</td>
+              <td colspan="5" style="text-align:right;">Total Sales:</td>
               <td>${totalSales.toLocaleString()}</td>
             </tr>
           </tfoot>
@@ -581,6 +638,7 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
         <table>
           <thead>
             <tr>
+              <th>Invoice No</th>
               <th>Customer</th>
               <th>Total</th>
               <th>Received</th>
@@ -588,25 +646,25 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
             </tr>
           </thead>
           <tbody>
-            ${
-              paymentReceived.length
-                ? paymentReceived
-                    .map(
-                      (p) => `
+            ${paymentReceived.length
+      ? paymentReceived
+        .map(
+          (p) => `
                     <tr>
-                      <td>${p.customerName || "-"}</td>
+                      <td>${p.invoiceNo || "-"}</td>
+                      <td>${p.customer || "-"}</td>
                       <td>${(p.total || 0).toLocaleString()}</td>
                       <td>${(p.received || 0).toLocaleString()}</td>
                       <td>${(p.balance || 0).toLocaleString()}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="4">No payments found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="5">No payment records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
-              <td style="text-align:right;">Totals:</td>
+              <td colspan="2" style="text-align:right;">Totals:</td>
               <td>${totalPayment.toLocaleString()}</td>
               <td>${totalReceived.toLocaleString()}</td>
               <td>${totalBalance.toLocaleString()}</td>
@@ -615,43 +673,37 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
         </table>
 
         <!-- 🔹 Recovery Table -->
-        <h3 style="margin-top:25px;">Recovery</h3>
+        <h3 style="margin-top:25px;">Recoveries</h3>
         <table>
           <thead>
             <tr>
               <th>Customer</th>
-              <th>Invoice No</th>
-              <th>Order ID</th>
-              <th>Total Bill</th>
-              <th>Recovered</th>
+              <th>Invoices</th>
+              <th>Total Recovered</th>
               <th>Due Recovery</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            ${
-              recoveries.length
-                ? recoveries
-                    .map(
-                      (r) => `
+            ${recoveries.length
+      ? recoveries
+        .map(
+          (r) => `
                     <tr>
-                      <td>${r.customerName || "-"}</td>
-                      <td>${r.invoiceNo || "-"}</td>
-                      <td>${r.orderId || "-"}</td>
-                      <td>${(r.totalBill || 0).toLocaleString()}</td>
-                      <td>${(r.recovered || 0).toLocaleString()}</td>
+                      <td>${r.customer || "-"}</td>
+                      <td>${r.invoices?.join(", ") || "-"}</td>
+                      <td>${(r.totalRecovery || 0).toLocaleString()}</td>
                       <td>${(r.dueRecovery || 0).toLocaleString()}</td>
-                      <td>${r.status || "-"}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="7">No recoveries found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="4">No recovery records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="5" style="text-align:right;">Total Due Recovery:</td>
-              <td colspan="2">${totalDueRecovery.toLocaleString()}</td>
+              <td colspan="2" style="text-align:right;">Total Recovery:</td>
+              <td>${totalRecovered.toLocaleString()}</td>
+              <td>${totalDueRecovery.toLocaleString()}</td>
             </tr>
           </tfoot>
         </table>
@@ -668,14 +720,9 @@ export const handleDailySalesPrint = (salesmanList = {}, selectedSalesmanName = 
 
 
 
+
 export const handleSaleInvoicePrint = (orders = []) => {
   if (!orders.length) return;
-
-  const order = orders[0];
-  const products = order.products || [];
-
-  const totalQty = products.reduce((sum, p) => sum + (parseFloat(p.qty) || 0), 0);
-  const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.totalAmount) || 0), 0);
 
   const win = window.open("", "", "width=900,height=700");
   win.document.write(`
@@ -697,61 +744,79 @@ export const handleSaleInvoicePrint = (orders = []) => {
         </style>
       </head>
       <body>
-        <h1>Distribution System Pvt. Ltd.</h1>
-        <p>Mall of Lahore, Cantt</p>
-        <p>Phone: 0318-4486979</p>
-        <hr />
-        <h2>Sales Invoice</h2>
+  `);
 
-        <div style="margin-bottom:15px; font-size:13px;">
-          <b>Date:</b> ${new Date(order.date).toLocaleDateString()}<br/>
-          <b>Order ID:</b> ${order.orderId}<br/>
-          <b>Salesman:</b> ${order.salesmanId?.employeeName || "-"}<br/>
-          <b>Customer:</b> ${order.customerId?.customerName || "-"}<br/>
-          <b>Address:</b> ${order.customerId?.address || "-"}<br/>
-          <b>Phone:</b> ${order.customerId?.phoneNumber || "-"}<br/>
-          <b>Status:</b> ${order.status || "-"}<br/>
-        </div>
+  // ✅ Loop through all orders and print each one
+  orders.forEach((order, index) => {
+    const products = order.products || [];
 
-        <table>
-          <thead>
-            <tr>
-              <th>Sr</th>
-              <th>Item</th>
-              <th>Unit</th>
-              <th>Qty</th>
-              <th>Rate</th>
-              <th>Total Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${products
-              .map(
-                (p, i) => `
-                  <tr>
-                    <td>${i + 1}</td>
-                    <td>${p.itemName}</td>
-                    <td>${p.itemUnit}</td>
-                    <td>${p.qty}</td>
-                    <td>${p.rate.toLocaleString()}</td>
-                    <td>${p.totalAmount.toLocaleString()}</td>
-                  </tr>`
-              )
-              .join("")}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="text-align:right;">Totals:</td>
-              <td>${totalQty}</td>
-              <td>-</td>
-              <td>${totalAmount.toLocaleString()}</td>
-            </tr>
-          </tfoot>
-        </table>
+    const totalQty = products.reduce((sum, p) => sum + (parseFloat(p.qty) || 0), 0);
+    const totalAmount = products.reduce(
+      (sum, p) => sum + (parseFloat(p.totalAmount) || 0),
+      0
+    );
 
-        <p class="note">
-          This is a system-generated sales Invoice and does not require a signature.
-        </p>
+    win.document.write(`
+      <h1>Distribution System Pvt. Ltd.</h1>
+      <p>Mall of Lahore, Cantt</p>
+      <p>Phone: 0318-4486979</p>
+      <hr />
+      <h2>Sales Invoice ${index + 1}</h2>
+
+      <div style="margin-bottom:15px; font-size:13px;">
+        <b>Date:</b> ${new Date(order.date).toLocaleDateString()}<br/>
+        <b>Order ID:</b> ${order.orderId}<br/>
+        <b>Salesman:</b> ${order.salesmanId?.employeeName || "-"}<br/>
+        <b>Customer:</b> ${order.customerId?.customerName || "-"}<br/>
+        <b>Address:</b> ${order.customerId?.address || "-"}<br/>
+        <b>Phone:</b> ${order.customerId?.phoneNumber || "-"}<br/>
+        <b>Status:</b> ${order.status || "-"}<br/>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Sr</th>
+            <th>Item</th>
+            <th>Unit</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products
+        .map(
+          (p, i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${p.itemName}</td>
+                  <td>${p.itemUnit}</td>
+                  <td>${p.qty}</td>
+                  <td>${p.rate.toLocaleString()}</td>
+                  <td>${p.totalAmount.toLocaleString()}</td>
+                </tr>`
+        )
+        .join("")}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="text-align:right;">Totals:</td>
+            <td>${totalQty}</td>
+            <td>-</td>
+            <td>${totalAmount.toLocaleString()}</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <p class="note">
+        This is a system-generated sales invoice and does not require a signature.
+      </p>
+      ${index < orders.length - 1 ? "<hr style='margin:30px 0;'/>" : ""}
+    `);
+  });
+
+  win.document.write(`
       </body>
     </html>
   `);
@@ -759,3 +824,4 @@ export const handleSaleInvoicePrint = (orders = []) => {
   win.document.close();
   win.print();
 };
+

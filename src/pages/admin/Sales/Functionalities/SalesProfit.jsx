@@ -40,7 +40,7 @@ const Sales = () => {
       );
 
       // ✅ Log to verify
-      console.log("📊 Salesman Report Response:", response);
+      // console.log("📊 Salesman Report Response:", response);
 
       // ✅ Fix: response itself IS the data
       const data = response;
@@ -55,7 +55,10 @@ const Sales = () => {
       }
     } catch (error) {
       console.error("❌ Failed to fetch salesman report:", error);
-      toast.error("Error loading salesman report");
+      setTimeout(() => {
+        toast.error("Error loading salesman report");
+      }, 2000);
+
       setReportData(null);
     } finally {
       setLoading(false);
@@ -86,10 +89,12 @@ const Sales = () => {
 
           {productSection.length > 0 && (
             <button
-              onClick={() => handleDirectPrint(reportData)}
+             onClick={() => handleDirectPrint(reportData)}
+
+
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
-              <Printer size={18} /> Print
+              <Printer size={18} />
             </button>
           )}
         </div>
@@ -132,17 +137,17 @@ const Sales = () => {
           </div>
 
           {loading ? (
-            <TableSkeleton rows={5} cols={10} />
+            <TableSkeleton rows={productSection.length || 5} cols={9} className="lg:grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr]" />
           ) : productSection.length === 0 ? (
             <div className="text-center py-6 text-gray-500">No product data found.</div>
           ) : (
             <>
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-50 border-b border-gray-200 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
+              <div className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-50 border-b border-gray-200 py-3 px-6 text-xs font-semibold text-gray-600 uppercase text-center">
                 <div>Sr</div>
                 <div>Supplier</div>
                 <div>Product</div>
-                <div>Weight</div>
+                {/* <div>Weight</div> */}
                 <div>Purchase Price</div>
                 <div>Sale Price</div>
                 <div>Qty</div>
@@ -156,13 +161,13 @@ const Sales = () => {
                 {productSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-[0.2fr_1.5fr_0.6fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
                       } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
-                    <div className="text-left">{row.supplier || "-"}</div>
-                    <div className="text-left">{row.product || "-"}</div>
-                    <div>{row.weight || "-"}</div>
+                    <div className="">{row.supplier || "-"}</div>
+                    <div className="">{row.product || "-"}</div>
+                    {/* <div>{row.weight || "-"}</div> */}
                     <div>{row.purchasePrice.toLocaleString()}</div>
                     <div>{row.salePrice.toLocaleString()}</div>
                     <div>{row.qty}</div>
@@ -183,7 +188,7 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div></div>
-                <div className="text-right pr-2 font-bold">Total:</div>
+                <div className=" font-bold">Total:</div>
                 <div className="text-red-600">{totals.totalPurchase.toLocaleString()}</div>
                 <div className="text-green-600">{totals.totalSales.toLocaleString()}</div>
                 <div className="text-blue-600 font-semibold">
@@ -201,7 +206,7 @@ const Sales = () => {
           </div>
 
           {loading ? (
-            <TableSkeleton rows={5} cols={6} />
+            <TableSkeleton rows={customerSection.length || 5} cols={6} className="lg:grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr]" />
           ) : customerSection.length === 0 ? (
             <div className="text-center py-6 text-gray-500">No customer data found.</div>
           ) : (
@@ -221,15 +226,15 @@ const Sales = () => {
                 {customerSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-[0.2fr_1.5fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
                       } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
-                    <div className="text-left">{row.customer}</div>
-                    <div className="text-left">{row.salesArea}</div>
-                    <div className="text-left">{row.customerAddress}</div>
-                    <div className="text-blue-600 font-medium">{row.sales.toLocaleString()}</div>
-                    <div className="text-green-600 font-medium">{row.recovery.toLocaleString()}</div>
+                    <div className="">{row.customer || "-"}</div>
+                    <div className="">{row.salesArea || "-"}</div>
+                    <div className="">{row.customerAddress || "-"}</div>
+                    <div className="text-blue-600 font-medium">{row.sales.toLocaleString() || "-"}</div>
+                    <div className="text-green-600 font-medium">{row.recovery.toLocaleString() || "-"}</div>
                   </div>
                 ))}
               </div>
@@ -240,11 +245,11 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className="text-right pr-2 font-bold">Total:</div>
-                <div className="text-blue-600">{totals.totalSales.toLocaleString()}</div>
+                <div className="text-blue-600">{totals.totalSales.toLocaleString() || "-"}</div>
                 <div className="text-green-600">
                   {customerSection
                     .reduce((sum, row) => sum + (row.recovery || 0), 0)
-                    .toLocaleString()}
+                    .toLocaleString() || "-"}
                 </div>
               </div>
             </>

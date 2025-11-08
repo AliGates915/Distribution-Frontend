@@ -641,7 +641,7 @@ const Recovery = () => {
                           Allow Days : {editingInvoice.allowDays || "-"}
                         </p> */}
                         <p className="ml-auto font-bold ">
-                          Over Days : {editingInvoice.overDays || "-"}
+                          Over Days : {editingInvoice.overDays ?? "-"}
                         </p>
 
                         <div className="flex  gap-3 mt-2">

@@ -226,7 +226,7 @@ const handleEdit = (invoice) => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = invoices.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(invoices.length / recordsPerPage);
-console.log({currentRecords});
+// console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">

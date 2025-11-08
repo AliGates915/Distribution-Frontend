@@ -5,13 +5,15 @@ import gsap from "gsap";
 import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import CommanHeader from "../../Components/CommanHeader";
-
+import TableSkeleton from "../../Components/Skeleton";
+import Swal from "sweetalert2";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 const ExpensePage = () => {
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString('en-CA');
   const [expenses, setExpenses] = useState([]);
   const [expenseDate, setExpenseDate] = useState(today);
   const [expenseName, setExpenseName] = useState("");
@@ -21,6 +23,8 @@ const ExpensePage = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [expenseItems, setExpenseItems] = useState([]);
   const [viewExpense, setViewExpense] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10; // you can adjust page size
 
   const sliderRef = useRef(null);
 
@@ -41,6 +45,7 @@ const ExpensePage = () => {
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
+        setLoading(true);
         const { data } = await axios.get(`${API_BASE}/salesman-expense`);
         if (data.success) {
           setExpenses(
@@ -58,6 +63,8 @@ const ExpensePage = () => {
         }
       } catch (error) {
         toast.error("Failed to load expenses");
+      } finally {
+        setTimeout(() => setLoading(false), 2000);
       }
     };
     fetchExpenses();
@@ -94,6 +101,7 @@ const ExpensePage = () => {
     }
     setExpenseItems([...expenseItems, { name: expenseName, amount: parseFloat(amount) }]);
     setExpenseName("");
+    setExpenseDate(today);
     setAmount("");
   };
 
@@ -171,15 +179,42 @@ const ExpensePage = () => {
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this expense?")) return;
-    try {
-      await axios.delete(`${API_BASE}/salesman-expense/${id}`);
-      setExpenses(expenses.filter((exp) => exp.id !== id));
-      toast.success("Expense deleted successfully!");
-    } catch {
-      toast.error("Failed to delete expense");
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete the expense record.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        // 🔥 Delete from backend
+        await axios.delete(`${API_BASE}/salesman-expense/${id}`);
+
+        // ✅ Remove from local state
+        setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+
+        // ✅ Success alert
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Expense deleted successfully.",
+          confirmButtonColor: "#3085d6",
+        });
+      } catch (error) {
+        console.error("Error deleting expense:", error);
+        toast.error(error.response?.data?.message || "Failed to delete expense");
+      }
     }
   };
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(expenses.length / recordsPerPage);
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -219,21 +254,29 @@ const ExpensePage = () => {
               </div>
 
               <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-                {expenses.length === 0 ? (
+                {loading ? (
+                  <TableSkeleton
+                    rows={expenses.length || 5}
+                    cols={6}
+                    className="lg:grid-cols-[80px_150px_150px_1fr_150px_150px]"
+                  />
+                ) : expenses.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No expenses found.
                   </div>
                 ) : (
-                  expenses.map((exp, index) => (
+                  currentRecords.map((exp, index) => (
                     <div
                       key={exp.id}
                       className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div>{index + 1}</div>
+                      <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{exp.date}</div>
                       <div>{exp.salesman}</div>
                       <div>{exp.items.map((i) => i.name).join(", ")}</div>
-                      <div className="font-semibold text-blue-600">{exp.totalAmount}</div>
+                      <div className="font-semibold text-blue-600">
+                        {exp.totalAmount}
+                      </div>
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => setViewExpense(exp)}
@@ -258,6 +301,41 @@ const ExpensePage = () => {
                   ))
                 )}
               </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1}–
+                    {Math.min(indexOfLastRecord, expenses.length)} of {expenses.length} expenses
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Previous
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>

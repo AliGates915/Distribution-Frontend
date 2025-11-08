@@ -4,6 +4,7 @@ import { SquarePen, Trash2, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import CommanHeader from "../../Components/CommanHeader";
+import TableSkeleton from "../../Components/Skeleton";
 
 const ExpensePage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,8 +13,10 @@ const ExpensePage = () => {
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [viewExpense, setViewExpense] = useState(null);
-const [expenseAmount, setExpenseAmount] = useState("");
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10; // you can change page size if needed
 
   // ✅ Fetch Salesman List
   useEffect(() => {
@@ -55,7 +58,7 @@ const [expenseAmount, setExpenseAmount] = useState("");
             amount: e.amount,
           })),
           totalAmount: exp.totalAmount,
-          
+
         }));
         setExpenses(mapped);
         setExpenseAmount(data.totalExpense || 0);
@@ -79,7 +82,13 @@ const [expenseAmount, setExpenseAmount] = useState("");
   useEffect(() => {
     if (selectedSalesman) fetchExpenses();
   }, [selectedSalesman, selectedDate]);
-console.log({expenses});
+  // console.log({expenses});
+  // 🔹 Pagination calculations
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(expenses.length / recordsPerPage);
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -98,50 +107,50 @@ console.log({expenses});
         {/* 🔹 Filters */}
         <div className="flex justify-between items-center w-full gap-4 mb-5">
           <div className="flex gap-4">
-                {/* Salesman Selection */}
-          <div className="w-[300px]">
-            <label className="block text-gray-700 font-medium mb-2">
-              Select Salesman *
-            </label>
-            <select
-              value={selectedSalesman}
-              onChange={(e) => setSelectedSalesman(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            >
-              <option value="">Choose Salesman</option>
-              {salesmanList.map((item) => (
-                <option key={item._id} value={item._id}>
-                  {item.employeeName}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Salesman Selection */}
+            <div className="w-[300px]">
+              <label className="block text-gray-700 font-medium mb-2">
+                Select Salesman *
+              </label>
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Choose Salesman</option>
+                {salesmanList.map((item) => (
+                  <option key={item._id} value={item._id}>
+                    {item.employeeName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Date Selection */}
-          <div className="w-[300px]">
-            <label className="block text-gray-700 font-medium mb-2">Date</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            />
+            {/* Date Selection */}
+            <div className="w-[300px]">
+              <label className="block text-gray-700 font-medium mb-2">Date</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
           </div>
-          </div>
-           {selectedSalesman && (
-             <div className="w-[200px] whitespace-nowrap">
-                 <label className=" text-newPrimary inline-flex gap-2 items-center font-medium mb-2">Today Expense Amount: <p className="text-black ">{expenseAmount}</p></label>
-{/* 
+          {selectedSalesman && (
+            <div className="w-[200px] whitespace-nowrap">
+              <label className=" text-newPrimary inline-flex gap-2 items-center font-medium mb-2">Today Expense Amount: <p className="text-black ">{expenseAmount}</p></label>
+              {/* 
             <input
               type="text"
               value={expenseAmount}
              disabled
               className="w-full p-3 border h-[40px] border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             /> */}
-          </div>
-           )}
-         
-        
+            </div>
+          )}
+
+
         </div>
 
         {/* ===== TABLE ===== */}
@@ -158,21 +167,32 @@ console.log({expenses});
               </div>
 
               <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
-                {expenses.length === 0 ? (
+                {isLoading ? (
+                  // 🦴 Skeleton loader while fetching
+                  <TableSkeleton
+                    rows={currentRecords.length || 5}
+                    cols={6}
+                    className="lg:grid-cols-[80px_150px_150px_1fr_150px_150px]"
+                  />
+                ) : expenses.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
                     No expenses found.
                   </div>
                 ) : (
-                  expenses.map((exp, index) => (
+                  currentRecords.map((exp, index) => (
                     <div
                       key={exp.id}
                       className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div  >{index + 1}</div>
+                      <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{exp.date}</div>
                       <div className="text-center">{exp.salesman}</div>
-                      <div className="text-center">{exp.items.map((i) => i.name).join(", ")}</div>
-                      <div className="font-semibold text-blue-600">{exp.totalAmount}</div>
+                      <div className="text-center">
+                        {exp.items.map((i) => i.name).join(", ")}
+                      </div>
+                      <div className="font-semibold text-blue-600">
+                        {exp.totalAmount}
+                      </div>
                       <div className="flex justify-center gap-2">
                         <button
                           onClick={() => setViewExpense(exp)}
@@ -180,12 +200,45 @@ console.log({expenses});
                         >
                           <Eye size={18} />
                         </button>
-                      
                       </div>
                     </div>
                   ))
                 )}
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1}–
+                    {Math.min(indexOfLastRecord, expenses.length)} of {expenses.length} records
+                  </p>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Previous
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
