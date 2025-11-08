@@ -11,7 +11,7 @@ import { set } from "date-fns";
 
 const DefineSupplier = () => {
   const [supplierList, setSupplierList] = useState([]);
-   const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [supplierName, setSupplierName] = useState("");
   const [contactPerson, setContactPerson] = useState("");
@@ -31,6 +31,8 @@ const DefineSupplier = () => {
   const [loading, setLoading] = useState(true);
   const [mobileNumber, setMobileNumber] = useState("");
   const [creditTime, setCreditTime] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -68,7 +70,7 @@ const DefineSupplier = () => {
       setLoading(true);
       const res = await axios.get(`${API_URL}`);
       setSupplierList(res.data); // store actual categories array
-    
+
     } catch (error) {
       console.error("Failed to fetch Supplier", error);
     } finally {
@@ -101,7 +103,7 @@ const DefineSupplier = () => {
   };
 
   const validateEmail = (email) => {
-   
+
 
     const re = /^\S+@\S+\.\S+$/;
     return re.test(email);
@@ -122,7 +124,7 @@ const DefineSupplier = () => {
       toast.error("Please enter a valid email address");
       return;
     }
-  setIsSaving(true);
+    setIsSaving(true);
 
     const formData = {
       supplierName,
@@ -140,7 +142,7 @@ const DefineSupplier = () => {
       status,
     };
 
- 
+
 
     try {
       const { token } = userInfo || {};
@@ -180,7 +182,7 @@ const DefineSupplier = () => {
     } catch (error) {
       console.error(error);
       toast.error(error?.response?.data?.message || "Something went wrong");
-    }finally {
+    } finally {
       setIsSaving(false);
     }
   };
@@ -265,17 +267,13 @@ const DefineSupplier = () => {
       });
   };
 
-  // Show loading spinner
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <HashLoader height="150" width="150" radius={1} color="#84CF16" />
-  //       </div>
-  //     </div>
-  //   );
-  // }
- 
+  // 🔹 Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = supplierList.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(supplierList.length / recordsPerPage);
+
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -309,7 +307,7 @@ const DefineSupplier = () => {
               <div>Mobile</div>
               <div>Payment</div>
               <div>Status</div>
-              {userInfo?.isAdmin && <div className={`${loading ? "":"text-right"}`}>Actions</div>}
+              {userInfo?.isAdmin && <div className={`${loading ? "" : "text-right"}`}>Actions</div>}
             </div>
 
             {/* ✅ Table Body */}
@@ -317,7 +315,7 @@ const DefineSupplier = () => {
               {loading ? (
                 <TableSkeleton
                   rows={supplierList.length > 0 ? supplierList.length : 5}
-                  cols={userInfo?.isAdmin ? 10 : 7}
+                  cols={userInfo?.isAdmin ? 9 : 7}
                   className="lg:grid-cols-[20px_1fr_1fr_1.5fr_2fr_1fr_1fr_1fr_1fr]"
                 />
               ) : supplierList.length === 0 ? (
@@ -325,14 +323,14 @@ const DefineSupplier = () => {
                   No suppliers found.
                 </div>
               ) : (
-                supplierList?.map((s,index) => (
+                currentRecords?.map((s, index) => (
                   <>
                     {/* ✅ Desktop Row */}
                     <div
                       key={s._id}
                       className="hidden lg:grid grid-cols-[20px_1fr_1fr_1.5fr_2fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                       <div className="text-gray-900">{index + 1}</div>
+                      <div className="text-gray-900">{indexOfFirstRecord + index + 1}</div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactPerson}</div>
                       <div className="text-gray-600">{s.email}</div>
@@ -394,9 +392,8 @@ const DefineSupplier = () => {
                           : ""}
                       </p>
                       <p
-                        className={`text-sm font-semibold ${
-                          s.status ? "text-green-600" : "text-red-600"
-                        }`}
+                        className={`text-sm font-semibold ${s.status ? "text-green-600" : "text-red-600"
+                          }`}
                       >
                         {s.status ? "Active" : "Inactive"}
                       </p>
@@ -422,6 +419,39 @@ const DefineSupplier = () => {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1}–
+                  {Math.min(indexOfLastRecord, supplierList.length)} of {supplierList.length} suppliers
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
@@ -433,7 +463,7 @@ const DefineSupplier = () => {
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-              {isSaving && (
+            {isSaving && (
               <div className="absolute top-0 left-0 w-full h-full bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-50">
                 <ScaleLoader color="#1E93AB" size={60} />
               </div>
@@ -658,14 +688,12 @@ const DefineSupplier = () => {
                 <button
                   type="button"
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span>{status ? "Active" : "Inactive"}</span>
