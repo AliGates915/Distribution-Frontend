@@ -19,6 +19,8 @@ const OpeningStock = () => {
   const [itemTypeList, setItemTypeList] = useState([]);
   const [editingStockIndex, setEditingStockIndex] = useState(null);
   const tableRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const [loading, setLoading] = useState(true);
@@ -162,6 +164,15 @@ const OpeningStock = () => {
       document.removeEventListener("click", handleClickOutside, true);
     };
   }, []);
+  // ✅ Filter + Pagination logic
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = itemNameList.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(itemNameList.length / recordsPerPage);
+
+  useEffect(() => {
+  setCurrentPage(1);
+}, [itemCategory, itemType, form.itemSearch]);
 
   return (
     <div className="p-6 space-y-6">
@@ -307,8 +318,8 @@ const OpeningStock = () => {
             {/* ✅ Table Header */}
             <div
               className={`hidden lg:grid ${editingStockIndex !== null
-                  ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                  : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
                 } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
             >
               <div>Sr</div>
@@ -325,7 +336,7 @@ const OpeningStock = () => {
               {editingStockIndex !== null && <div>Action</div>}
 
               {showRate && (
-                 <div>Total Amount</div>
+                <div>Total Amount</div>
               )}
             </div>
 
@@ -336,8 +347,8 @@ const OpeningStock = () => {
                   rows={itemNameList.length > 0 ? itemNameList.length : 5}
                   cols={editingStockIndex !== null ? 8 : 7}
                   className={`${editingStockIndex !== null
-                      ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                      : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                    ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                    : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
                     }`}
                 />
               ) : itemNameList.length === 0 ? (
@@ -345,15 +356,15 @@ const OpeningStock = () => {
                   No items found.
                 </div>
               ) : (
-                itemNameList.map((rec, index) => (
+                currentRecords.map((rec, index) => (
                   <div
                     key={rec.code}
                     className={`grid ${editingStockIndex !== null
-                        ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                        : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                      ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                      : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
                       } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
                   >
-                    <div>{index + 1}</div>
+                    <div>{indexOfFirstRecord + index + 1}</div>
                     <div>{rec?.itemCategory?.categoryName || "-"}</div>
                     <div>{rec?.itemType?.itemTypeName || "-"}</div>
                     <div className="font-medium text-gray-900">
@@ -394,9 +405,9 @@ const OpeningStock = () => {
                         </span>
                       )}
                     </div>
-                      {showRate && (
-                        <div className="text-gray-600">{rec.purchase * rec.stock || "-"}</div>
-                      )}
+                    {showRate && (
+                      <div className="text-gray-600">{rec.purchase * rec.stock || "-"}</div>
+                    )}
                     {/* Action Button */}
                     {editingStockIndex === index && (
                       <div className="flex gap-3 justify-end">
@@ -438,6 +449,42 @@ const OpeningStock = () => {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1} to{" "}
+                  {Math.min(indexOfLastRecord, itemNameList.length)} of{" "}
+                  {itemNameList.length} items
+                </p>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
