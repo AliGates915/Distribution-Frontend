@@ -4,7 +4,7 @@ import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import TableSkeleton from "../../Components/Skeleton";
-import { handleLedgerPrint } from "../../../../helper/SalesPrintView";
+import { handleItemWisePrint} from "../../../../helper/SalesPrintView";
 import { Printer } from "lucide-react";
 
 const ItemWisePurchase = () => {
@@ -95,6 +95,7 @@ const fetchItemwiseReport = useCallback(async () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+console.log({ledgerEntries});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -108,11 +109,11 @@ const fetchItemwiseReport = useCallback(async () => {
 
           {ledgerEntries.length > 0 && (
             <button
-              onClick={() => handleLedgerPrint(ledgerEntries)}
+              onClick={() => handleItemWisePrint(ledgerEntries)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
               <Printer size={18} />
-              Print
+            
             </button>
           )}
         </div>
