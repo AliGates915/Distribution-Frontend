@@ -129,10 +129,10 @@ const PaymentToSupplier = () => {
     );
   });
 
-// move to first page wqhen sercahing
-useEffect(() => {
-  setCurrentPage(1);
-}, [searchTerm]);
+  // move to first page wqhen sercahing
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (!editingVoucher && supplierDeposits.length > 0) {
@@ -214,26 +214,21 @@ useEffect(() => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Basic fields
+    // 🧾 Required fields
+    if (!cashData.date) newErrors.date = "Date is required.";
+    if (!cashData.supplier) newErrors.supplier = "Supplier name is required.";
+    if (!cashData.amountReceived || Number(cashData.amountReceived) <= 0)
+      newErrors.amountReceived = "Amount received must be greater than zero.";
 
-    if (!orderNo?.trim()) newErrors.orderNo = "Booking Order is required";
-    if (!orderDate?.trim()) newErrors.orderDate = "Order Date is required";
+    // Remarks optional — but you can enforce minimum length if needed
+    // if (cashData.remarks.trim().length < 3) newErrors.remarks = "Remarks too short.";
 
-    // Order details (auto-filled)
-    if (!orderDetails.customer?.trim())
-      newErrors.customer = "Customer is required";
-    if (!orderDetails.phone?.trim()) newErrors.phone = "Phone is required";
-    if (!orderDetails.address?.trim())
-      newErrors.address = "Address is required";
-    if (!orderDetails.deliveryAddress?.trim())
-      newErrors.deliveryAddress = "Delivery Address is required";
-
-    // Remarks optional — no strict check
     setErrors(newErrors);
 
-    // Return true if no errors
+    // ✅ Return true if no errors
     return Object.keys(newErrors).length === 0;
   };
+
 
   // Handlers for form and table actions
   const handleAddChallan = () => {
@@ -254,33 +249,8 @@ useEffect(() => {
 
   };
 
-  // ✅ Helper function to convert "16-Oct-2025" → "2025-10-16"
-  const formatToISODate = (dateStr) => {
-    if (!dateStr) return "";
-    if (dateStr.includes("T")) return dateStr.split("T")[0]; // already ISO
 
-    const months = {
-      Jan: "01",
-      Feb: "02",
-      Mar: "03",
-      Apr: "04",
-      May: "05",
-      Jun: "06",
-      Jul: "07",
-      Aug: "08",
-      Sep: "09",
-      Oct: "10",
-      Nov: "11",
-      Dec: "12",
-    };
 
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      const [day, mon, year] = parts;
-      return `${year}-${months[mon]}-${day.padStart(2, "0")}`;
-    }
-    return "";
-  };
 
   // 🟢 Fetch Supplier Cash Deposits
   const fetchSupplierDeposits = useCallback(async () => {
@@ -362,8 +332,8 @@ useEffect(() => {
     e.preventDefault();
     setIsSaving(true)
     try {
-      if (!cashData.supplier || !cashData.date || !cashData.amountReceived) {
-        return Swal.fire("Error", "Please fill all required fields.", "error");
+      if (!validateForm()) {
+        return Swal.fire("Error", "Please fill all required fields correctly.", "error");
       }
 
       // ✅ Build payload exactly as your backend expects
@@ -619,8 +589,8 @@ useEffect(() => {
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
                       className={`px-3 py-1 rounded-md ${currentPage === 1
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
                         }`}
                     >
                       Previous
@@ -630,8 +600,8 @@ useEffect(() => {
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
                       className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
                         }`}
                     >
                       Next
