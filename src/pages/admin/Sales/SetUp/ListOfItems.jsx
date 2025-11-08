@@ -333,7 +333,7 @@ const ListOfItems = () => {
     formData.append("isEnable", enabled);
     formData.append("primaryBarcode", primaryBarcode);
     formData.append("secondaryBarcode", barcode);
-    // formData.append("itemKind", itemKind);
+    formData.append("itemKind", itemKind);
     // ✅ expiry logic
     if (expiryOption === "HasExpiry") {
       formData.append("hasExpiry", parseInt(expiryDay) || 0);
@@ -595,7 +595,7 @@ const ListOfItems = () => {
                 {loading ? (
                   <TableSkeleton
                     rows={itemList.length || 5}
-                    cols={userInfo?.isAdmin ? 7 : 6}
+                    cols={userInfo?.isAdmin ? 4 : 6}
                     className="lg:grid-cols-[0.2fr_1fr_1fr_0.5fr]"
                   />
                 ) : itemList.length === 0 ? (
