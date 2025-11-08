@@ -391,7 +391,7 @@ const DailySalesReport = () => {
     selectedCustomer &&
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
-  console.log({ salesmanList });
+  // console.log({ salesmanList });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
