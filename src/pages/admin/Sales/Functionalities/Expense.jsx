@@ -166,6 +166,14 @@ const ExpensePage = () => {
       setIsSaving(false);
     }
   };
+    const formDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = d.toLocaleString("en-US", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   // ================= EDIT =================
   const handleEdit = (exp) => {
@@ -271,7 +279,7 @@ const ExpensePage = () => {
                       className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{exp.date}</div>
+                      <div>{formDate(exp.date)}</div>
                       <div>{exp.salesman}</div>
                       <div>{exp.items.map((i) => i.name).join(", ")}</div>
                       <div className="font-semibold text-blue-600">

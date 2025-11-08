@@ -19,6 +19,15 @@ const ExpensePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10; // you can change page size if needed
 
+
+    const formDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = d.toLocaleString("en-US", { month: "short" });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
   // ✅ Fetch Salesman List
   useEffect(() => {
     const fetchSalesmen = async () => {
@@ -196,7 +205,7 @@ const ExpensePage = () => {
                       className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{exp.date}</div>
+                      <div>{formDate(exp.date)}</div>
                       <div className="text-center">{exp.salesman}</div>
                       <div className="text-center">
                         {exp.items.map((i) => i.name).join(", ")}
