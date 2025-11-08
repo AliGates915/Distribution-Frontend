@@ -78,7 +78,7 @@ const ExpensePage = () => {
 
   // ✅ Auto load today's date and data
   useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
+   const today = new Date().toLocaleDateString("en-CA");
     setSelectedDate(today);
   }, []);
 
