@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { SquarePen, Trash2, Eye } from "lucide-react";
+import { SquarePen, Trash2, Eye, Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import { ScaleLoader } from "react-spinners";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 
 const ExpensePage = () => {
+   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [salesmanList, setSalesmanList] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -21,11 +22,14 @@ const ExpensePage = () => {
   // ✅ Fetch Salesman List
   useEffect(() => {
     const fetchSalesmen = async () => {
+      setIsSaving(true);
       try {
         const { data } = await axios.get(`${API_BASE}/employees`);
         setSalesmanList(data || []);
       } catch (error) {
         toast.error("Failed to load salesmen");
+      }finally{
+        setIsSaving(false)
       }
     };
     fetchSalesmen();
@@ -92,8 +96,15 @@ const ExpensePage = () => {
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="px-6 mx-auto">
-        <CommanHeader />
+      <CommanHeader />
+       {
+          isSaving ? (
+             <div className="w-full flex justify-center items-center h-screen">
+          <Loader size={70} color="#1E93AB" className=" animate-spin" />
+        </div>
+          ):(
+              <div className="px-6 mx-auto">
+        
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-newPrimary">Expenses Sheet</h1>
         </div>
@@ -278,6 +289,9 @@ const ExpensePage = () => {
           </div>
         )}
       </div>
+          )
+        }
+    
     </div>
   );
 };
