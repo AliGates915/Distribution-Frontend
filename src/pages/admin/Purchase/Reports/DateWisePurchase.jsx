@@ -175,7 +175,7 @@ const DateWisePurchase = () => {
               </div>
 
               {/* Totals */}
-              <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+              <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div className="col-span-5 text-right text-green-500 pr-2">
                   Total:
                 </div>

@@ -120,19 +120,19 @@ const DefineSupplier = () => {
       return;
     }
 
-   
+
     setIsSaving(true);
 
     const formData = {
       supplierName,
-     
-      contactPerson,
+
+      contactNumber:phoneNumber,
       address,
-     
+
       paymentTerms: paymentTerms === "CreditCard" ? "Credit" : paymentTerms, // map CreditCard -> Credit
       creditTime: paymentTerms === "CreditCard" ? creditTime : undefined, // <-- add this state
       creditLimit: paymentTerms === "CreditCard" ? creditLimit : undefined,
-    
+
     };
 
 
@@ -188,7 +188,7 @@ const DefineSupplier = () => {
     setContactPerson(supplier.contactPerson);
     setEmail(supplier.email);
     setAddress(supplier.address);
-    setPhoneNumber(supplier.phoneNumber || "");
+    setPhoneNumber(supplier.contactNumber || "");
     setMobileNumber(supplier.mobileNumber || "");
     setDesignation(supplier.designation || "");
     setNtn(supplier.ntn || "");
@@ -266,6 +266,7 @@ const DefineSupplier = () => {
   const currentRecords = supplierList.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(supplierList.length / recordsPerPage);
 
+console.log({supplierList});
 
 
   return (
@@ -273,10 +274,10 @@ const DefineSupplier = () => {
       {/* Coomon header */}
       <CommanHeader />
       {isSaving && (
-              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
-                <ScaleLoader color="#1E93AB" size={60} />
-              </div>
-            )}
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[60]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Suppliers List</h1>
@@ -296,23 +297,23 @@ const DefineSupplier = () => {
         <div className="overflow-x-auto">
           <div className="min-w-[1100px]">
             {/* ✅ Table Header (desktop only) */}
-            <div className="hidden lg:grid  grid-cols-[20px_1fr_1fr_1.5fr_2fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid  grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>Sr</div>
               <div>Name</div>
               <div>Contact</div>
-            
+              <div>Address</div>
               <div>Payment</div>
-            
+
               {userInfo?.isAdmin && <div className={`${loading ? "" : "text-right"}`}>Actions</div>}
             </div>
 
             {/* ✅ Table Body */}
-            <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
+            <div className="flex flex-col divide-y divide-gray-100 max-h-screen overflow-y-auto">
               {loading ? (
                 <TableSkeleton
                   rows={supplierList.length > 0 ? supplierList.length : 5}
-                  cols={userInfo?.isAdmin ? 9 : 7}
-                  className="lg:grid-cols-[20px_1fr_1fr_1.5fr_2fr_1fr_1fr_1fr_1fr]"
+                  cols={userInfo?.isAdmin ? 6 : 7}
+                  className="lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr]"
                 />
               ) : supplierList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -324,21 +325,19 @@ const DefineSupplier = () => {
                     {/* ✅ Desktop Row */}
                     <div
                       key={s._id}
-                      className="hidden lg:grid grid-cols-[20px_1fr_1fr_1.5fr_2fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div className="text-gray-900">{indexOfFirstRecord + index + 1}</div>
                       <div className="text-gray-700">{s.supplierName}</div>
-                      <div className="text-gray-600">{s.contactPerson}</div>
-                     
-                      <div className="text-gray-600 truncate">{s.address}</div>
-                      
+                      <div className="text-gray-600">{s.contactNumber}</div>
+                      <div className="text-gray-600">{s.address}</div>
                       <div className="text-gray-600">
                         {s.paymentTerms}
                         {s.paymentTerms === "CreditCard" && s.creditLimit
                           ? ` (${s.creditLimit})`
                           : ""}
                       </div>
-                      
+
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-3">
                           <button
@@ -417,8 +416,8 @@ const DefineSupplier = () => {
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                     className={`px-3 py-1 rounded-md ${currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
                       }`}
                   >
                     Previous
@@ -428,8 +427,8 @@ const DefineSupplier = () => {
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
                     className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
                       }`}
                   >
                     Next
@@ -449,7 +448,7 @@ const DefineSupplier = () => {
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-            
+
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Supplier" : "Add a New Supplier"}
@@ -486,6 +485,7 @@ const DefineSupplier = () => {
                     Supplier Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    placeholder="Enter supplier name"
                     type="text"
                     value={supplierName}
                     required
@@ -542,20 +542,30 @@ const DefineSupplier = () => {
                   </label>
                   <input
                     type="text"
-                    value={contactPerson}
+                    value={phoneNumber}
                     required
-                    onChange={(e) => setContactPerson(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow only digits (0–9)
+                      if (/^\d*$/.test(value)) {
+                        setPhoneNumber(value);
+                      }
+                    }}
+                    maxLength={11} // optional: limit to 11 digits (common for phone numbers)
                     className="w-full p-2 border rounded"
+                    placeholder="+92 300 1234567"
                   />
                 </div>
 
-               
+
+
               </div>
               <div>
                 <label className="block text-gray-700 font-medium">
                   Address <span className="text-red-500">*</span>
                 </label>
                 <input
+                  placeholder="Enter address"
                   type="text"
                   value={address}
                   required
@@ -563,7 +573,7 @@ const DefineSupplier = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-             
+
               {/* Payment Terms */}
 
               <div>
@@ -625,15 +635,15 @@ const DefineSupplier = () => {
 
               {/* Status */}
 
-             
+
 
               {/* Save Button */}
 
               <button
-                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
+                className={`${isEdit ? "bg-newPrimary hover:bg-newPrimary/80" : "bg-newPrimary hover:bg-newPrimary/80"} text-white px-4 py-2 rounded-lg w-full`}
                 onClick={handleSave}
               >
-                Save Supplier
+                {isEdit ? "Update Supplier" : "Save Supplier"}
               </button>
             </div>
           </div>

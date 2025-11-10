@@ -49,7 +49,7 @@ const DefineCustomers = () => {
   );
   const totalPages = Math.ceil(customerList.length / recordsPerPage);
 
- 
+
 
   const handlePageChange = (pageNumber) => {
     setLoading(true);
@@ -174,8 +174,8 @@ const DefineCustomers = () => {
 
   // Save or Update Customer
   const handleSave = async () => {
-  const errors = validateCustomerForm();
- if (errors.length > 0) {
+    const errors = validateCustomerForm();
+    if (errors.length > 0) {
       Swal.fire({
         icon: "error",
         title: "Validation Error",
@@ -183,24 +183,24 @@ const DefineCustomers = () => {
       });
       return;
     }
-      setIsSaving(true);
-   const formData = {
-  salesArea: areaName,
-  customerName,
- 
-  address,
-  salesman: selectedSalesman, 
+    setIsSaving(true);
+    const formData = {
+      salesArea: areaName,
+      customerName,
 
-  phoneNumber,
- 
-  paymentTerms,
-  creditTime: paymentTerms === "Credit" ? Number(creditTime) : undefined,
-  creditLimit: paymentTerms === "Credit" ? Number(creditLimit) : undefined,
-  openingBalanceDate,
-  salesBalance: Number(balanceReceived) || 0,
-};
+      address,
+      salesman: selectedSalesman,
 
-   
+      phoneNumber,
+
+      paymentTerms,
+      creditTime: paymentTerms === "Credit" ? Number(creditTime) : undefined,
+      creditLimit: paymentTerms === "Credit" ? Number(creditLimit) : undefined,
+      openingBalanceDate,
+      salesBalance: Number(balanceReceived) || 0,
+    };
+
+
 
     try {
       const { token } = userInfo || {};
@@ -359,14 +359,11 @@ const DefineCustomers = () => {
       <div className="rounded-xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <div className="min-w-[1100px]">
-            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_100px_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+            <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1.5fr_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>SR</div>
               <div>Company</div>
               <div>Address</div>
               <div>Phone</div>
-              <div>Person</div>
-              <div>Designation</div>
-              <div>Mobile</div>
               <div>Balance</div>
               <div>Status</div>
               {userInfo?.isAdmin && <div className="text-right">Actions</div>}
@@ -376,8 +373,8 @@ const DefineCustomers = () => {
               {loading ? (
                 <TableSkeleton
                   rows={customerList.length > 0 ? customerList.length : 5}
-                  cols={userInfo?.isAdmin ? 10 : 10}
-                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_100px_auto]"
+                  cols={userInfo?.isAdmin ? 7 : 10}
+                  className="lg:grid-cols-[20px_1fr_1fr_1fr_1fr_1.5fr_auto]"
                 />
               ) : customerList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -388,7 +385,7 @@ const DefineCustomers = () => {
                   <>
                     <div
                       key={c._id}
-                      className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1fr_1fr_1fr_100px_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1.5fr_auto] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div className="text-gray-900">
                         {indexOfFirstRecord + index + 1}
@@ -401,15 +398,6 @@ const DefineCustomers = () => {
                       </div>
                       <div className="text-gray-600">
                         {c.phoneNumber || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {c.contactPerson || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {c.designation || "-"}
-                      </div>
-                      <div className="text-gray-600">
-                        {c.mobileNumber || "-"}
                       </div>
                       <div className="text-gray-600">
                         {c.salesBalance || "0"}
@@ -473,9 +461,8 @@ const DefineCustomers = () => {
                         Balance: {c.balanceReceived || "0"}
                       </p>
                       <p
-                        className={`text-sm font-semibold ${
-                          c.status ? "text-green-600" : "text-red-600"
-                        }`}
+                        className={`text-sm font-semibold ${c.status ? "text-green-600" : "text-red-600"
+                          }`}
                       >
                         {c.status ? "Active" : "Inactive"}
                       </p>
@@ -514,11 +501,10 @@ const DefineCustomers = () => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Previous
                   </button>
@@ -527,11 +513,10 @@ const DefineCustomers = () => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Next
                   </button>

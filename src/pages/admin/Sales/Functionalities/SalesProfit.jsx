@@ -207,7 +207,7 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
               </div>
 
               {/* Totals Row */}
-              <div className="grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 text-center border-t border-gray-200">
+              <div className="grid grid-cols-[0.2fr_1fr_1fr_0.5fr_0.7fr_0.7fr_0.4fr_0.8fr_1fr_0.6fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 text-center border-t border-gray-200">
                 <div></div>
                 <div></div>
                 <div></div>
