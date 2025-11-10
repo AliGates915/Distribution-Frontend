@@ -112,14 +112,14 @@ const ExpensePage = () => {
   // ================= SAVE / UPDATE EXPENSE =================
   const handleSaveExpense = async (e) => {
     e.preventDefault();
-    if (!expenseDate || !selectedSalesman || expenseItems.length === 0) {
+    if (!expenseDate  || expenseItems.length === 0) {
       toast.error("Please complete all fields!");
       return;
     }
 
     const payload = {
       date: expenseDate,
-      salesmanId: selectedSalesman,
+      // salesmanId: selectedSalesman,
       expenses: expenseItems.map((i) => ({
         expenseName: i.name,
         amount: i.amount,
@@ -237,7 +237,7 @@ const ExpensePage = () => {
 
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-newPrimary">All Expenses</h1>
+            <h1 className="text-2xl font-bold text-newPrimary">City Trader Expense</h1>
             <p className="text-gray-500 text-sm">Manage your daily expense records</p>
           </div>
           <button
@@ -252,11 +252,11 @@ const ExpensePage = () => {
         <div className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-full">
-              <div className="hidden lg:grid grid-cols-[80px_150px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
+              <div className="hidden lg:grid grid-cols-[80px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
                 <div>Sr</div>
                 <div>Date</div>
-                <div>Salesman</div>
-                <div>Expenses</div>
+             
+                <div >Expenses</div>
                 <div>Amount</div>
                 <div className="text-center">Actions</div>
               </div>
@@ -265,8 +265,8 @@ const ExpensePage = () => {
                 {loading ? (
                   <TableSkeleton
                     rows={expenses.length || 5}
-                    cols={6}
-                    className="lg:grid-cols-[80px_150px_150px_1fr_150px_150px]"
+                    cols={5}
+                    className="lg:grid-cols-[80px_150px_1fr_150px_150px]"
                   />
                 ) : expenses.length === 0 ? (
                   <div className="text-center py-4 text-gray-500 bg-white">
@@ -276,12 +276,12 @@ const ExpensePage = () => {
                   currentRecords.map((exp, index) => (
                     <div
                       key={exp.id}
-                      className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="grid grid-cols-1 lg:grid-cols-[80px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{formDate(exp.date)}</div>
-                      <div>{exp.salesman}</div>
-                      <div>{exp.items.map((i) => i.name).join(", ")}</div>
+                     
+                      <div className="pl-6">{exp.items.map((i) => i.name).join(", ")}</div>
                       <div className="font-semibold text-blue-600">
                         {exp.totalAmount}
                       </div>
@@ -389,7 +389,7 @@ const ExpensePage = () => {
                 </div>
 
                 {/* Salesman */}
-                <div>
+                {/* <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     Salesman <span className="text-red-500">*</span>
                   </label>
@@ -406,7 +406,7 @@ const ExpensePage = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 {/* Expense Fields */}
                 <div className="space-y-4 border p-4 rounded-lg bg-gray-50">

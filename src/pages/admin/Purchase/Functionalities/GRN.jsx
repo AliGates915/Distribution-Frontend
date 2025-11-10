@@ -23,7 +23,7 @@ const GRN = () => {
   const [itemsList, setItemsList] = useState([]);
   const [item, setItem] = useState("");
   const [qty, setQty] = useState("");
-  const [rate, setRate] = useState("");
+  const [rate, setRate] = useState(0);
   const [description, setDescription] = useState("");
   const [gatePassOptions, setGatePassOptions] = useState([]);
   const [itemOptions, setItemOptions] = useState([]);
@@ -97,6 +97,8 @@ const GRN = () => {
     const salesmanId = e.target.value;
     setSelectedSalesman(salesmanId);
     const selected = salesmanList.find((s) => s._id === salesmanId);
+    console.log({selected});
+    
     if (selected) {
       setBalance(selected.payableBalance || 0);
       setPhone(selected.phoneNumber || "-");
@@ -108,10 +110,10 @@ const GRN = () => {
     const itemId = e.target.value;
     setItem(itemId);
 
-    const selected = itemOptions.find((opt) => opt._id === itemId);
-    if (selected) {
-      setRate(selected.purchase || 0); // ✅ auto set rate from purchase field
-    }
+    // const selected = itemOptions.find((opt) => opt._id === itemId);
+    // if (selected) {
+    //   setRate(selected.purchase || 0); // ✅ auto set rate from purchase field
+    // }
   };
 
   // Fetch GRNs

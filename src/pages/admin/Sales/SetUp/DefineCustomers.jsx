@@ -187,15 +187,12 @@ const DefineCustomers = () => {
    const formData = {
   salesArea: areaName,
   customerName,
-  email,
-  contactPerson,
+ 
   address,
   salesman: selectedSalesman, 
-  mobileNumber,
+
   phoneNumber,
-  designation,
-  ntn,
-  gst,
+ 
   paymentTerms,
   creditTime: paymentTerms === "Credit" ? Number(creditTime) : undefined,
   creditLimit: paymentTerms === "Credit" ? Number(creditLimit) : undefined,
@@ -632,7 +629,7 @@ const DefineCustomers = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Phone Number <span className="text-red-500">*</span>
+                    Contact Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -650,7 +647,7 @@ const DefineCustomers = () => {
                   />
                 </div>
               </div>
-              <div className="flex gap-4">
+              {/* <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Mobile Number
@@ -682,9 +679,9 @@ const DefineCustomers = () => {
                     className="w-full p-2 border rounded"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
+                {/* <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Contact Person
                   </label>
@@ -695,8 +692,8 @@ const DefineCustomers = () => {
                     onChange={(e) => setContactPerson(e.target.value)}
                     className="w-full p-2 border rounded"
                   />
-                </div>
-                <div className="flex-1 min-w-0">
+                </div> */}
+                {/* <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Designation
                   </label>
@@ -708,7 +705,7 @@ const DefineCustomers = () => {
                     className="w-full p-2 border rounded"
                     placeholder="e.g. Purchasing Manager"
                   />
-                </div>
+                </div> */}
               </div>
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -722,7 +719,7 @@ const DefineCustomers = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div className="flex gap-4">
+              {/* <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">NTN</label>
                   <input
@@ -745,7 +742,7 @@ const DefineCustomers = () => {
                     placeholder="e.g. 27DEFGH5678J2K4"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
