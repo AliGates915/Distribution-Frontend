@@ -28,35 +28,18 @@ const ExpensePage = () => {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
   };
-  // ✅ Fetch Salesman List
-  useEffect(() => {
-    const fetchSalesmen = async () => {
-      setIsSaving(true);
-      try {
-        const { data } = await axios.get(`${API_BASE}/employees`);
-        setSalesmanList(data || []);
-      } catch (error) {
-        toast.error("Failed to load salesmen");
-      } finally {
-        setIsSaving(false);
-      }
-    };
-    fetchSalesmen();
-  }, []);
+  
 
   // ✅ Fetch Expenses based on salesman/date
   const fetchExpenses = async () => {
     try {
-      if (!selectedSalesman) {
-        setExpenses([]);
-        return;
-      }
+     
 
       setIsLoading(true);
       const dateQuery = selectedDate ? `?date=${selectedDate}` : ""; // Optional date
 
       const { data } = await axios.get(
-        `${API_BASE}/salesman-expense/salesman/${selectedSalesman}${dateQuery}`
+        `${API_BASE}/salesman-expense/by-date`
       );
 
       if (data.success) {
@@ -90,8 +73,8 @@ const ExpensePage = () => {
 
   // ✅ Auto-refresh when salesman or date changes
   useEffect(() => {
-    if (selectedSalesman) fetchExpenses();
-  }, [selectedSalesman, selectedDate]);
+    fetchExpenses();
+  }, []);
   // console.log({expenses});
   // 🔹 Pagination calculations
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -128,51 +111,11 @@ const ExpensePage = () => {
           )}
 
           {/* 🔹 Filters */}
-          <div className="flex justify-between items-center w-full gap-4 mb-5">
-            <div className="flex gap-4">
-              {/* Salesman Selection */}
-              <div className="w-[300px]">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Select Salesman *
-                </label>
-                <select
-                  value={selectedSalesman}
-                  onChange={(e) => {
-                    setSelectedSalesman(e.target.value);
-                    setShowSalesmanError(false); // hide message once a salesman is chosen
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-                >
-                  <option value="">Choose Salesman</option>
-                  {salesmanList.map((item) => (
-                    <option key={item._id} value={item._id}>
-                      {item.employeeName}
-                    </option>
-                  ))}
-                </select>
-                {showSalesmanError && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Please select a salesman before proceeding.
-                  </p>
-                )}
-              </div>
-
-              {/* Date Selection */}
-              <div className="w-[300px]">
-                <label className="block text-gray-700 font-medium mb-2">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-                />
-              </div>
-            </div>
-            {selectedSalesman && (
-              <div className="w-[200px] whitespace-nowrap">
-                <label className=" text-newPrimary inline-flex gap-2 items-center font-medium mb-2">
+          <div className="flex justify-end items-center w-full gap-4 mb-5">
+          
+           
+              <div className=" whitespace-nowrap">
+                <label className=" text-newPrimary text-lg inline-flex gap-2 items-center font-medium mb-2">
                   Today Expense Amount:{" "}
                   <p className="text-black ">{expenseAmount}</p>
                 </label>
@@ -184,17 +127,17 @@ const ExpensePage = () => {
               className="w-full p-3 border h-[40px] border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             /> */}
               </div>
-            )}
+           
           </div>
 
           {/* ===== TABLE ===== */}
           <div className="rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <div className="min-w-full">
-                <div className="hidden lg:grid grid-cols-[80px_150px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
+                <div className="hidden lg:grid grid-cols-[80px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
                   <div>Sr</div>
                   <div>Date</div>
-                  <div className="text-center">Salesman</div>
+                  {/* <div className="text-center">Salesman</div> */}
                   <div className="text-center">Expenses</div>
                   <div>Amount</div>
                   <div className="text-center">Actions</div>
@@ -205,8 +148,8 @@ const ExpensePage = () => {
                     // 🦴 Skeleton loader while fetching
                     <TableSkeleton
                       rows={currentRecords.length || 5}
-                      cols={6}
-                      className="lg:grid-cols-[80px_150px_150px_1fr_150px_150px]"
+                      cols={5}
+                      className="lg:grid-cols-[80px_150px_1fr_150px_150px]"
                     />
                   ) : expenses.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -216,11 +159,11 @@ const ExpensePage = () => {
                     currentRecords.map((exp, index) => (
                       <div
                         key={exp.id}
-                        className="grid grid-cols-1 lg:grid-cols-[80px_150px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                        className="grid grid-cols-1 lg:grid-cols-[80px_150px_1fr_150px_150px] gap-4 items-center px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{formDate(exp.date)}</div>
-                        <div className="text-center">{exp.salesman}</div>
+                        {/* <div className="text-center">{exp.salesman}</div> */}
                         <div className="text-center">
                           {exp.items.map((i) => i.name).join(", ")}
                         </div>
@@ -295,9 +238,7 @@ const ExpensePage = () => {
                 <p>
                   <strong>Date:</strong> {viewExpense.date}
                 </p>
-                <p>
-                  <strong>Salesman:</strong> {viewExpense.salesman}
-                </p>
+               
                 <div className="mt-3">
                   <h3 className="font-semibold mb-2">Items:</h3>
                   <ul className="space-y-1">

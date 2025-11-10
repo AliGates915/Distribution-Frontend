@@ -79,9 +79,19 @@ const CustomerLedger = () => {
   }, [selectedCustomer, dateFrom, dateTo]);
 
   // INITIAL LOAD
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
+useEffect(() => {
+  const loadInitialData = async () => {
+    await fetchCustomers(); // first load customer list
+    setTimeout(() => {
+      if (customerList.length > 0 && !selectedCustomer) {
+        const firstCustomer = customerList[0]._id;
+        setSelectedCustomer(firstCustomer);
+      }
+    }, 500); // small delay so state updates after list is fetched
+  };
+  loadInitialData();
+}, []);
+
 
   // REFETCH LEDGER when filters change
   useEffect(() => {
@@ -193,6 +203,48 @@ const CustomerLedger = () => {
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
           </div>
+          {/* 4. Show All Checkbox */}
+<div className="flex items-center gap-2 mt-6">
+  <input
+    type="checkbox"
+    id="showAll"
+    onChange={async (e) => {
+      if (e.target.checked) {
+        setDateFrom(""); 
+        setDateTo(""); 
+        try {
+          setLoading(true);
+          const response = await api.get(`/customer-ledger?customer=${selectedCustomer}`);
+          const transformedData = (response.data?.data || response.data || []).map(
+            (entry) => ({
+              ...entry,
+              Debit: entry.Paid || "0.00",
+              Credit: entry.Received || "0.00",
+              SR: entry.SR,
+              ID: entry.ID,
+              Date: entry.Date,
+              CustomerName: entry.CustomerName,
+              Description: entry.Description,
+              Balance: entry.Balance,
+            })
+          );
+          setLedgerEntries(transformedData);
+        } catch (error) {
+          Swal.fire("Error", "Failed to load all ledger entries", "error");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        fetchCustomerLedger(); // revert to filtered view
+      }
+    }}
+    className="w-4 h-4"
+  />
+  <label htmlFor="showAll" className="text-gray-700 font-medium">
+    Show All
+  </label>
+</div>
+
         </div>
 
         {/* Ledger Table */}

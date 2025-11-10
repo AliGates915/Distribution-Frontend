@@ -120,26 +120,19 @@ const DefineSupplier = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
+   
     setIsSaving(true);
 
     const formData = {
       supplierName,
-      email,
+     
       contactPerson,
       address,
-      mobileNumber,
-      phoneNumber,
-      designation,
-      ntn,
-      gst,
+     
       paymentTerms: paymentTerms === "CreditCard" ? "Credit" : paymentTerms, // map CreditCard -> Credit
       creditTime: paymentTerms === "CreditCard" ? creditTime : undefined, // <-- add this state
       creditLimit: paymentTerms === "CreditCard" ? creditLimit : undefined,
-      status,
+    
     };
 
 
@@ -307,11 +300,9 @@ const DefineSupplier = () => {
               <div>Sr</div>
               <div>Name</div>
               <div>Contact</div>
-              <div>Email</div>
-              <div>Address</div>
-              <div>Mobile</div>
+            
               <div>Payment</div>
-              <div>Status</div>
+            
               {userInfo?.isAdmin && <div className={`${loading ? "" : "text-right"}`}>Actions</div>}
             </div>
 
@@ -338,26 +329,16 @@ const DefineSupplier = () => {
                       <div className="text-gray-900">{indexOfFirstRecord + index + 1}</div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactPerson}</div>
-                      <div className="text-gray-600">{s.email}</div>
+                     
                       <div className="text-gray-600 truncate">{s.address}</div>
-                      <div className="text-gray-600">{s.mobileNumber}</div>
+                      
                       <div className="text-gray-600">
                         {s.paymentTerms}
                         {s.paymentTerms === "CreditCard" && s.creditLimit
                           ? ` (${s.creditLimit})`
                           : ""}
                       </div>
-                      <div className=" font-semibold">
-                        {s.status ? (
-                          <span className="text-green-600 bg-green-50 px-3 py-1 rounded-[5px]">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="text-red-600 bg-red-50 px-3 py-1 rounded-[5px]">
-                            Inactive
-                          </span>
-                        )}
-                      </div>
+                      
                       {userInfo?.isAdmin && (
                         <div className="flex justify-end gap-3">
                           <button
@@ -512,7 +493,7 @@ const DefineSupplier = () => {
                     className="w-full p-2 border rounded"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
+                {/* <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
@@ -524,9 +505,9 @@ const DefineSupplier = () => {
                     className="w-full p-2 border rounded"
                     placeholder="e.g. +1-212-555-1234"
                   />
-                </div>
+                </div> */}
               </div>
-              <div className="flex gap-4">
+              {/* <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
                     Mobile Number <span className="text-red-500">*</span>
@@ -553,11 +534,11 @@ const DefineSupplier = () => {
                     className="w-full p-2 border rounded"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Contact Person <span className="text-red-500">*</span>
+                    Contact Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -568,19 +549,7 @@ const DefineSupplier = () => {
                   />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Designation <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={designation}
-                    required
-                    onChange={(e) => setDesignation(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. Sales Manager"
-                  />
-                </div>
+               
               </div>
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -594,35 +563,7 @@ const DefineSupplier = () => {
                   className="w-full p-2 border rounded"
                 />
               </div>
-              <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    NTN <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={ntn}
-                    required
-                    onChange={(e) => setNtn(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. NTN123456789"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    GST <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={gst}
-                    required
-                    onChange={(e) => setGst(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    placeholder="e.g. 27ABCDE1234F1Z5"
-                  />
-                </div>
-              </div>
+             
               {/* Payment Terms */}
 
               <div>
@@ -684,21 +625,7 @@ const DefineSupplier = () => {
 
               {/* Status */}
 
-              <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">Status</label>
-                <button
-                  type="button"
-                  onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-                <span>{status ? "Active" : "Inactive"}</span>
-              </div>
+             
 
               {/* Save Button */}
 
