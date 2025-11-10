@@ -12,11 +12,12 @@ const SupplierWisePurchase = () => {
   const [supplierList, setSupplierList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showError, setShowError] = useState(false);
 
   const recordsPerPage = 10;
   const ledgerRef = useRef(null);
@@ -36,7 +37,6 @@ const SupplierWisePurchase = () => {
       setLoading(false);
     }
   }, []);
-
 
   // 2️⃣ FETCH SUPPLIER-WISE PURCHASE REPORT
   const fetchSupplierLedger = useCallback(async () => {
@@ -90,14 +90,13 @@ const SupplierWisePurchase = () => {
 
   // 3️⃣ TOTALS
   const totalDebit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Debit) || 0),
+    (sum, e) => sum + (parseFloat(e.Amount) || 0),
     0
   );
   const totalCredit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Credit) || 0),
+    (sum, e) => sum + (parseFloat(e.Total) || 0),
     0
   );
-
 
   // 4️⃣ PAGINATION
   const indexOfLastRecord = currentPage * recordsPerPage;
@@ -107,6 +106,12 @@ const SupplierWisePurchase = () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+
+  useEffect(() => {
+  if (!selectedSupplier) {
+    setShowError(true);
+  }
+}, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -137,7 +142,10 @@ const SupplierWisePurchase = () => {
             </label>
             <select
               value={selectedSupplier}
-              onChange={(e) => setSelectedSupplier(e.target.value)}
+              onChange={(e) => {
+                setSelectedSupplier(e.target.value);
+                setShowError(false);
+              }}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             >
               <option value="">Select Supplier</option>
@@ -147,6 +155,11 @@ const SupplierWisePurchase = () => {
                 </option>
               ))}
             </select>
+            {showError && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select a supplier before proceeding.
+              </p>
+            )}
           </div>
 
           {/* From Date */}
@@ -195,7 +208,7 @@ const SupplierWisePurchase = () => {
           ) : (
             <>
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
+              <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
                 <div>SR</div>
                 <div>Date</div>
                 <div>ID</div>
@@ -204,6 +217,7 @@ const SupplierWisePurchase = () => {
                 <div>Rate</div>
                 <div>Qty</div>
                 <div>Amount</div>
+                <div>Payable Discount</div>
               </div>
 
               {/* Rows */}
@@ -211,30 +225,35 @@ const SupplierWisePurchase = () => {
                 {currentRecords.map((entry, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
+                    className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
                   >
                     <div>{i + 1 + indexOfFirstRecord}</div>
-                    <div>{entry.Date}</div>
-                    <div>{entry.ID}</div>
-                    <div>{entry.SupplierName}</div>
-                    <div>{entry.Item}</div>
-                    <div>{entry.Rate}</div>
-                    <div>{entry.Qty}</div>
-                    <div>{entry.Amount}</div>
+                    <div>{entry.Date || "-"}</div>
+                    <div>{entry.ID || "-"}</div>
+                    <div>{entry.SupplierName || "-"}</div>
+                    <div>{entry.Item || "-"}</div>
+                    <div>{entry.Rate || "-"}</div>
+                    <div>{entry.Qty || "-"}</div>
+                    <div>{entry.Amount || "-"}</div>
+                    <div>{entry.Total || "-"}</div>
                   </div>
                 ))}
               </div>
-              
-
 
               {/* Totals */}
-              <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+              <div className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
                 <div></div>
                 <div className="text-red-600">
-                  Total Debit: {totalDebit.toLocaleString()}
+                  Total Amount: {totalDebit.toLocaleString()}
                 </div>
                 <div className="text-green-600">
-                  Total Credit: {totalCredit.toLocaleString()}
+                  Total Payable: {totalCredit.toLocaleString()}
                 </div>
               </div>
             </>
@@ -252,10 +271,11 @@ const SupplierWisePurchase = () => {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${currentPage === 1
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === 1
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-newPrimary text-white"
-                    }`}
+                  }`}
                 >
                   Previous
                 </button>
@@ -264,10 +284,11 @@ const SupplierWisePurchase = () => {
                     setCurrentPage((p) => Math.min(p + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === totalPages
                       ? "bg-gray-300 cursor-not-allowed"
                       : "bg-newPrimary text-white"
-                    }`}
+                  }`}
                 >
                   Next
                 </button>

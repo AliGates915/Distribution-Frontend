@@ -18,6 +18,8 @@ const OpeningStock = () => {
   const [itemNameList, setItemNameList] = useState([]);
   const [itemTypeList, setItemTypeList] = useState([]);
   const [editingStockIndex, setEditingStockIndex] = useState(null);
+  const [showCategoryError, setShowCategoryError] = useState(false);
+
   const tableRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -95,7 +97,8 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL
+          `${
+            import.meta.env.VITE_API_BASE_URL
           }/item-type/category/${itemCategory}`
         );
         setItemTypeList(res.data);
@@ -117,7 +120,8 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL
+          `${
+            import.meta.env.VITE_API_BASE_URL
           }/item-details/item-type/${itemType}`
         );
 
@@ -167,12 +171,22 @@ const OpeningStock = () => {
   // ✅ Filter + Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = itemNameList.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = itemNameList.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(itemNameList.length / recordsPerPage);
 
   useEffect(() => {
-  setCurrentPage(1);
-}, [itemCategory, itemType, form.itemSearch]);
+    setCurrentPage(1);
+  }, [itemCategory, itemType]);
+
+  useEffect(() => {
+  if (!itemCategory) {
+    setShowCategoryError(true);
+  }
+}, []);
+
 
   return (
     <div className="p-6 space-y-6">
@@ -184,7 +198,6 @@ const OpeningStock = () => {
       {/* Form */}
       <div className="border rounded-lg shadow bg-white p-6 w-full">
         <div className="grid grid-cols-3 gap-6 items-end w-full">
-
           {/* Category */}
           <div className="w-full">
             <label className="block text-gray-700 font-medium mb-1">
@@ -192,7 +205,10 @@ const OpeningStock = () => {
             </label>
             <select
               value={itemCategory}
-              onChange={(e) => setItemCategory(e.target.value)}
+              onChange={(e) => {
+                setItemCategory(e.target.value);
+                setShowCategoryError(false); // hide message after selecting
+              }}
               className="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
             >
               <option value="">Select Category</option>
@@ -202,6 +218,11 @@ const OpeningStock = () => {
                 </option>
               ))}
             </select>
+            {showCategoryError && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select a category before proceeding.
+              </p>
+            )}
           </div>
 
           {/* Item Type */}
@@ -244,7 +265,6 @@ const OpeningStock = () => {
             </select>
           </div> */}
 
-
           {/* With/Without Rate Toggle */}
           <div className="flex items-center gap-4 mt-6">
             <label className="flex items-center gap-2">
@@ -278,30 +298,6 @@ const OpeningStock = () => {
               </button>
             )}
           </div>
-
-          {/* Search bar with icon (no label) */}
-
-          {itemNameList.length > 10 && (
-            <div className="w-full">
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400" />
-                </span>
-                <input
-                  type="text"
-                  value={form.itemSearch}
-                  onChange={(e) =>
-                    setForm({ ...form, itemSearch: e.target.value })
-                  }
-                  placeholder="Search Item..."
-                  aria-label="Search Item"
-                  className="w-full h-10 pl-10 pr-3 border border-gray-300 rounded-lg
-                 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400
-                 placeholder:text-gray-400"
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -317,10 +313,11 @@ const OpeningStock = () => {
           <div className="min-w-[1000px]">
             {/* ✅ Table Header */}
             <div
-              className={`hidden lg:grid ${editingStockIndex !== null
-                ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
-                } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
+              className={`hidden lg:grid ${
+                editingStockIndex !== null
+                  ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                  : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+              } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
             >
               <div>Sr</div>
               <div>Category</div>
@@ -335,9 +332,7 @@ const OpeningStock = () => {
               <div>Stock</div>
               {editingStockIndex !== null && <div>Action</div>}
 
-              {showRate && (
-                <div>Total Amount</div>
-              )}
+              {showRate && <div>Total Amount</div>}
             </div>
 
             {/* ✅ Table Body */}
@@ -346,10 +341,11 @@ const OpeningStock = () => {
                 <TableSkeleton
                   rows={itemNameList.length > 0 ? itemNameList.length : 5}
                   cols={editingStockIndex !== null ? 8 : 7}
-                  className={`${editingStockIndex !== null
-                    ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                    : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
-                    }`}
+                  className={`${
+                    editingStockIndex !== null
+                      ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                      : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                  }`}
                 />
               ) : itemNameList.length === 0 ? (
                 <div className="text-center py-4 text-gray-500 bg-white">
@@ -359,10 +355,11 @@ const OpeningStock = () => {
                 currentRecords.map((rec, index) => (
                   <div
                     key={rec.code}
-                    className={`grid ${editingStockIndex !== null
-                      ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
-                      : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
-                      } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
+                    className={`grid ${
+                      editingStockIndex !== null
+                        ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr_auto]"
+                        : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr_1fr]"
+                    } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
                   >
                     <div>{indexOfFirstRecord + index + 1}</div>
                     <div>{rec?.itemCategory?.categoryName || "-"}</div>
@@ -373,7 +370,9 @@ const OpeningStock = () => {
 
                     {showRate && (
                       <>
-                        <div className="text-gray-600">{rec.purchase || "-"}</div>
+                        <div className="text-gray-600">
+                          {rec.purchase || "-"}
+                        </div>
                       </>
                     )}
 
@@ -406,7 +405,9 @@ const OpeningStock = () => {
                       )}
                     </div>
                     {showRate && (
-                      <div className="text-gray-600">{rec.purchase * rec.stock || "-"}</div>
+                      <div className="text-gray-600">
+                        {rec.purchase * rec.stock || "-"}
+                      </div>
                     )}
                     {/* Action Button */}
                     {editingStockIndex === index && (
@@ -416,7 +417,8 @@ const OpeningStock = () => {
                           onClick={async () => {
                             try {
                               await axios.put(
-                                `${import.meta.env.VITE_API_BASE_URL
+                                `${
+                                  import.meta.env.VITE_API_BASE_URL
                                 }/item-details/${rec._id}/stock`,
                                 { stock: rec.stock },
                                 {
@@ -435,7 +437,7 @@ const OpeningStock = () => {
                             } catch (error) {
                               toast.success(
                                 error.response?.data?.message ||
-                                "Failed to update stock"
+                                  "Failed to update stock"
                               );
                               console.error("Failed to update stock:", error);
                             }
@@ -459,12 +461,15 @@ const OpeningStock = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                         : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                    }`}
                   >
                     Previous
                   </button>
@@ -474,17 +479,17 @@ const OpeningStock = () => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
                         ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                         : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                    }`}
                   >
                     Next
                   </button>
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>

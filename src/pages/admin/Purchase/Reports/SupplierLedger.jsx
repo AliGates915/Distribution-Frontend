@@ -5,7 +5,7 @@ import { LedgerTemplate } from "../../../../helper/LedgerReportTemplate";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import TableSkeleton from "../../Components/Skeleton";
-import {  handleSupplierLedgerPrint } from "../../../../helper/SalesPrintView";
+import { handleSupplierLedgerPrint } from "../../../../helper/SalesPrintView";
 import { Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -13,11 +13,12 @@ const SupplierLedger = () => {
   const [supplierList, setSupplierList] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedSupplier, setSelectedSupplier] = useState("");
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSupplierError, setShowSupplierError] = useState(false);
 
   const recordsPerPage = 10;
   const ledgerRef = useRef(null);
@@ -39,50 +40,50 @@ const SupplierLedger = () => {
   }, []);
 
   // 2️⃣ FETCH SUPPLIER LEDGER ENTRIES
-const fetchSupplierLedger = async (supplierId) => {
-  if (!supplierId) return;
+  const fetchSupplierLedger = async (supplierId) => {
+    if (!supplierId) return;
 
-  try {
-    setLoading(true);
-    let query = `/supplier-ledger?supplier=${supplierId}`;
-    if (dateFrom && dateTo) {
-      query += `&from=${dateFrom}&to=${dateTo}`;
+    try {
+      setLoading(true);
+      let query = `/supplier-ledger?supplier=${supplierId}`;
+      if (dateFrom && dateTo) {
+        query += `&from=${dateFrom}&to=${dateTo}`;
+      }
+
+      const response = await api.get(query);
+
+      setLedgerEntries(response.data);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error || "Failed to fetch ledger entries"
+      );
+    } finally {
+      setLoading(false);
     }
-
-    const response = await api.get(query);
-   
-    setLedgerEntries(response.data);
-  } catch (error) {
-    toast.error(error?.response?.data?.error || "Failed to fetch ledger entries");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   // INITIAL LOAD
   useEffect(() => {
     fetchSuppliers();
   }, [fetchSuppliers]);
 
-
   const handleSupplierChange = (e) => {
-  const supplierId = e.target.value;
-  setSelectedSupplier(supplierId);
+    const supplierId = e.target.value;
+    setSelectedSupplier(supplierId);
+    setShowSupplierError(false);
 
-  if (supplierId) {
-    fetchSupplierLedger(supplierId); // ✅ call API when selected
-  } else {
-    setLedgerEntries([]); // clear table if deselected
-  }
-};
+    if (supplierId) {
+      fetchSupplierLedger(supplierId); // ✅ call API when selected
+    } else {
+      setLedgerEntries([]); // clear table if deselected
+    }
+  };
 
-useEffect(() => {
-  if (selectedSupplier && dateFrom && dateTo) {
-    fetchSupplierLedger(selectedSupplier);
-  }
-}, [dateFrom, dateTo]);
-
+  useEffect(() => {
+    if (selectedSupplier && dateFrom && dateTo) {
+      fetchSupplierLedger(selectedSupplier);
+    }
+  }, [dateFrom, dateTo]);
 
   // 3️⃣ TOTALS
   const totalDebit = ledgerEntries.reduce(
@@ -102,7 +103,13 @@ useEffect(() => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
-// console.log({ledgerEntries});
+  // console.log({ledgerEntries});
+  useEffect(() => {
+  if (!selectedSupplier) {
+    setShowSupplierError(true);
+  }
+}, []);
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -119,7 +126,7 @@ useEffect(() => {
               onClick={() => handleSupplierLedgerPrint(ledgerEntries)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
-              <Printer size={18} /> 
+              <Printer size={18} />
             </button>
           )}
         </div>
@@ -133,7 +140,7 @@ useEffect(() => {
             </label>
             <select
               value={selectedSupplier}
-              onChange={(e) => handleSupplierChange(e)} 
+              onChange={(e) => handleSupplierChange(e)}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             >
               <option value="">Select Supplier</option>
@@ -143,6 +150,11 @@ useEffect(() => {
                 </option>
               ))}
             </select>
+            {showSupplierError && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select a supplier before proceeding.
+              </p>
+            )}
           </div>
 
           {/* From Date */}

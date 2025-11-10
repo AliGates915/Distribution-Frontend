@@ -10,9 +10,10 @@ const Sales = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [reportData, setReportData] = useState(null); // holds whole response
   const [selectedSalesman, setSelectedSalesman] = useState("");
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
+const [showSalesmanError, setShowSalesmanError] = useState(false);
 
   // ✅ Fetch Salesman List
   const fetchSalesmanList = useCallback(async () => {
@@ -29,7 +30,11 @@ const Sales = () => {
 
   // ✅ Fetch Salesman Report
   const fetchSalesmanReport = useCallback(async () => {
-    if (!selectedSalesman || !selectedDate) return;
+     if (!selectedSalesman) {
+    setShowSalesmanError(true);
+    return;
+  }
+    if (!selectedDate) return;
     try {
       setLoading(true);
 
@@ -89,9 +94,7 @@ const Sales = () => {
 
           {productSection.length > 0 && (
             <button
-             onClick={() => handleDirectPrint(reportData)}
-
-
+              onClick={() => handleDirectPrint(reportData)}
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
               <Printer size={18} />
@@ -113,20 +116,32 @@ const Sales = () => {
 
           <div className="w-[300px]">
             <label className="block text-gray-700 font-medium mb-2">
-              Salesman
+              Salesman <span className="text-red-500">*</span>
             </label>
-            <select
-              value={selectedSalesman}
-              onChange={(e) => setSelectedSalesman(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            >
-              <option value="">Select Salesman</option>
-              {salesmanList.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.employeeName}
-                </option>
-              ))}
-            </select>
+
+            <div className="flex flex-col">
+              <select
+                value={selectedSalesman}
+                onChange={(e) => {
+                  setSelectedSalesman(e.target.value);
+                  setShowSalesmanError(false);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Salesman</option>
+                {salesmanList.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.employeeName}
+                  </option>
+                ))}
+              </select>
+
+              {showSalesmanError && (
+                <p className="text-red-500 text-sm mt-1">
+                  Please select a salesman before proceeding.
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -137,9 +152,15 @@ const Sales = () => {
           </div>
 
           {loading ? (
-            <TableSkeleton rows={productSection.length || 5} cols={9} className="lg:grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr]" />
+            <TableSkeleton
+              rows={productSection.length || 5}
+              cols={9}
+              className="lg:grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr]"
+            />
           ) : productSection.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">No product data found.</div>
+            <div className="text-center py-6 text-gray-500">
+              No product data found.
+            </div>
           ) : (
             <>
               {/* Header */}
@@ -161,8 +182,9 @@ const Sales = () => {
                 {productSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-gray-100 transition`}
+                    className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${
+                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
                     <div className="">{row.supplier || "-"}</div>
@@ -171,8 +193,12 @@ const Sales = () => {
                     <div>{row.purchasePrice.toLocaleString()}</div>
                     <div>{row.salePrice.toLocaleString()}</div>
                     <div>{row.qty}</div>
-                    <div className="text-red-600">{row.purchaseTotal.toLocaleString()}</div>
-                    <div className="text-green-600">{row.saleTotal.toLocaleString()}</div>
+                    <div className="text-red-600">
+                      {row.purchaseTotal.toLocaleString()}
+                    </div>
+                    <div className="text-green-600">
+                      {row.saleTotal.toLocaleString()}
+                    </div>
                     <div className="text-blue-600 font-semibold">
                       {(row.saleTotal - row.purchaseTotal).toLocaleString()}
                     </div>
@@ -189,8 +215,12 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className=" font-bold">Total:</div>
-                <div className="text-red-600">{totals.totalPurchase.toLocaleString()}</div>
-                <div className="text-green-600">{totals.totalSales.toLocaleString()}</div>
+                <div className="text-red-600">
+                  {totals.totalPurchase.toLocaleString()}
+                </div>
+                <div className="text-green-600">
+                  {totals.totalSales.toLocaleString()}
+                </div>
                 <div className="text-blue-600 font-semibold">
                   {(totals.totalSales - totals.totalPurchase).toLocaleString()}
                 </div>
@@ -206,9 +236,15 @@ const Sales = () => {
           </div>
 
           {loading ? (
-            <TableSkeleton rows={customerSection.length || 5} cols={6} className="lg:grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr]" />
+            <TableSkeleton
+              rows={customerSection.length || 5}
+              cols={6}
+              className="lg:grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr]"
+            />
           ) : customerSection.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">No customer data found.</div>
+            <div className="text-center py-6 text-gray-500">
+              No customer data found.
+            </div>
           ) : (
             <>
               {/* Header */}
@@ -226,15 +262,20 @@ const Sales = () => {
                 {customerSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-gray-100 transition`}
+                    className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${
+                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
                     <div className="">{row.customer || "-"}</div>
                     <div className="">{row.salesArea || "-"}</div>
                     <div className="">{row.customerAddress || "-"}</div>
-                    <div className="text-blue-600 font-medium">{row.sales.toLocaleString() || "-"}</div>
-                    <div className="text-green-600 font-medium">{row.recovery.toLocaleString() || "-"}</div>
+                    <div className="text-blue-600 font-medium">
+                      {row.sales.toLocaleString() || "-"}
+                    </div>
+                    <div className="text-green-600 font-medium">
+                      {row.recovery.toLocaleString() || "-"}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -245,7 +286,9 @@ const Sales = () => {
                 <div></div>
                 <div></div>
                 <div className="text-right pr-2 font-bold">Total:</div>
-                <div className="text-blue-600">{totals.totalSales.toLocaleString() || "-"}</div>
+                <div className="text-blue-600">
+                  {totals.totalSales.toLocaleString() || "-"}
+                </div>
                 <div className="text-green-600">
                   {customerSection
                     .reduce((sum, row) => sum + (row.recovery || 0), 0)
@@ -255,7 +298,6 @@ const Sales = () => {
             </>
           )}
         </div>
-
       </div>
     </div>
   );

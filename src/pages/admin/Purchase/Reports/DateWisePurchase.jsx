@@ -4,16 +4,17 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
 import { Printer } from "lucide-react";
-import { handleDateWisePrint} from "../../../../helper/SalesPrintView";
+import { handleDateWisePrint } from "../../../../helper/SalesPrintView";
 
 const DateWisePurchase = () => {
   const [receivables, setReceivables] = useState([]);
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState();
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
+  const [showDateError, setShowDateError] = useState(false);
 
   const ledgerRef = useRef(null);
 
@@ -48,7 +49,6 @@ const DateWisePurchase = () => {
     }
   }, [dateFrom, dateTo]);
 
-
   // Initial fetch and refetch on date change
   useEffect(() => {
     fetchReceivablesLedger();
@@ -64,10 +64,19 @@ const DateWisePurchase = () => {
   // Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = receivables.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = receivables.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(receivables.length / recordsPerPage);
-  console.log({currentRecords});
-  
+  // console.log({ currentRecords });
+  useEffect(() => {
+  if (!dateTo) {
+    setShowDateError(true);
+  }
+}, []);
+
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -90,7 +99,9 @@ const DateWisePurchase = () => {
         {/* Date Filters */}
         <div className="flex flex-wrap gap-5 mb-6">
           <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date From</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Date From
+            </label>
             <input
               type="date"
               value={dateFrom}
@@ -100,13 +111,23 @@ const DateWisePurchase = () => {
           </div>
 
           <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date To</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Date To
+            </label>
             <input
               type="date"
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setShowDateError(false); // hide error when a date is selected
+              }}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
+            {showDateError && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select an end date.
+              </p>
+            )}
           </div>
         </div>
 
@@ -143,19 +164,24 @@ const DateWisePurchase = () => {
                     <div>{new Date(entry.grnDate).toLocaleDateString()}</div>
                     <div>{entry.grnId || "-"}</div>
                     <div>{entry.SupplierName || "-"}</div>
-                    <div>{entry.products
-                      .map((p) => `${p.item}`)
-                      .join(", ") || "-"}</div> {/* You can treat as Debit */}
-                    <div>{entry.totalAmount || "-"}</div> {/* No Credit info in your API */}
-
+                    <div>
+                      {entry.products.map((p) => `${p.item}`).join(", ") || "-"}
+                    </div>{" "}
+                    {/* You can treat as Debit */}
+                    <div>{entry.totalAmount || "-"}</div>{" "}
+                    {/* No Credit info in your API */}
                   </div>
                 ))}
               </div>
 
               {/* Totals */}
               <div className="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
-                <div className="col-span-5 text-right text-green-500 pr-2">Total:</div>
-                <div className="text-left text-green-500">{totalAmountSum.toLocaleString()}</div>
+                <div className="col-span-5 text-right text-green-500 pr-2">
+                  Total:
+                </div>
+                <div className="text-left text-green-500">
+                  {totalAmountSum.toLocaleString()}
+                </div>
               </div>
             </>
           )}
@@ -165,26 +191,31 @@ const DateWisePurchase = () => {
             <div className="flex justify-between items-center py-4 px-6 border-t bg-gray-50">
               <p className="text-sm text-gray-600">
                 Showing {indexOfFirstRecord + 1} to{" "}
-                {Math.min(indexOfLastRecord, receivables.length)} of {receivables.length}
+                {Math.min(indexOfLastRecord, receivables.length)} of{" "}
+                {receivables.length}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md ${currentPage === 1
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-newPrimary text-white"
-                    }`}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white"
+                  }`}
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                    ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-newPrimary text-white"
-                    }`}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white"
+                  }`}
                 >
                   Next
                 </button>
