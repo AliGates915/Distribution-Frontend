@@ -891,9 +891,9 @@ const ListOfItems = () => {
                       </label>
                       <select
                         value={shelveLocation}
-                        required
                         onChange={(e) => setShelveLocation(e.target.value)}
-                        className="w-full p-2 border rounded"
+                        disabled
+                        className="w-full p-2 border bg-gray-100 rounded"
                       >
                         <option value="">Select Location</option>
                         {shelvesList.map((shelves) => (
