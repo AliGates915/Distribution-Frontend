@@ -320,7 +320,7 @@ const ListOfItems = () => {
     );
     formData.append("itemName", itemName);
     formData.append("itemCategory", itemCategory.id);
-    formData.append("manufacturer", manufacture);
+    // formData.append("manufacturer", manufacture);
     formData.append("supplier", supplier);
     // formData.append("purchase", parseFloat(purchase) || 0);
     formData.append("itemType", itemType);
@@ -847,7 +847,7 @@ const ListOfItems = () => {
 
                   <div className="flex gap-5">
                     {/* Manufacture */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Manufacture
                       </label>
@@ -864,7 +864,7 @@ const ListOfItems = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
                     {/* Supplier */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
