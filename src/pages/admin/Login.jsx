@@ -80,7 +80,7 @@ const Login = () => {
 
       <div className="max-w-md mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
-          Welcome Back
+          Welcome Back to City Trader
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-6">

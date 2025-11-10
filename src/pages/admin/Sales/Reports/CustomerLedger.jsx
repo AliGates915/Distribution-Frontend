@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 
 const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
+  const [showAllLedger, setShowAllLedger] = useState(false);
   const [showCustomerError, setShowCustomerError] = useState(false);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
@@ -37,24 +38,29 @@ const CustomerLedger = () => {
       console.error("Failed to fetch customers:", error);
       toast.error("Error", "Failed to load customers", "error");
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+         setLoading(false);
+      }, 2000);
+     
     }
   }, []);
 
   // 2. FETCH CUSTOMER LEDGER ENTRIES (uses From & To directly)
   const fetchCustomerLedger = useCallback(async () => {
-    if (!selectedCustomer) return;
-
     try {
       setLoading(true);
-      let query = `/customer-ledger?customer=${selectedCustomer}`;
-      if (dateFrom && dateTo) {
-        query += `&from=${dateFrom}&to=${dateTo}`;
+      let query = `/customer-ledger`;
+
+      // when customer is selected and showAllLedger not checked
+      if (selectedCustomer && !showAllLedger) {
+        query = `/customer-ledger?customer=${selectedCustomer}`;
+        if (dateFrom && dateTo) {
+          query += `&from=${dateFrom}&to=${dateTo}`;
+        }
       }
 
       const response = await api.get(query);
 
-      // Transform: Paid → Debit, Received → Credit
       const transformedData = (response.data?.data || response.data || []).map(
         (entry) => ({
           ...entry,
@@ -72,26 +78,19 @@ const CustomerLedger = () => {
       setLedgerEntries(transformedData);
     } catch (error) {
       console.error("Failed to fetch ledger entries:", error);
-      Swal.fire("Error", "Failed to load ledger entries", "error");
+      toast.error("Error", "Failed to load ledger entries", "error");
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+      
     }
-  }, [selectedCustomer, dateFrom, dateTo]);
+  }, [selectedCustomer, dateFrom, dateTo, showAllLedger]);
 
   // INITIAL LOAD
-useEffect(() => {
-  const loadInitialData = async () => {
-    await fetchCustomers(); // first load customer list
-    setTimeout(() => {
-      if (customerList.length > 0 && !selectedCustomer) {
-        const firstCustomer = customerList[0]._id;
-        setSelectedCustomer(firstCustomer);
-      }
-    }, 500); // small delay so state updates after list is fetched
-  };
-  loadInitialData();
-}, []);
-
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   // REFETCH LEDGER when filters change
   useEffect(() => {
@@ -121,13 +120,12 @@ useEffect(() => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
-  console.log({ ledgerEntries });
+  console.log({ currentRecords });
   useEffect(() => {
-  if (!selectedCustomer) {
-    setShowCustomerError(true);
-  }
-}, []);
-
+    if (!selectedCustomer) {
+      setShowCustomerError(true);
+    }
+  }, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -171,11 +169,6 @@ useEffect(() => {
                 </option>
               ))}
             </select>
-            {showCustomerError && (
-              <p className="text-red-500 text-sm mt-1">
-                Please select a customer before proceeding.
-              </p>
-            )}
           </div>
 
           {/* 2. From Date */}
@@ -203,48 +196,36 @@ useEffect(() => {
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
           </div>
-          {/* 4. Show All Checkbox */}
-<div className="flex items-center gap-2 mt-6">
-  <input
-    type="checkbox"
-    id="showAll"
-    onChange={async (e) => {
-      if (e.target.checked) {
-        setDateFrom(""); 
-        setDateTo(""); 
-        try {
-          setLoading(true);
-          const response = await api.get(`/customer-ledger?customer=${selectedCustomer}`);
-          const transformedData = (response.data?.data || response.data || []).map(
-            (entry) => ({
-              ...entry,
-              Debit: entry.Paid || "0.00",
-              Credit: entry.Received || "0.00",
-              SR: entry.SR,
-              ID: entry.ID,
-              Date: entry.Date,
-              CustomerName: entry.CustomerName,
-              Description: entry.Description,
-              Balance: entry.Balance,
-            })
-          );
-          setLedgerEntries(transformedData);
-        } catch (error) {
-          Swal.fire("Error", "Failed to load all ledger entries", "error");
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        fetchCustomerLedger(); // revert to filtered view
-      }
-    }}
-    className="w-4 h-4"
-  />
-  <label htmlFor="showAll" className="text-gray-700 font-medium">
-    Show All
-  </label>
-</div>
+          {/* 4. Show All Ledger (only visible when customer selected) */}
+          {selectedCustomer && (
+            <div className="flex items-center gap-2 mt-8">
+              <input
+                type="checkbox"
+                id="showAllLedger"
+                checked={showAllLedger}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setShowAllLedger(checked);
 
+                  if (checked) {
+                    // Reset fields when "Show All Ledger" is turned on
+                    setSelectedCustomer("");
+                    setDateFrom("");
+                    setDateTo("");
+                    setShowCustomerError(false);
+                  }
+                }}
+                className="w-4 h-4 accent-newPrimary"
+              />
+
+              <label
+                htmlFor="showAllLedger"
+                className="text-gray-700 font-medium cursor-pointer"
+              >
+                Show All Ledger
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Ledger Table */}
@@ -255,7 +236,7 @@ useEffect(() => {
               cols={7} // SR, Order ID, Date, Salesman, Customer, Phone, Actions
               className="lg:grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr]"
             />
-          ) : !selectedCustomer ? (
+          ) : ledgerEntries.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
               Please select a customer to view ledger entries.
             </div>
@@ -304,7 +285,7 @@ useEffect(() => {
                 <div className="text-green-600">
                   Total Credit: {totalCredit.toLocaleString()}
                 </div>
-                 <div className="text-green-600">
+                <div className="text-green-600">
                   Total Balance: {totalBalance.toLocaleString()}
                 </div>
               </div>
