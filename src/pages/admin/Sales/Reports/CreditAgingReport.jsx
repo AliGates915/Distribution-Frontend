@@ -9,6 +9,7 @@ import { Printer } from "lucide-react";
 const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
   const [apiData, setApiData] = useState([]);
+  const [salesmanData, setSalesmanData] = useState([]);
   // below your totals useState
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -22,30 +23,48 @@ const CreditAgingReport = () => {
     totalOutstanding: 0,
   });
 
-  const salesmanList = [
-    { _id: "1", employeeName: "Ali Khan" },
-    { _id: "2", employeeName: "Zain Ahmed" },
-    { _id: "3", employeeName: "Sara Malik" },
-    { _id: "4", employeeName: "Usman Tariq" },
-  ];
-
-  const fetchCreditAging = useCallback(async () => {
+  const fetchSalesman = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/credit-aging`
+        `${import.meta.env.VITE_API_BASE_URL}/employees/reports`
+      );
+      setSalesmanData(response.data?.data || response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch Salesman:", error);
+      toast.error("Error", "Failed to load Salesman", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    fetchSalesman();
+  }, []);
+
+  const fetchCreditAging = useCallback(async () => {
+    if (!selectedSalesman) {
+      toast.error("Please select a salesman first");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_API_BASE_URL
+        }/credit-aging?salesmanId=${selectedSalesman}`
       );
 
       if (response.data.success) {
         setApiData(response.data.data || []);
         setTotals(response.data.totals || {});
-        toast.success("Credit aging data loaded successfully");
+        toast.success("Credit Aging Report loaded successfully");
       } else {
         throw new Error(response.data.message || "Failed to fetch data");
       }
     } catch (error) {
       console.error("Failed to fetch credit aging data:", error);
-      toast.error("Failed to load data from API");
+      toast.error("Failed to load Credit Aging data");
       setApiData([]);
       setTotals({
         totalDebit: 0,
@@ -57,20 +76,30 @@ const CreditAgingReport = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedSalesman]);
+
   console.log({ apiData });
 
-
   useEffect(() => {
-    fetchCreditAging();
-  }, [fetchCreditAging]);
+    if (selectedSalesman) {
+      fetchCreditAging();
+    } else {
+      setApiData([]);
+      setTotals({
+        totalDebit: 0,
+        totalCredit: 0,
+        totalUnderCredit: 0,
+        totalDue: 0,
+        totalOutstanding: 0,
+      });
+    }
+  }, [selectedSalesman, fetchCreditAging]);
 
   // Pagination calculations
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = apiData.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(apiData.length / recordsPerPage);
-
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -91,24 +120,33 @@ const CreditAgingReport = () => {
             </button>
           )}
         </div>
-        <div className="flex items-center gap-6 mb-5">
-          <label className="text-gray-700 font-medium w-24">
+        <div className="flex items-start gap-6 mb-5">
+          <label className="text-gray-700 font-medium w-24 mt-2">
             Salesman <span className="text-red-500">*</span>
           </label>
 
-          <select
-            value={selectedSalesman}
-            onChange={(e) => setSelectedSalesman(e.target.value)}
-            className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-          >
-            <option value="">Select Salesman</option>
-            {salesmanList.map((cust) => (
-              <option key={cust._id} value={cust._id}>
-                {cust.employeeName}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col">
+            <select
+              value={selectedSalesman}
+              onChange={(e) => setSelectedSalesman(e.target.value)}
+              className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+            >
+              <option value="">Select Salesman</option>
+              {salesmanData.map((cust) => (
+                <option key={cust._id} value={cust._id}>
+                  {cust.employeeName}
+                </option>
+              ))}
+            </select>
+
+            {!selectedSalesman && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select a salesman to load report.
+              </p>
+            )}
+          </div>
         </div>
+
         <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
           <div className="overflow-x-auto">
             <div className="max-h-screen overflow-y-auto custom-scrollbar">
@@ -132,7 +170,10 @@ const CreditAgingReport = () => {
                 {/* Table Body */}
                 <div className="flex flex-col divide-y divide-gray-100">
                   {loading ? (
-                    <TableSkeleton rows={currentRecords.length || 5} cols={12} />
+                    <TableSkeleton
+                      rows={currentRecords.length || 5}
+                      cols={12}
+                    />
                   ) : apiData.length > 0 ? (
                     currentRecords.map((customer, cIdx) => (
                       <div key={cIdx} className="bg-white">
@@ -141,7 +182,6 @@ const CreditAgingReport = () => {
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold">
                               #{indexOfFirstRecord + cIdx + 1}.
-
                             </span>
                             <span className="text-base">
                               {customer.customerName}
@@ -169,13 +209,12 @@ const CreditAgingReport = () => {
                             <div>{inv.debit.toLocaleString() || "-"}</div>
                             <div>{inv.credit.toLocaleString() || "-"}</div>
                             <div className="text-green-600 font-semibold">
-                              {
-                                inv.underCredit.toLocaleString()
-                                ?? "-"}
+                              {inv.underCredit.toLocaleString() ?? "-"}
                             </div>
                             <div
-                              className={`font-semibold ${inv.due > 0 ? "text-red-600" : "text-gray-500"
-                                }`}
+                              className={`font-semibold ${
+                                inv.due > 0 ? "text-red-600" : "text-gray-500"
+                              }`}
                             >
                               {inv.due.toLocaleString() ?? "-"}
                             </div>
@@ -208,44 +247,47 @@ const CreditAgingReport = () => {
                     </div>
                   </div>
                 )}
-              
-
               </div>
             </div>
-              {totalPages > 1 && (
-                  <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
-                    <p className="text-sm text-gray-600">
-                      Showing {indexOfFirstRecord + 1}–
-                      {Math.min(indexOfLastRecord, apiData.length)} of {apiData.length} customers
-                    </p>
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
+                <p className="text-sm text-gray-600">
+                  Showing {indexOfFirstRecord + 1}–
+                  {Math.min(indexOfLastRecord, apiData.length)} of{" "}
+                  {apiData.length} customers
+                </p>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${currentPage === 1
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
-                      >
-                        Previous
-                      </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Previous
+                  </button>
 
-                      <button
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                        }
-                        disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

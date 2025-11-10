@@ -9,6 +9,7 @@ import jsPDF from "jspdf";
 import TableSkeleton from "../../Components/Skeleton";
 import { handleCustomerLedgerPrint } from "../../../../helper/SalesPrintView";
 import { Printer } from "lucide-react";
+import toast from "react-hot-toast";
 
 const CustomerLedger = () => {
   const [customerList, setCustomerList] = useState([]);
@@ -34,7 +35,7 @@ const CustomerLedger = () => {
       setCustomerList(response.data?.data || response.data || []);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
-      Swal.fire("Error", "Failed to load customers", "error");
+      toast.error("Error", "Failed to load customers", "error");
     } finally {
       setLoading(false);
     }
