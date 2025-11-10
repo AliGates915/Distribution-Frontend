@@ -317,7 +317,7 @@ const AreaPage = () => {
                     rows={4}
                     className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     placeholder="Enter area description"
-                    required
+                    
                   />
                 </div>
 
