@@ -12,6 +12,8 @@ const Recovery = () => {
   const [selectedDate, setSelectedDate] = useState(today);
   const [invoiceList, setInvoiceList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
+  const [showCustomerError, setShowCustomerError] = useState(false);
+
   const [customersList, setCustomersList] = useState([]);
   const [selectedOrders, setSelectedOrders] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,10 @@ const Recovery = () => {
 
   // 🔹 Fetch Recovery Data when salesman changes
   const fetchRecoveryData = async (id) => {
+    if (!selectedCustomer) {
+      setShowCustomerError(true);
+      return;
+    }
     if (!id) return;
     try {
       setLoading(true);
@@ -111,7 +117,11 @@ const Recovery = () => {
 
   // 🔹 Fetch Invoice List by Salesman and Date
   const fetchInvoicesByDate = async (selectedCustomer, date) => {
-    if (!selectedCustomer || !date) return;
+    if (!selectedCustomer) {
+      setShowCustomerError(true);
+      return;
+    }
+    if (!date) return;
 
     try {
       setSalesmanLodaing(true);
@@ -279,7 +289,12 @@ const Recovery = () => {
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   const currentRecords = data.slice(indexOfFirstRecord, indexOfLastRecord);
   const totalPages = Math.ceil(data.length / recordsPerPage);
-  console.log({ currentRecords });
+  // console.log({ currentRecords });
+useEffect(() => {
+  if (!selectedCustomer) {
+    setShowCustomerError(true);
+  }
+}, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -311,23 +326,35 @@ const Recovery = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
+              <div className="flex items-start gap-6">
+                <label className="text-gray-700 font-medium w-24 mt-2">
                   Customer <span className="text-red-500">*</span>
                 </label>
 
-                <select
-                  value={selectedCustomer}
-                  onChange={(e) => setSelectedCustomer(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                >
-                  <option value="">Select Customer</option>
-                  {customersList.map((cust) => (
-                    <option key={cust._id} value={cust._id}>
-                      {cust.customerName}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col">
+                  <select
+                    value={selectedCustomer}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedCustomer(val);
+                      setShowCustomerError(!val); // show message again if cleared
+                    }}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Customer</option>
+                    {customersList.map((cust) => (
+                      <option key={cust._id} value={cust._id}>
+                        {cust.customerName}
+                      </option>
+                    ))}
+                  </select>
+
+                  {showCustomerError && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please select a customer before proceeding.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

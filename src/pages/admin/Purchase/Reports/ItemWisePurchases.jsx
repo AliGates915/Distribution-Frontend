@@ -4,7 +4,7 @@ import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import Swal from "sweetalert2";
 import TableSkeleton from "../../Components/Skeleton";
-import { handleItemWisePrint} from "../../../../helper/SalesPrintView";
+import { handleItemWisePrint } from "../../../../helper/SalesPrintView";
 import { Printer } from "lucide-react";
 
 const ItemWisePurchase = () => {
@@ -12,8 +12,9 @@ const ItemWisePurchase = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [selectedItem, setSelectedItem] = useState("");
   const [loading, setLoading] = useState(false);
-  
-const today = new Date().toISOString().split("T")[0];
+  const [showItemError, setShowItemError] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,46 +37,45 @@ const today = new Date().toISOString().split("T")[0];
   }, []);
 
   // ================= 2️⃣ FETCH ITEMWISE PURCHASE REPORT =================
-const fetchItemwiseReport = useCallback(async () => {
-  if (!selectedItem) return;
+  const fetchItemwiseReport = useCallback(async () => {
+    if (!selectedItem) return;
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // ✅ Build query dynamically before calling API
-    let query = `${import.meta.env.VITE_API_BASE_URL}/reports/itemwise?itemName=${encodeURIComponent(
-      selectedItem
-    )}`;
+      // ✅ Build query dynamically before calling API
+      let query = `${
+        import.meta.env.VITE_API_BASE_URL
+      }/reports/itemwise?itemName=${encodeURIComponent(selectedItem)}`;
 
-    if (dateFrom && dateTo) {
-      query += `&from=${dateFrom}&to=${dateTo}`;
+      if (dateFrom && dateTo) {
+        query += `&from=${dateFrom}&to=${dateTo}`;
+      }
+
+      const response = await axios.get(query);
+
+      const report = response.data?.data || response.data || [];
+
+      const transformed = report.map((entry, index) => ({
+        SR: index + 1,
+        Date: new Date(entry.Date).toLocaleDateString(),
+        ID: entry.ID,
+        SupplierName: entry.SupplierName,
+        Item: entry.Item,
+        Rate: entry.Rate,
+        Qty: entry.Qty,
+        Amount: entry.Amount,
+        Total: entry.Total,
+      }));
+
+      setLedgerEntries(transformed);
+    } catch (error) {
+      console.error("Failed to fetch itemwise purchase report:", error);
+      Swal.fire("Error", "Failed to load purchase data", "error");
+    } finally {
+      setLoading(false);
     }
-
-    const response = await axios.get(query);
-
-    const report = response.data?.data || response.data || [];
-
-    const transformed = report.map((entry, index) => ({
-      SR: index + 1,
-      Date: new Date(entry.Date).toLocaleDateString(),
-      ID: entry.ID,
-      SupplierName: entry.SupplierName,
-      Item: entry.Item,
-      Rate: entry.Rate,
-      Qty: entry.Qty,
-      Amount: entry.Amount,
-      Total: entry.Total,
-    }));
-
-    setLedgerEntries(transformed);
-  } catch (error) {
-    console.error("Failed to fetch itemwise purchase report:", error);
-    Swal.fire("Error", "Failed to load purchase data", "error");
-  } finally {
-    setLoading(false);
-  }
-}, [selectedItem, dateFrom, dateTo]);
-
+  }, [selectedItem, dateFrom, dateTo]);
 
   // INITIAL LOAD (items only)
   useEffect(() => {
@@ -95,7 +95,13 @@ const fetchItemwiseReport = useCallback(async () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
-console.log({ledgerEntries});
+  // console.log({ ledgerEntries });
+  useEffect(() => {
+  if (!selectedItem) {
+    setShowItemError(true);
+  }
+}, []);
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -113,7 +119,6 @@ console.log({ledgerEntries});
               className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
             >
               <Printer size={18} />
-            
             </button>
           )}
         </div>
@@ -127,7 +132,10 @@ console.log({ledgerEntries});
             </label>
             <select
               value={selectedItem}
-              onChange={(e) => setSelectedItem(e.target.value)}
+              onChange={(e) => {
+                setSelectedItem(e.target.value);
+                setShowItemError(false); // hide error once user selects
+              }}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             >
               <option value="">Choose Item</option>
@@ -137,6 +145,11 @@ console.log({ledgerEntries});
                 </option>
               ))}
             </select>
+            {showItemError && (
+              <p className="text-red-500 text-sm mt-1">
+                Please select an item before proceeding.
+              </p>
+            )}
           </div>
 
           {/* From Date */}
@@ -192,7 +205,7 @@ console.log({ledgerEntries});
           ) : (
             <>
               {/* Header */}
-              <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
+              <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
                 <div>SR</div>
                 <div>Date</div>
                 <div>ID</div>
@@ -200,7 +213,8 @@ console.log({ledgerEntries});
                 <div>Item</div>
                 <div>Rate</div>
                 <div>Qty</div>
-                <div>Amount</div>
+                <div>Total Amount</div>
+                <div>Payable Discount</div>
               </div>
 
               {/* Rows */}
@@ -208,16 +222,17 @@ console.log({ledgerEntries});
                 {currentRecords.map((entry, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[0.3fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr] items-center px-6 py-3 hover:bg-gray-50 text-sm"
+                    className="grid grid-cols-[0.3fr_1fr_1fr_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center px-6 py-3 hover:bg-gray-50 text-sm"
                   >
                     <div>{i + 1 + indexOfFirstRecord}</div>
-                    <div>{entry.Date}</div>
-                    <div>{entry.ID}</div>
-                    <div>{entry.SupplierName}</div>
-                    <div>{entry.Item}</div>
-                    <div>{entry.Rate}</div>
-                    <div>{entry.Qty}</div>
-                    <div>{entry.Amount}</div>
+                    <div>{entry.Date || "-"}</div>
+                    <div>{entry.ID || "-"}</div>
+                    <div>{entry.SupplierName || "-"}</div>
+                    <div>{entry.Item || "-"}</div>
+                    <div>{entry.Rate || "-"}</div>
+                    <div>{entry.Qty || "-"}</div>
+                    <div>{entry.Total || "-"}</div>
+                    <div>{entry.Amount || "-"}</div>
                   </div>
                 ))}
               </div>

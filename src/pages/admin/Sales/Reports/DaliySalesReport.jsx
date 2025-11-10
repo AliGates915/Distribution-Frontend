@@ -15,6 +15,8 @@ const DailySalesReport = () => {
   const [isView, setIsView] = useState(false);
   const [mode, setMode] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showSalesmanError, setShowSalesmanError] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [salesman, setSalesman] = useState([]);
   const [salesmanList, setSalesmanList] = useState([]);
@@ -392,6 +394,11 @@ const DailySalesReport = () => {
     filteredInvoices.length > 0 &&
     selectedInvoices.length === filteredInvoices.length;
   // console.log({ salesmanList });
+  useEffect(() => {
+    if (!selectedSalesman) {
+      setShowSalesmanError(true);
+    }
+  }, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -443,22 +450,34 @@ const DailySalesReport = () => {
                 />
               </div>
               {/* Salesman Field */}
-              <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
+              <div className="flex items-start gap-6">
+                <label className="text-gray-700 font-medium w-24 mt-2">
                   Salesman <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={selectedSalesman}
-                  onChange={(e) => setSelectedSalesman(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2  focus:ring-newPrimary"
-                >
-                  <option value="">Select Salesman</option>
-                  {salesman?.map((cust) => (
-                    <option key={cust._id} value={cust._id}>
-                      {cust.employeeName}
-                    </option>
-                  ))}
-                </select>
+
+                <div className="flex flex-col">
+                  <select
+                    value={selectedSalesman}
+                    onChange={(e) => {
+                      setSelectedSalesman(e.target.value);
+                      setShowSalesmanError(false);
+                    }}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesman?.map((cust) => (
+                      <option key={cust._id} value={cust._id}>
+                        {cust.employeeName}
+                      </option>
+                    ))}
+                  </select>
+
+                  {showSalesmanError && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please select a salesman before proceeding.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
