@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen, Trash2, X } from "lucide-react";
+import { Eye, SquarePen, Trash2, X, Loader } from "lucide-react";
 import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
@@ -392,6 +392,11 @@ const GRN = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
+      {loading ? (
+        <div className="w-full flex justify-center items-center h-screen">
+          <Loader size={70} color="#1E93AB" className=" animate-spin" />
+        </div>
+      ) : (
       <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -917,6 +922,7 @@ const GRN = () => {
           }
         `}</style>
       </div>
+      )}
     </div>
   );
 };
