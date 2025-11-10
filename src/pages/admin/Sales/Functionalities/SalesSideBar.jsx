@@ -100,11 +100,11 @@ const setupChildren = [
 
   { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 
-  {
-    to: "/admin/manufacture",
-    label: "Manufacture",
-    icon: <FaIndustry />,
-  },
+  // {
+  //   to: "/admin/manufacture",
+  //   label: "Manufacture",
+  //   icon: <FaIndustry />,
+  // },
   //  {
   //   to: "/admin/shelve-location",
   //   label: "Shelve Location",
@@ -115,11 +115,11 @@ const setupChildren = [
     label: "List Of Items",
     icon: <AiOutlineProduct />,
   },
-  {
-    to: "/admin/sales-area",
-    label: "Sales Area",
-    icon: <FaMapMarkerAlt />,
-  },
+  // {
+  //   to: "/admin/sales-area",
+  //   label: "Sales Area",
+  //   icon: <FaMapMarkerAlt />,
+  // },
   {
     to: "/admin/define-customers",
     label: "Define Customers",
