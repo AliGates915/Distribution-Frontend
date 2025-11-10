@@ -10,14 +10,14 @@ const AmountReceivables = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showZero, setShowZero] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 10;
+  const recordsPerPage = 18;
 
   // 🔹 Fetch receivables from API
   const fetchReceivables = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(
-        `/supplier-ledger/payables?withZero=${showZero}`
+        `/customer-ledger/receivables?withZero=${showZero}`
       );
       // ✅ API returns "data" inside response.data
       setReceivables(response.data || []);
@@ -128,7 +128,7 @@ const AmountReceivables = () => {
                       className="grid grid-cols-1 lg:grid-cols-3 items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{cust.Supplier}</div>
+                      <div>{cust.Customer}</div>
                       <div>
                         {parseFloat(cust.Balance).toLocaleString("en-PK", {
                           style: "currency",
