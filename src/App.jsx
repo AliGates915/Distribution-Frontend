@@ -9,7 +9,7 @@ import { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./helper/ScrollToTop.jsx";
-import Profile from "./components/Profile.jsx";
+
 import SalesSidebar from "./pages/admin/Sales/Functionalities/SalesSideBar.jsx";
 
 import OrderTaking from "./pages/admin/Sales/Functionalities/OrderTaking.jsx";
@@ -73,6 +73,7 @@ import OpeningStockSupplierwise from "./pages/admin/Purchase/Reports/OpeningStoc
 import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 import ExpenseSheet from "./pages/admin/Sales/Reports/ExpenseSheet.jsx";
 import Expense from "./pages/admin/Sales/Functionalities/Expense.jsx";
+import Security from "./components/Security.jsx";
 
 function AppContent() {
   return (
@@ -96,7 +97,7 @@ function AppContent() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="security" element={<Security />} />
             <Route path="sales" element={<SalesSidebar />} />
 
             {/* Sales */}

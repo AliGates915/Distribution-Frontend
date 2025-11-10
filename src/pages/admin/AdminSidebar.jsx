@@ -19,7 +19,7 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
-import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions } from "react-icons/md";
+import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions, MdOutlineSecurity } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
@@ -42,9 +42,9 @@ const links = [
     icon: <BiPurchaseTagAlt />,
   },
   {
-    to: "/admin/bank",
-    label: "Bank ",
-    icon: <BiPurchaseTagAlt />,
+    to: "/admin/security",
+    label: "Security",
+    icon: <MdOutlineSecurity />,
   },
   // {
   //   to: "/admin/accounts",
