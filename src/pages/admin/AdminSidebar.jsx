@@ -41,6 +41,11 @@ const links = [
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
+  {
+    to: "/admin/bank",
+    label: "Bank ",
+    icon: <BiPurchaseTagAlt />,
+  },
   // {
   //   to: "/admin/accounts",
   //   label: "Accounts ",
