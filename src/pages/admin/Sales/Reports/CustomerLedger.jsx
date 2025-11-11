@@ -215,7 +215,6 @@ const CustomerLedger = () => {
                   if (checked) {
                     // Reset fields when "Show All Ledger" is turned on
                     setSelectedCustomer("");
-                    setDateFrom("");
                     setDateTo("");
                     setShowCustomerError(false);
                   }

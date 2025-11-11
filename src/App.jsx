@@ -58,7 +58,7 @@ import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.js
 import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
 import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 
-import DefineBank from "./pages/admin/Accounts/SetUp/DefineBank.jsx";
+import DefineBank from "./pages/admin/Bank/DefineBank.jsx";
 import Sales from "./pages/admin/Sales/Functionalities/SalesProfit.jsx";
 import CreditAgingReport from "./pages/admin/Sales/Reports/CreditAgingReport.jsx";
 import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
@@ -74,6 +74,9 @@ import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
 import ExpenseSheet from "./pages/admin/Sales/Reports/ExpenseSheet.jsx";
 import Expense from "./pages/admin/Sales/Functionalities/Expense.jsx";
 import Security from "./components/Security.jsx";
+import BankSideBar from "./pages/admin/Bank/BankPage.jsx";
+import PaymentVoucher from './pages/admin/Bank/PaymentVoucher.jsx'
+import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
 
 function AppContent() {
   return (
@@ -229,8 +232,14 @@ function AppContent() {
               element={<SalesmanWiseRecovery />}
             />
 
-            {/* Setup */}
-            <Route path="accounts/define-bank" element={<DefineBank />} />
+           
+            {/* Bank */}
+            <Route path="bank" element={<BankSideBar />} />
+            <Route path="bank-payment-voucher" element={<PaymentVoucher />} />
+            <Route path="bank-receipt-voucher" element={<ReceiptVoucher />} />
+
+             {/* Setup */}
+            <Route path="bank/define" element={<DefineBank />} />
           </Route>
         </Routes>
       </main>
