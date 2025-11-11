@@ -19,6 +19,8 @@ import {
   FaShoppingCart,
 } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
+import { BsBank2 } from "react-icons/bs";
+
 import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions, MdOutlineSecurity } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
@@ -41,43 +43,18 @@ const links = [
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
+   {
+    to: "/admin/bank",
+    label: "Bank",
+    icon: <BsBank2 />,
+  },
   {
     to: "/admin/security",
     label: "Security",
     icon: <MdOutlineSecurity />,
   },
-  // {
-  //   to: "/admin/accounts",
-  //   label: "Accounts ",
-  //   icon: <MdOutlineAccountBalanceWallet />,
-  // },
-  
-  // {
-  //   label: "Security",
-  //   key: "isSecurity",
-  //   icon: <FaUserShield />,
-  //   children: [
-  //     {
-  //       to: "/admin/groups",
-  //       label: "Group Management",
-  //       icon: <FaUsersCog />,
-  //       key: "isGroupManagement",
-  //     },
-  //     {
-  //       to: "/admin/users",
-  //       label: "Users",
-  //       icon: <FaUserCog />,
-  //       key: "isUsers",
-  //     },
-  //     {
-  //       to: "/admin/access-rights",
-  //       label: "Access Control",
-  //       icon: <FaUserShield />,
-  //       key: "isAccessControl",
-  //     },
-  //   ],
-  // },
-];
+ 
+ ];
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
