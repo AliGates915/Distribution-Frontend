@@ -57,7 +57,7 @@ const purchaseReports = [
 const purchaseSetup = [
  {
     to: "/admin/bank/define",
-    label: "Bnak Define",
+    label: "Bank Define",
     icon: <AiFillBank strokeWidth={3} size={40} />,
   },
 ];
