@@ -4,7 +4,7 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
 import { handleCreditAgingPrint } from "../../../../helper/SalesPrintView";
-import { Printer } from "lucide-react";
+import { Loader, Printer } from "lucide-react";
 
 const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
@@ -104,211 +104,216 @@ const CreditAgingReport = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-
-      <div className="px-6 mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-newPrimary">
-            Credit Aging Report
-          </h1>
-
-          {apiData.length > 0 && (
-            <button
-              onClick={() => handleCreditAgingPrint(apiData, totals)}
-              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
-            >
-              <Printer size={18} />
-            </button>
-          )}
+      {loading ? (
+        <div className="w-full flex justify-center items-center h-screen">
+          <Loader size={70} color="#1E93AB" className=" animate-spin" />
         </div>
-        <div className="flex items-start gap-6 mb-5">
-          <label className="text-gray-700 font-medium w-24 mt-2">
-            Salesman <span className="text-red-500">*</span>
-          </label>
+      ) : (
+        <div className="px-6 mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-newPrimary">
+              Credit Aging Report
+            </h1>
 
-          <div className="flex flex-col">
-            <select
-              value={selectedSalesman}
-              onChange={(e) => setSelectedSalesman(e.target.value)}
-              className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            >
-              <option value="">Select Salesman</option>
-              {salesmanData.map((cust) => (
-                <option key={cust._id} value={cust._id}>
-                  {cust.employeeName}
-                </option>
-              ))}
-            </select>
-
-            {!selectedSalesman && (
-              <p className="text-red-500 text-sm mt-1">
-                Please select a salesman to load report.
-              </p>
+            {apiData.length > 0 && (
+              <button
+                onClick={() => handleCreditAgingPrint(apiData, totals)}
+                className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+              >
+                <Printer size={18} />
+              </button>
             )}
           </div>
-        </div>
+          <div className="flex items-start gap-6 mb-5">
+            <label className="text-gray-700 font-medium w-24 mt-2">
+              Salesman <span className="text-red-500">*</span>
+            </label>
 
-        <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
-          <div className="overflow-x-auto">
-            <div className="max-h-screen overflow-y-auto custom-scrollbar">
-              <div className="inline-block min-w-[1500px] w-full align-middle">
-                {/* Table Header */}
-                <div className="hidden lg:grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
-                  <div>SR</div>
-                  <div>Customer</div>
-                  <div>Salesman</div>
-                  <div>Invoice No</div>
-                  <div>Invoice Date</div>
-                  <div>Delivery Date</div>
-                  <div>Allow Days</div>
-                  <div>Bill Days</div>
-                  <div>Debit</div>
-                  <div>Credit</div>
-                  <div>Under Credit</div>
-                  <div>Due</div>
-                </div>
+            <div className="flex flex-col">
+              <select
+                value={selectedSalesman}
+                onChange={(e) => setSelectedSalesman(e.target.value)}
+                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              >
+                <option value="">Select Salesman</option>
+                {salesmanData.map((cust) => (
+                  <option key={cust._id} value={cust._id}>
+                    {cust.employeeName}
+                  </option>
+                ))}
+              </select>
 
-                {/* Table Body */}
-                <div className="flex flex-col divide-y divide-gray-100">
-                  {loading ? (
-                    <TableSkeleton
-                      rows={currentRecords.length || 5}
-                      cols={12}
-                    />
-                  ) : apiData.length > 0 ? (
-                    currentRecords.map((customer, cIdx) => (
-                      <div key={cIdx} className="bg-white">
-                        {/* Customer Header */}
-                        <div className="bg-blue-50 px-6 py-2 text-newPrimary font-semibold border-b border-gray-200 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold">
-                              #{indexOfFirstRecord + cIdx + 1}.
-                            </span>
-                            <span className="text-base">
-                              {customer.customerName}
+              {!selectedSalesman && (
+                <p className="text-red-500 text-sm mt-1">
+                  Please select a salesman to load report.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <div className="max-h-screen overflow-y-auto custom-scrollbar">
+                <div className="inline-block min-w-[1500px] w-full align-middle">
+                  {/* Table Header */}
+                  <div className="hidden lg:grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                    <div>SR</div>
+                    <div>Customer</div>
+                    <div>Salesman</div>
+                    <div>Invoice No</div>
+                    <div>Invoice Date</div>
+                    <div>Delivery Date</div>
+                    <div>Allow Days</div>
+                    <div>Bill Days</div>
+                    <div>Debit</div>
+                    <div>Credit</div>
+                    <div>Under Credit</div>
+                    <div>Due</div>
+                  </div>
+
+                  {/* Table Body */}
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {loading ? (
+                      <TableSkeleton
+                        rows={currentRecords.length || 5}
+                        cols={12}
+                      />
+                    ) : apiData.length > 0 ? (
+                      currentRecords.map((customer, cIdx) => (
+                        <div key={cIdx} className="bg-white">
+                          {/* Customer Header */}
+                          <div className="bg-blue-50 px-6 py-2 text-newPrimary font-semibold border-b border-gray-200 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold">
+                                #{indexOfFirstRecord + cIdx + 1}.
+                              </span>
+                              <span className="text-base">
+                                {customer.customerName}
+                              </span>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              Total Invoices: {customer.invoices.length}
                             </span>
                           </div>
-                          <span className="text-sm text-gray-500">
-                            Total Invoices: {customer.invoices.length}
-                          </span>
-                        </div>
 
-                        {/* Customer Invoices */}
-                        {customer.invoices.map((inv, iIdx) => (
-                          <div
-                            key={iIdx}
-                            className="grid grid-cols-12 items-center gap-6 px-6 py-3 text-sm hover:bg-gray-50 transition"
-                          >
-                            <div>{iIdx + 1}</div>
-                            <div>{inv.customerName || "-"}</div>
-                            <div>{inv.salesman || "-"}</div>
-                            <div>{inv.invoiceNo || "-"}</div>
-                            <div>{inv.invoiceDate || "-"}</div>
-                            <div>{inv.deliveryDate || "-"}</div>
-                            <div>{inv.allowDays ?? "-"}</div>
-                            <div>{inv.billDays ?? "-"}</div>
-                            <div>{inv.debit.toLocaleString() || "-"}</div>
-                            <div>{inv.credit.toLocaleString() || "-"}</div>
-                            <div className="text-green-600 font-semibold">
-                              {inv.underCredit.toLocaleString() ?? "-"}
-                            </div>
+                          {/* Customer Invoices */}
+                          {customer.invoices.map((inv, iIdx) => (
                             <div
-                              className={`font-semibold ${
-                                inv.due > 0 ? "text-red-600" : "text-gray-500"
-                              }`}
+                              key={iIdx}
+                              className="grid grid-cols-12 items-center gap-6 px-6 py-3 text-sm hover:bg-gray-50 transition"
                             >
-                              {inv.due.toLocaleString() ?? "-"}
+                              <div>{iIdx + 1}</div>
+                              <div>{inv.customerName || "-"}</div>
+                              <div>{inv.salesman || "-"}</div>
+                              <div>{inv.invoiceNo || "-"}</div>
+                              <div>{inv.invoiceDate || "-"}</div>
+                              <div>{inv.deliveryDate || "-"}</div>
+                              <div>{inv.allowDays ?? "-"}</div>
+                              <div>{inv.billDays ?? "-"}</div>
+                              <div>{inv.debit.toLocaleString() || "-"}</div>
+                              <div>{inv.credit.toLocaleString() || "-"}</div>
+                              <div className="text-green-600 font-semibold">
+                                {inv.underCredit.toLocaleString() ?? "-"}
+                              </div>
+                              <div
+                                className={`font-semibold ${
+                                  inv.due > 0 ? "text-red-600" : "text-gray-500"
+                                }`}
+                              >
+                                {inv.due.toLocaleString() ?? "-"}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-6 py-8 text-center text-gray-500">
+                        No credit aging data available
                       </div>
-                    ))
-                  ) : (
-                    <div className="px-6 py-8 text-center text-gray-500">
-                      No credit aging data available
+                    )}
+                  </div>
+
+                  {/* Totals Footer */}
+                  {apiData.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
+                      <div className="col-span-8 text-right">Totals:</div>
+                      <div className="text-blue-600">
+                        Debit: {totals.totalDebit.toLocaleString()}
+                      </div>
+                      <div className="text-green-600">
+                        Credit: {totals.totalCredit.toLocaleString()}
+                      </div>
+                      <div className="text-orange-600">
+                        Under Credit: {totals.totalUnderCredit.toLocaleString()}
+                      </div>
+                      <div className="text-red-600">
+                        Due: {totals.totalDue.toLocaleString()}
+                      </div>
                     </div>
                   )}
                 </div>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    Showing {indexOfFirstRecord + 1}–
+                    {Math.min(indexOfLastRecord, apiData.length)} of{" "}
+                    {apiData.length} customers
+                  </p>
 
-                {/* Totals Footer */}
-                {apiData.length > 0 && (
-                  <div className="grid grid-cols-12 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700 whitespace-nowrap">
-                    <div className="col-span-8 text-right">Totals:</div>
-                    <div className="text-blue-600">
-                      Debit: {totals.totalDebit.toLocaleString()}
-                    </div>
-                    <div className="text-green-600">
-                      Credit: {totals.totalCredit.toLocaleString()}
-                    </div>
-                    <div className="text-orange-600">
-                      Under Credit: {totals.totalUnderCredit.toLocaleString()}
-                    </div>
-                    <div className="text-red-600">
-                      Due: {totals.totalDue.toLocaleString()}
-                    </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Previous
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
+                    >
+                      Next
+                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-            {totalPages > 1 && (
-              <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
-                <p className="text-sm text-gray-600">
-                  Showing {indexOfFirstRecord + 1}–
-                  {Math.min(indexOfLastRecord, apiData.length)} of{" "}
-                  {apiData.length} customers
-                </p>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
-                  >
-                    Previous
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
-                  >
-                    Next
-                  </button>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Scrollbar styling */}
-        <style jsx>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #edf2f7;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #a0aec0;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-          }
-        `}</style>
-      </div>
+          {/* Scrollbar styling */}
+          <style jsx>{`
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #edf2f7;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #a0aec0;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #718096;
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 };
