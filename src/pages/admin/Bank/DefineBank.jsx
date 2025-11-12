@@ -4,10 +4,8 @@ import gsap from "gsap";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
-// import CommanHeader from "../../../components/CommanHeader";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../Components/Skeleton";
-
 
 const staticBanks = [
   { bankName: "National Bank of Pakistan" },
@@ -32,27 +30,24 @@ const staticBanks = [
   { bankName: "Al Baraka Bank Pakistan Limited" },
 ];
 
-
 const Bank = () => {
   const [bankList, setBankList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [customer, setCustomer] = useState("");
-  const [customerList, setCustomerList] = useState([]);
   const [bankName, setBankName] = useState("");
   const [accountName, setAccountName] = useState("");
   const [accountNo, setAccountNo] = useState("");
+  const [balance, setBalance] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/banks`;
 
-  // GSAP Animation for Modal
+  // Animation for modal
   useEffect(() => {
     if (isSliderOpen) {
-      if (sliderRef.current) {
-        sliderRef.current.style.display = "block";
-      }
+      sliderRef.current.style.display = "block";
       gsap.fromTo(
         sliderRef.current,
         { scale: 0.7, opacity: 0, y: -50 },
@@ -65,46 +60,21 @@ const Bank = () => {
         y: -50,
         duration: 0.4,
         ease: "power3.in",
-        onComplete: () => {
-          if (sliderRef.current) {
-            sliderRef.current.style.display = "none";
-          }
-        },
+        onComplete: () => (sliderRef.current.style.display = "none"),
       });
     }
   }, [isSliderOpen]);
 
-//fetch customer
-  const fetchCustomersList = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/customers`);
-      setCustomerList(res.data);
-    } catch (error) {
-      console.error("Failed to fetch Customers", error);
-    } finally {
-      setTimeout(() => setLoading(false), 1000);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCustomersList();
-  }, [fetchCustomersList]);
-
-  // Fetch Banks
-
-  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/banks`;
-
+  /** ======================= FETCH ALL BANKS ======================= */
   const fetchBankList = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}`);
-      setBankList(res.data.data);
+      const res = await axios.get(API_URL);
+      setBankList(res.data.data || []);
     } catch (error) {
       console.error("Failed to fetch Banks", error);
-      
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setTimeout(() => setLoading(false), 800);
     }
   }, []);
 
@@ -112,48 +82,28 @@ const Bank = () => {
     fetchBankList();
   }, [fetchBankList]);
 
-  // Handlers
-  const handleAddBank = () => {
-    setIsSliderOpen(true);
-    setIsEdit(false);
-    setEditId(null);
-    setCustomer("");
-    setBankName("");
-    setAccountName("");
-    setAccountNo("");
-  };
-
+  /** ======================= VALIDATION ======================= */
   const validateForm = () => {
-   
-    if (!bankName) {
-      toast.error("Please select a bank name");
-      return false;
-    }
-    if (!accountName.trim()) {
-      toast.error("Please enter an account name");
-      return false;
-    }
-    if (!accountNo.trim()) {
-      toast.error("Please enter an account number");
-      return false;
-    }
+    if (!bankName) return toast.error("Please select a bank name");
+    if (!accountName.trim()) return toast.error("Please enter an account name");
+    if (!accountNo.trim()) return toast.error("Please enter an account number");
+    if (!balance || isNaN(balance)) return toast.error("Please enter a valid balance");
     return true;
   };
 
-  // Save or Update Bank
+  /** ======================= SAVE OR UPDATE ======================= */
   const handleSave = async () => {
     if (!validateForm()) return;
-
     const formData = {
       bankName,
-      accountName,
-      accountNumber:accountNo,
+      accountHolderName: accountName,
+      accountNumber: accountNo,
+      balance: parseFloat(balance),
     };
 
     try {
-      const { token } = userInfo || {};
       const headers = {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${userInfo?.token}`,
         "Content-Type": "application/json",
       };
       let res;
@@ -161,15 +111,14 @@ const Bank = () => {
         res = await axios.put(`${API_URL}/${editId}`, formData, { headers });
         toast.success("Bank updated successfully");
       } else {
-        res = await axios.post(`${API_URL}`, formData, { headers });
-        setBankList([...bankList, res.data]);
+        res = await axios.post(API_URL, formData, { headers });
         toast.success("Bank added successfully");
       }
       fetchBankList();
-      
       setBankName("");
       setAccountName("");
       setAccountNo("");
+      setBalance("");
       setIsSliderOpen(false);
       setIsEdit(false);
       setEditId(null);
@@ -179,85 +128,60 @@ const Bank = () => {
     }
   };
 
-  // Edit Bank
+  /** ======================= EDIT ======================= */
   const handleEdit = (bank) => {
-    console.log({bank});
-    
     setIsEdit(true);
     setEditId(bank._id);
     setBankName(bank.bankName || "");
-    setAccountName(bank.accountName || "");
+    setAccountName(bank.accountHolderName || bank.accountName || "");
     setAccountNo(bank.accountNumber || "");
+    setBalance(bank.balance || "");
     setIsSliderOpen(true);
   };
 
-  // Delete Bank
+  /** ======================= DELETE ======================= */
   const handleDelete = async (id) => {
-    const swalWithTailwindButtons = Swal.mixin({
-      customClass: {
-        actions: "space-x-2",
-        confirmButton:
-          "bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300",
-        cancelButton:
-          "bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300",
-      },
-      buttonsStyling: false,
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This will permanently delete the bank.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#2563EB",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     });
 
-    swalWithTailwindButtons
-      .fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, delete it!",
-        cancelButtonText: "No, cancel!",
-        reverseButtons: true,
-      })
-      .then(async (result) => {
-        if (result.isConfirmed) {
-          try {
-            await axios.delete(`${API_URL}/${id}`, {
-              headers: {
-                Authorization: `Bearer ${userInfo?.token}`,
-              },
-            });
-            setBankList(bankList.filter((b) => b._id !== id));
-            swalWithTailwindButtons.fire(
-              "Deleted!",
-              "Bank deleted successfully.",
-              "success"
-            );
-          } catch (error) {
-            console.error("Delete error:", error);
-            swalWithTailwindButtons.fire(
-              "Error!",
-              "Failed to delete bank.",
-              "error"
-            );
-          }
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          swalWithTailwindButtons.fire(
-            "Cancelled",
-            "Bank is safe 🙂",
-            "error"
-          );
-        }
-      });
+    if (confirm.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/${id}`, {
+          headers: { Authorization: `Bearer ${userInfo?.token}` },
+        });
+        setBankList(bankList.filter((b) => b._id !== id));
+        Swal.fire("Deleted!", "Bank deleted successfully.", "success");
+      } catch (error) {
+        Swal.fire("Error!", "Failed to delete bank.", "error");
+      }
+    }
   };
 
+  /** ======================= ADD NEW ======================= */
+  const handleAddBank = () => {
+    setIsSliderOpen(true);
+    setIsEdit(false);
+    setEditId(null);
+    setBankName("");
+    setAccountName("");
+    setAccountNo("");
+    setBalance("");
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* <CommanHeader /> */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">
-            Bank List
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage your bank details
-          </p>
+          <h1 className="text-2xl font-bold text-newPrimary">Bank List</h1>
+          <p className="text-gray-500 text-sm">Manage your bank details</p>
         </div>
         <button
           className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
@@ -267,83 +191,46 @@ const Bank = () => {
         </button>
       </div>
 
+      {/* Table */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
-            <div className="hidden lg:grid grid-cols-[80px_1.5fr_1.5fr_1.5fr_1.5fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+          <div className="min-w-[900px]">
+            <div className="hidden lg:grid grid-cols-[80px_1.5fr_1.5fr_1.5fr_1fr_1fr] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>SR#</div>
               <div>Bank Name</div>
-              <div>Account Holder Name</div>
-                 <div>Account No.</div>
-              {userInfo?.isAdmin && <div className={`${loading ? "":"text-right"}`}>Actions</div>}
+              <div>Account Holder</div>
+              <div>Account No.</div>
+              <div>Balance</div>
+              {userInfo?.isAdmin && <div className="text-right">Actions</div>}
             </div>
 
             <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
               {loading ? (
-                <TableSkeleton
-                  rows={bankList.length > 0 ? bankList.length : 5}
-                  cols={userInfo?.isAdmin ? 5 : 4}
-                  className="lg:grid-cols-[80px_1.5fr_1.5fr_1.5fr_1.5fr]"
-                />
+                <TableSkeleton rows={5} cols={6} />
               ) : bankList.length === 0 ? (
-                <div className="text-center py-4 text-gray-500 bg-white">
-                  No banks found.
-                </div>
+                <div className="text-center py-4 text-gray-500 bg-white">No banks found.</div>
               ) : (
-                bankList?.map((b, index) => (
-                  <>
-                    <div
-                      key={b._id}
-                      className="hidden lg:grid grid-cols-[80px_1.5fr_1.5fr_1.5fr_1.5fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-                    >
-                      <div className=" text-gray-900">{index + 1}</div>
-                      <div className="text-gray-600">{b.bankName}</div>
-                      <div className="text-gray-600">{b.accountName}</div>
-                      <div className="text-gray-600">{b.accountNumber}</div>
-                      {userInfo?.isAdmin && (
-                        <div className="flex justify-end gap-3">
-                          <button
-                            onClick={() => handleEdit(b)}
-                            className="text-blue-600 hover:underline"
-                          >
-                            <SquarePen size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(b._id)}
-                            className="text-red-600 hover:underline"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div
-                      key={`mobile-${b._id}`}
-                      className="lg:hidden bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
-                    >
-                    
-                      <p className="text-sm text-gray-600">SR#: {index + 1}</p>
-                      <p className="text-sm text-gray-600">Bank Name: {b.bankName}</p>
-                      <p className="text-sm text-gray-600">Account No.: {b.accountNo}</p>
-                      {userInfo?.isAdmin && (
-                        <div className="mt-3 flex justify-end gap-3">
-                          <button
-                            className="text-blue-500"
-                            onClick={() => handleEdit(b)}
-                          >
-                            <SquarePen size={18} />
-                          </button>
-                          <button
-                            className="text-red-500"
-                            onClick={() => handleDelete(b._id)}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
+                bankList.map((b, index) => (
+                  <div
+                    key={b._id}
+                    className="hidden lg:grid grid-cols-[80px_1.5fr_1.5fr_1.5fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                  >
+                    <div>{index + 1}</div>
+                    <div>{b.bankName}</div>
+                    <div>{b.accountHolderName || b.accountName}</div>
+                    <div>{b.accountNumber}</div>
+                    <div>{b.balance?.toLocaleString()}</div>
+                    {userInfo?.isAdmin && (
+                      <div className="flex justify-end gap-3">
+                        <button onClick={() => handleEdit(b)} className="text-blue-600">
+                          <SquarePen size={18} />
+                        </button>
+                        <button onClick={() => handleDelete(b._id)} className="text-red-600">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))
               )}
             </div>
@@ -351,82 +238,87 @@ const Bank = () => {
         </div>
       </div>
 
+      {/* Form Modal */}
       {isSliderOpen && (
         <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
           <div
             ref={sliderRef}
             className="w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-            <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
+            <div className="flex justify-between items-center p-4 border-b bg-white">
               <h2 className="text-xl font-bold text-newPrimary">
-                {isEdit ? "Update a Bank" : "Add a New Bank"}
+                {isEdit ? "Update Bank" : "Add New Bank"}
               </h2>
               <button
-                className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center hover:bg-newPrimary/70"
-                onClick={() => {
-                  setIsSliderOpen(false);
-                  setIsEdit(false);
-                  setEditId(null);
-                  setCustomer("");
-                  setBankName("");
-                  setAccountName("");
-                  setAccountNo("");
-                }}
+                className="w-8 h-8 bg-newPrimary text-white rounded-full flex items-center justify-center"
+                onClick={() => setIsSliderOpen(false)}
               >
                 ×
               </button>
             </div>
 
-            <div className="space-y-4 p-4 md:p-6">
-              <div className="flex gap-4">
-          
-                <div className="flex-1 min-w-0">
-                  <label className="block text-gray-700 font-medium">
-                    Bank Name <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className="w-full p-2 border rounded"
-                    required
-                  >
-                    <option value="">Select Bank</option>
-                    {staticBanks.map((b, index) => (
-                      <option key={index} value={b.bankName}>
-                        {b.bankName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="space-y-4 p-6">
+              {/* Bank Name */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Bank Name <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Bank</option>
+                  {staticBanks.map((b, i) => (
+                    <option key={i} value={b.bankName}>
+                      {b.bankName}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              {/* Account Info */}
               <div className="flex gap-4">
-                <div className="flex-1 min-w-0">
+                <div className="flex-1">
                   <label className="block text-gray-700 font-medium">
                     Account Holder Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={accountName}
-                    required
                     onChange={(e) => setAccountName(e.target.value)}
                     className="w-full p-2 border rounded"
-                    placeholder="e.g. Corporate Account"
+                    placeholder="e.g. Eman Ali"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1">
                   <label className="block text-gray-700 font-medium">
                     Account No. <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={accountNo}
-                    required
                     onChange={(e) => setAccountNo(e.target.value)}
                     className="w-full p-2 border rounded"
-                    placeholder="e.g. ACC123456789"
+                    placeholder="123456789"
                   />
                 </div>
               </div>
+
+              {/* Balance */}
+              <div>
+                <label className="block text-gray-700 font-medium">
+                  Balance <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={balance}
+                  onChange={(e) => setBalance(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="e.g. 50000"
+                />
+              </div>
+
               <button
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
@@ -437,36 +329,6 @@ const Bank = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .table-container {
-          max-width: 100%;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #edf2f7;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #a0aec0;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #718096;
-        }
-        @media (max-width: 1024px) {
-          .grid-cols-[80px_1.5fr_1.5fr_1.5fr_auto] {
-            grid-template-columns: 80px 1.5fr 1.5fr 1.5fr auto;
-          }
-        }
-        @media (max-width: 640px) {
-          .grid-cols-[80px_1.5fr_1.5fr_1.5fr_auto] {
-            grid-template-columns: 80px 1.5fr 1.5fr 1.5fr auto;
-          }
-        }
-      `}</style>
     </div>
   );
 };
