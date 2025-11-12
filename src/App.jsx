@@ -51,7 +51,6 @@ import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBa
 import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
 
 
-import BankLedger from "./pages/admin/Accounts/Reports/BankLedger.jsx";
 import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
 import DateWiseRecovery from "./pages/admin/Accounts/Reports/DateWiseRecovery.jsx";
 import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.jsx";
@@ -77,6 +76,8 @@ import Security from "./components/Security.jsx";
 import BankSideBar from "./pages/admin/Bank/BankPage.jsx";
 import PaymentVoucher from './pages/admin/Bank/PaymentVoucher.jsx'
 import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
+import BankLedger from './pages/admin/Bank/BankLedger.jsx'
+import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
 
 function AppContent() {
   return (
@@ -214,7 +215,6 @@ function AppContent() {
 
 
             {/* Reports */}
-            <Route path="accounts/bank-ledger" element={<BankLedger />} />
             <Route
               path="accounts/datewise-cashrecived"
               element={<DateWiseCashRecived />}
@@ -238,6 +238,8 @@ function AppContent() {
             <Route path="bank-payment-voucher" element={<PaymentVoucher />} />
             <Route path="bank-receipt-voucher" element={<ReceiptVoucher />} />
 
+              <Route path="bank-ledger" element={<BankLedger />} />
+              <Route path="opening-bank-position" element={<BankPosition />} />
              {/* Setup */}
             <Route path="bank/define" element={<DefineBank />} />
           </Route>

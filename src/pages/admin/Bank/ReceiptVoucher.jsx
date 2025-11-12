@@ -8,78 +8,47 @@ import CommanHeader from "../Components/CommanHeader";
 
 const ReceiptVoucher = () => {
   const [vouchers, setVouchers] = useState([]);
-  const [filteredVouchers, setFilteredVouchers] = useState([]);
-  const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [salesmen, setSalesmen] = useState([]);
   const [banks, setBanks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingVoucher, setEditingVoucher] = useState(null);
+  const [salesmen, setSalesmen] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [nextReceiptId, setNextReceiptId] = useState("BR-001");
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 10;
-
-  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
   const sliderRef = useRef(null);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
 
-  // ✅ updated API for receipt voucher
-  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/bank-receipt-voucher`;
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/receipt-vouchers`;
 
-  const [bankData, setBankData] = useState({
-    receiptId: "",
+  const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
+    receiptId: "",
+    bank: "",
     salesman: "",
-    bankName: "",
-    accountName: "",
-    accountNumber: "",
-    bankBalance: 0,
-    salesmanReceivable: 0,
-    amountReceived: 0,
+    amountReceived: "",
     remarks: "",
+    bankBalance: 0,
+    salesmanBalance: 0,
   });
 
-  /** ==================== FETCH BANKS ==================== **/
-  const fetchBanks = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/banks`);
-      setBanks(res.data?.data || []);
-    } catch {
-      setBanks([]);
-    }
-  };
-
-  /** ==================== FETCH SALESMEN ==================== **/
-  const fetchSalesmen = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employees?salesman=true`);
-      setSalesmen(res.data || []);
-    } catch {
-      setSalesmen([]);
-    }
-  };
-
-  /** ==================== FETCH VOUCHERS ==================== **/
+  /** ================== Fetch All Vouchers ================== **/
   const fetchVouchers = async () => {
     try {
       setLoading(true);
       const res = await axios.get(API_URL);
-      const data = res.data?.data || res.data || [];
-      setVouchers(data);
-      setFilteredVouchers(data);
+      setVouchers(res.data?.data || []);
     } catch {
       toast.error("Failed to fetch vouchers");
     } finally {
-      setTimeout(() => setLoading(false), 1000);
+      setTimeout(() => setLoading(false), 800);
     }
   };
 
   useEffect(() => {
-    fetchBanks();
-    fetchSalesmen();
     fetchVouchers();
   }, []);
 
-  /** ==================== AUTO RECEIPT ID ==================== **/
+  /** ================== Generate Next ID ================== **/
   useEffect(() => {
     if (vouchers.length > 0) {
       const maxNo = Math.max(
@@ -89,374 +58,346 @@ const ReceiptVoucher = () => {
         })
       );
       setNextReceiptId("BR-" + (maxNo + 1).toString().padStart(3, "0"));
-    } else setNextReceiptId("BR-001");
+    } else {
+      setNextReceiptId("BR-001");
+    }
   }, [vouchers]);
 
-  /** ==================== RESET FORM ==================== **/
-  const resetForm = () => {
-    setBankData({
-      receiptId: "",
+  /** ================== Open Add Form ================== **/
+  const handleAdd = async () => {
+    setIsEditing(false);
+    setEditId(null);
+    setFormData({
       date: new Date().toISOString().split("T")[0],
+      receiptId: nextReceiptId,
+      bank: "",
       salesman: "",
-      bankName: "",
-      accountName: "",
-      accountNumber: "",
-      bankBalance: 0,
-      salesmanReceivable: 0,
-      amountReceived: 0,
+      amountReceived: "",
       remarks: "",
+      bankBalance: 0,
+      salesmanBalance: 0,
     });
-    setEditingVoucher(null);
-    setIsSliderOpen(false);
+
+    setIsFormOpen(true);
+
+    // Fetch banks & salesmen with delay (smooth UX)
+    setTimeout(async () => {
+      await Promise.all([fetchBanks(), fetchSalesmen()]);
+    }, 400);
   };
 
-  /** ==================== ADD ==================== **/
-  const handleAdd = () => {
-    resetForm();
-    setIsSliderOpen(true);
-  };
-
-  /** ==================== EDIT ==================== **/
-  const handleEdit = (voucher) => {
-    setEditingVoucher(voucher);
-    const bank = voucher.bankSection || {};
-    setBankData({
-      receiptId: voucher.receiptId || "",
-      date: voucher.date?.split("T")[0] || new Date().toISOString().split("T")[0],
-      salesman: bank.salesman || "",
-      bankName: bank.bankName || "",
-      accountName: bank.accountHolderName || "",
-      accountNumber: bank.accountNumber || "",
-      bankBalance: bank.bankBalance || 0,
-      salesmanReceivable: bank.salesmanReceivable || 0,
-      amountReceived: voucher.amountReceived || 0,
-      remarks: voucher.remarks || "",
-    });
-    setIsSliderOpen(true);
-  };
-
-  /** ==================== SUBMIT ==================== **/
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /** ================== Fetch Banks & Salesmen ================== **/
+  const fetchBanks = async () => {
     try {
-      const voucherData = {
-        receiptId: editingVoucher ? bankData.receiptId : nextReceiptId,
-        date: bankData.date,
-        mode: "Bank",
-        amountReceived: bankData.amountReceived,
-        bankSection: {
-          salesman: bankData.salesman,
-          bankName: bankData.bankName,
-          accountNumber: bankData.accountNumber,
-          accountHolderName: bankData.accountName,
-          bankBalance: bankData.bankBalance,
-          salesmanReceivable: bankData.salesmanReceivable,
-        },
-        remarks: bankData.remarks,
-      };
-
-      if (editingVoucher?._id) {
-        await axios.put(`${API_URL}/${editingVoucher._id}`, voucherData);
-        toast.success("Bank receipt updated");
-      } else {
-        await axios.post(API_URL, voucherData);
-        toast.success("Bank receipt created");
-      }
-
-      await fetchVouchers();
-      resetForm();
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/banks`);
+      setBanks(res.data?.data || []);
     } catch {
-      toast.error("Failed to save receipt");
+      setBanks([]);
     }
   };
 
-  /** ==================== DELETE ==================== **/
+  const fetchSalesmen = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/employees`);
+      setSalesmen(res.data || []);
+    } catch {
+      setSalesmen([]);
+    }
+  };
+
+  /** ================== Edit Voucher ================== **/
+  const handleEdit = (v) => {
+    setIsEditing(true);
+    setEditId(v._id);
+    setFormData({
+      date: v.date?.split("T")[0],
+      receiptId: v.receiptId,
+      bank: v.bank?._id || "",
+      salesman: v.salesman?._id || "",
+      amountReceived: v.amountReceived || "",
+      remarks: v.remarks || "",
+      bankBalance: v.bank?.balance || 0,
+      salesmanBalance: v.salesman?.recoveryBalance || 0,
+    });
+    setIsFormOpen(true);
+
+    // fetch banks and salesman when open edit
+    setTimeout(async () => {
+      await Promise.all([fetchBanks(), fetchSalesmen()]);
+    }, 400);
+  };
+
+  /** ================== Delete Voucher ================== **/
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
+    const confirm = await Swal.fire({
       title: "Are you sure?",
-      text: "This action cannot be undone!",
+      text: "This will permanently delete the receipt voucher.",
       icon: "warning",
       showCancelButton: true,
+      confirmButtonColor: "#2563EB",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     });
-    if (result.isConfirmed) {
-      await axios.delete(`${API_URL}/${id}`);
-      fetchVouchers();
-      toast.success("Deleted successfully");
+
+    if (confirm.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/${id}`, {
+          headers: { Authorization: `Bearer ${userInfo?.token}` },
+        });
+        toast.success("Voucher deleted");
+        fetchVouchers();
+      } catch {
+        toast.error("Failed to delete voucher");
+      }
     }
   };
 
-  /** ==================== PAGINATION ==================== **/
-  const indexOfLast = currentPage * recordsPerPage;
-  const indexOfFirst = indexOfLast - recordsPerPage;
-  const currentRecords = filteredVouchers.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredVouchers.length / recordsPerPage);
+  /** ================== Submit Form ================== **/
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const payload = {
+      date: formData.date,
+      receiptId: formData.receiptId || nextReceiptId,
+      bank: formData.bank,
+      salesman: formData.salesman,
+      amountReceived: Number(formData.amountReceived),
+      remarks: formData.remarks,
+    };
 
+    try {
+      const headers = {
+        Authorization: `Bearer ${userInfo?.token}`,
+        "Content-Type": "application/json",
+      };
+
+      if (isEditing && editId) {
+        await axios.put(`${API_URL}/${editId}`, payload, { headers });
+        toast.success("Receipt updated successfully");
+      } else {
+        await axios.post(API_URL, payload, { headers });
+        toast.success("Receipt created successfully");
+      }
+
+      fetchVouchers();
+      setIsFormOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to save voucher");
+    }
+  };
+
+  /** ================== UI ================== **/
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      <div className="px-6 mx-auto">
-        <div className="flex justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-newPrimary">Bank Receipt Vouchers</h1>
-            <p className="text-sm text-gray-500">
-              Showing {filteredVouchers.length} of {vouchers.length}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search by Voucher ID"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg"
-            />
-            <button
-              onClick={handleAdd}
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-            >
-              + Add Receipt Voucher
-            </button>
-          </div>
-        </div>
+      <div className="flex justify-between mb-6 px-6">
+        <h1 className="text-2xl font-bold text-newPrimary">Receipt Vouchers</h1>
+        <button
+          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
+          onClick={handleAdd}
+        >
+          + Add Voucher
+        </button>
+      </div>
 
-        {/* Table */}
-        <div className="border rounded-xl shadow overflow-hidden">
-          {loading ? (
-            <TableSkeleton rows={6} cols={7} />
-          ) : currentRecords.length === 0 ? (
-            <div className="text-center py-4 text-gray-500 bg-white">No vouchers found</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse">
-                <thead className="bg-gray-100 text-xs text-gray-600 uppercase">
-                  <tr>
-                    <th className="py-3 px-4 text-left">#</th>
-                    <th className="py-3 px-4 text-left">Receipt ID</th>
-                    <th className="py-3 px-4 text-left">Salesman</th>
-                    <th className="py-3 px-4 text-left">Bank</th>
-                    <th className="py-3 px-4 text-left">Amount</th>
-                    <th className="py-3 px-4 text-left">Date</th>
-                    <th className="py-3 px-4 text-left">Actions</th>
+      {/* Table Section */}
+      <div className="border rounded-xl shadow bg-white mx-6 overflow-hidden">
+        {loading ? (
+          <TableSkeleton rows={6} cols={7} />
+        ) : vouchers.length === 0 ? (
+          <div className="text-center py-6 text-gray-500">No vouchers found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                <tr>
+                  <th className="px-4 py-3 text-left">#</th>
+                  <th className="px-4 py-3 text-left">Receipt ID</th>
+                  <th className="px-4 py-3 text-left">Salesman</th>
+                  <th className="px-4 py-3 text-left">Bank</th>
+                  <th className="px-4 py-3 text-left">Amount</th>
+                  <th className="px-4 py-3 text-left">Date</th>
+                  <th className="px-4 py-3 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vouchers.map((v, i) => (
+                  <tr key={v._id} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-3">{i + 1}</td>
+                    <td className="px-4 py-3">{v.receiptId}</td>
+                    <td className="px-4 py-3">{v.salesman?.employeeName || "-"}</td>
+                    <td className="px-4 py-3">{v.bank?.bankName || "-"}</td>
+                    <td className="px-4 py-3">Rs. {v.amountReceived}</td>
+                    <td className="px-4 py-3">
+                      {new Date(v.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <button onClick={() => handleEdit(v)} className="text-blue-600">
+                        <SquarePen size={18} />
+                      </button>
+                      <button onClick={() => handleDelete(v._id)} className="text-red-600">
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {currentRecords.map((v, i) => (
-                    <tr key={v._id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">{indexOfFirst + i + 1}</td>
-                      <td className="py-3 px-4">{v.receiptId}</td>
-                      <td className="py-3 px-4">{v.bankSection?.salesmanName || "-"}</td>
-                      <td className="py-3 px-4">{v.bankSection?.bankName || "-"}</td>
-                      <td className="py-3 px-4">Rs.{v.amountReceived}</td>
-                      <td className="py-3 px-4">
-                        {new Date(v.date).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-4 flex gap-2">
-                        <button
-                          onClick={() => handleEdit(v)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <SquarePen size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(v._id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Form Modal */}
-        {isSliderOpen && (
-          <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
-            <div
-              ref={sliderRef}
-              className="bg-white rounded-2xl w-full md:w-[800px] shadow-2xl max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex justify-between items-center p-4 border-b">
-                <h2 className="text-lg font-bold text-newPrimary">
-                  {editingVoucher ? "Update Receipt Voucher" : "Add Receipt Voucher"}
-                </h2>
-                <button onClick={resetForm} className="text-2xl text-gray-500">
-                  ×
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                {/* Bank Details */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">Date</label>
-                    <input
-                      type="date"
-                      value={bankData.date}
-                      onChange={(e) =>
-                        setBankData({ ...bankData, date: e.target.value })
-                      }
-                      className="w-full p-3 border rounded-md"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Receipt ID</label>
-                    <input
-                      type="text"
-                      value={editingVoucher ? bankData.receiptId : nextReceiptId}
-                      readOnly
-                      className="w-full p-3 border rounded-md bg-gray-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">Bank Name</label>
-                    <select
-                      value={bankData.bankName}
-                      onChange={(e) => {
-                        const selected = banks.find(
-                          (b) => b.bankName === e.target.value
-                        );
-                        setBankData({
-                          ...bankData,
-                          bankName: selected?.bankName || "",
-                          accountName: selected?.accountName || "",
-                          accountNumber: selected?.accountNumber || "",
-                          bankBalance: selected?.balance || 0,
-                        });
-                      }}
-                      className="w-full p-3 border rounded-md"
-                      required
-                    >
-                      <option value="">Select Bank</option>
-                      {banks.map((b, i) => (
-                        <option key={i} value={b.bankName}>
-                          {b.bankName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Account Holder</label>
-                    <input
-                      type="text"
-                      value={bankData.accountName}
-                      onChange={(e) =>
-                        setBankData({ ...bankData, accountName: e.target.value })
-                      }
-                      className="w-full p-3 border rounded-md bg-gray-50"
-                      placeholder="Account Holder Name"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">Account Number</label>
-                    <input
-                      disabled
-                      value={bankData.accountNumber}
-                      className="w-full p-3 border rounded-md"
-                      placeholder="Auto Account Number"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Bank Balance</label>
-                    <input
-                      disabled
-                      value={bankData.bankBalance}
-                      className="w-full p-3 border rounded-md"
-                      placeholder="Auto Bank Balance"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">Salesman</label>
-                    <select
-                      value={bankData.salesman}
-                      onChange={(e) => {
-                        const salesmanId = e.target.value;
-                        const selected = salesmen.find((s) => s._id === salesmanId);
-                        setBankData({
-                          ...bankData,
-                          salesman: salesmanId,
-                          salesmanReceivable: selected?.receivableBalance || 0,
-                        });
-                      }}
-                      className="w-full p-3 border rounded-md"
-                      required
-                    >
-                      <option value="">Select Salesman</option>
-                      {salesmen.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.employeeName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Receivable Balance</label>
-                    <input
-                      type="number"
-                      value={bankData.salesmanReceivable}
-                      readOnly
-                      className="w-full p-3 border rounded-md bg-gray-100"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Amount Received <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={bankData.amountReceived}
-                      onChange={(e) =>
-                        setBankData({
-                          ...bankData,
-                          amountReceived: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full p-3 border rounded-md"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Remarks</label>
-                  <textarea
-                    value={bankData.remarks}
-                    onChange={(e) =>
-                      setBankData({ ...bankData, remarks: e.target.value })
-                    }
-                    rows="3"
-                    className="w-full p-3 border rounded-md"
-                    placeholder="Enter remarks"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 transition"
-                >
-                  Save Receipt Voucher
-                </button>
-              </form>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+
+      {/* Form Modal */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-gray-700/40 flex items-center justify-center z-50">
+          <div
+            ref={sliderRef}
+            className="bg-white rounded-2xl shadow-2xl w-full md:w-[700px] max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center border-b p-4">
+              <h2 className="text-lg font-bold text-newPrimary">
+                {isEditing ? "Update Receipt Voucher" : "Add Receipt Voucher"}
+              </h2>
+              <button
+                className="text-2xl text-gray-500"
+                onClick={() => setIsFormOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">Date</label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                    className="w-full border rounded-md p-3"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">Receipt ID</label>
+                  <input
+                    type="text"
+                    value={formData.receiptId || nextReceiptId}
+                    readOnly
+                    className="w-full border rounded-md p-3 bg-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">Bank</label>
+                  <select
+                    value={formData.bank}
+                    onChange={(e) => {
+                      const selected = banks.find((b) => b._id === e.target.value);
+                      setFormData({
+                        ...formData,
+                        bank: selected?._id,
+                        bankBalance: selected?.balance || 0,
+                      });
+                    }}
+                    className="w-full border rounded-md p-3"
+                    required
+                  >
+                    <option value="">Select Bank</option>
+                    {banks.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.bankName} — {b.accountHolderName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">Bank Balance</label>
+                  <input
+                    type="text"
+                    value={formData.bankBalance}
+                    readOnly
+                    className="w-full border rounded-md p-3 bg-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-medium">Salesman</label>
+                  <select
+                    value={formData.salesman}
+                    onChange={(e) => {
+                      const selected = salesmen.find((s) => s._id === e.target.value);
+                      setFormData({
+                        ...formData,
+                        salesman: selected?._id,
+                        salesmanBalance: selected?.recoveryBalance || 0,
+                      });
+                    }}
+                    className="w-full border rounded-md p-3"
+                    required
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesmen.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        {s.employeeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">Receivable Balance</label>
+                  <input
+                    type="text"
+                    value={formData.salesmanBalance}
+                    readOnly
+                    className="w-full border rounded-md p-3 bg-gray-100"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">
+                  Amount Received <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.amountReceived}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amountReceived: e.target.value })
+                  }
+                  required
+                  className="w-full border rounded-md p-3"
+                  placeholder="Enter amount"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">Remarks</label>
+                <textarea
+                  value={formData.remarks}
+                  onChange={(e) =>
+                    setFormData({ ...formData, remarks: e.target.value })
+                  }
+                  rows="3"
+                  className="w-full border rounded-md p-3"
+                  placeholder="Enter remarks"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80"
+              >
+                Save Voucher
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

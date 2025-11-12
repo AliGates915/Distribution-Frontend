@@ -42,12 +42,12 @@ const purchaseFunctionalities = [
 const purchaseReports = [
 
   {
-    to: "/admin/purchase/supplier-ledger",
+    to: "/admin/bank-ledger",
     label: "Bank Ledger",
     icon: <FaBook className="text-4xl" />,
   },
     {
-    to: "/admin/report/opening-stock-supplierwise",
+    to: "/admin/opening-bank-position",
     label: "Bank Position",
     icon: <Scale strokeWidth={3} size={40} />,
   }
