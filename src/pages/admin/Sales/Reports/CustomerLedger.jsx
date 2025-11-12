@@ -8,7 +8,8 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import TableSkeleton from "../../Components/Skeleton";
 import { handleCustomerLedgerPrint } from "../../../../helper/SalesPrintView";
-import { Loader, Printer } from "lucide-react";
+import { Printer, Loader } from "lucide-react";
+import { ScaleLoader } from "react-spinners";
 import toast from "react-hot-toast";
 
 const CustomerLedger = () => {
@@ -128,9 +129,25 @@ const CustomerLedger = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      {loading ? (
+{loading ? (
         <div className="w-full flex justify-center items-center h-screen">
           <Loader size={70} color="#1E93AB" className=" animate-spin" />
+        </div>
+      ) : (
+      <div className="px-6 mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Customer Ledger Details
+          </h1>
+
+          {ledgerEntries.length > 0 && (
+            <button
+              onClick={() => handleCustomerLedgerPrint(ledgerEntries)}
+              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+            >
+              <Printer size={18} />
+            </button>
+          )}
         </div>
       ) : (
         <div className="px-6 mx-auto">
@@ -331,8 +348,8 @@ const CustomerLedger = () => {
             )}
           </div>
         </div>
+      </div>
       )}
-
       {/* Hidden Template for PDF
       <div style={{ position: "absolute", left: "-9999px" }}>
         <LedgerTemplate ref={ledgerRef} ledgerEntries={ledgerEntries} />

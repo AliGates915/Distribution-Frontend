@@ -392,13 +392,12 @@ const GRN = () => {
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
-      {
-        loading?(
-          <div className="w-full flex justify-center items-center h-screen">
+      {loading ? (
+        <div className="w-full flex justify-center items-center h-screen">
           <Loader size={70} color="#1E93AB" className=" animate-spin" />
         </div>
-        ):(
-           <div className="px-6 mx-auto">
+      ) : (
+      <div className="px-6 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <div>
             <h1 className="text-2xl font-bold text-newPrimary">
@@ -923,10 +922,7 @@ const GRN = () => {
           }
         `}</style>
       </div>
-        )
-          
-      }
-     
+      )}
     </div>
   );
 };
