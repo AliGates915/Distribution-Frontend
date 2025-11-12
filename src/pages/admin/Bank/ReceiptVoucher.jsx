@@ -341,12 +341,17 @@ const ReceiptVoucher = () => {
                     required
                   >
                     <option value="">Select Salesman</option>
-                    {salesmen.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.employeeName}
-                      </option>
-                    ))}
+
+                    {/* ✅ Show only salesmen with recoveryBalance > 0 */}
+                    {salesmen
+                      .filter((s) => (s.recoveryBalance || 0) > 0)
+                      .map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.employeeName} 
+                        </option>
+                      ))}
                   </select>
+
                 </div>
                 <div>
                   <label className="block mb-1 font-medium">Receivable Balance</label>
