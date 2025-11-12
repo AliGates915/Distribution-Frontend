@@ -15,6 +15,8 @@ const ReceiptVoucher = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [nextReceiptId, setNextReceiptId] = useState("BR-001");
+  const [submitting, setSubmitting] = useState(false);
+  const [amountError, setAmountError] = useState(""); // new
   const sliderRef = useRef(null);
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
 
@@ -154,7 +156,13 @@ const ReceiptVoucher = () => {
 
   /** ================== Submit Form ================== **/
   const handleSubmit = async (e) => {
+    if (Number(formData.amountReceived) > formData.salesmanBalance) {
+      setAmountError("Amount cannot exceed receivable balance");
+      setSubmitting(false);
+      return;
+    }
     e.preventDefault();
+    setSubmitting(true); // Start spinner
     const payload = {
       date: formData.date,
       receiptId: formData.receiptId || nextReceiptId,
@@ -182,6 +190,8 @@ const ReceiptVoucher = () => {
       setIsFormOpen(false);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to save voucher");
+    } finally {
+      setSubmitting(false); // Stop spinner
     }
   };
 
@@ -347,7 +357,7 @@ const ReceiptVoucher = () => {
                       .filter((s) => (s.recoveryBalance || 0) > 0)
                       .map((s) => (
                         <option key={s._id} value={s._id}>
-                          {s.employeeName} 
+                          {s.employeeName}
                         </option>
                       ))}
                   </select>
@@ -371,13 +381,23 @@ const ReceiptVoucher = () => {
                 <input
                   type="number"
                   value={formData.amountReceived}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amountReceived: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (Number(value) > formData.salesmanBalance) {
+                      setAmountError("Amount cannot exceed receivable balance");
+                    } else {
+                      setAmountError(""); // clear error
+                    }
+                    setFormData({ ...formData, amountReceived: value });
+                  }}
                   required
                   className="w-full border rounded-md p-3"
                   placeholder="Enter amount"
                 />
+                {amountError && (
+                  <p className="text-red-500 text-sm mt-1">{amountError}</p>
+                )}
+
               </div>
 
               <div>
@@ -395,9 +415,14 @@ const ReceiptVoucher = () => {
 
               <button
                 type="submit"
-                className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80"
+                className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 flex items-center justify-center gap-2"
+                disabled={submitting} // optional: disable button while submitting
               >
-                Save Voucher
+                {submitting ? (
+                  <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Save Voucher"
+                )}
               </button>
             </form>
           </div>

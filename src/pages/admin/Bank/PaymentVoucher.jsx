@@ -20,7 +20,8 @@ const PaymentVoucher = () => {
   const recordsPerPage = 10;
   const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
   const sliderRef = useRef(null);
-
+  const [amountError, setAmountError] = useState(""); // new
+  const [submitting, setSubmitting] = useState(false);
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/payment-vouchers`;
 
   const [formData, setFormData] = useState({
@@ -157,7 +158,13 @@ const PaymentVoucher = () => {
 
   /** ================== SUBMIT ================== **/
   const handleSubmit = async (e) => {
+    if (Number(formData.amountPaid) > formData.supplierPayable) {
+      setAmountError("Amount cannot exceed payable balance");
+
+      return; // stop form submission
+    }
     e.preventDefault();
+    setSubmitting(true); // start spinner
     const payload = {
       date: formData.date,
       paymentId: isEditing ? formData.paymentId : nextPaymentId,
@@ -185,6 +192,8 @@ const PaymentVoucher = () => {
       setIsSliderOpen(false);
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to save voucher");
+    } finally {
+      setSubmitting(false); // stop spinner
     }
   };
 
@@ -394,12 +403,21 @@ const PaymentVoucher = () => {
                 <input
                   type="number"
                   value={formData.amountPaid}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amountPaid: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (Number(value) > formData.supplierPayable) {
+                      setAmountError("Amount cannot exceed payable balance");
+                    } else {
+                      setAmountError(""); // clear error
+                    }
+                    setFormData({ ...formData, amountPaid: value });
+                  }}
                   required
                   className="w-full border rounded-md p-3"
                 />
+                {amountError && (
+                  <p className="text-red-500 text-sm mt-1">{amountError}</p>
+                )}
               </div>
 
               <div>
@@ -417,9 +435,14 @@ const PaymentVoucher = () => {
 
               <button
                 type="submit"
-                className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80"
+                className="w-full bg-newPrimary text-white py-3 rounded-lg hover:bg-newPrimary/80 flex items-center justify-center gap-2"
+                disabled={submitting}
               >
-                Save Payment Voucher
+                {submitting ? (
+                  <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Save Payment Voucher"
+                )}
               </button>
             </form>
           </div>
