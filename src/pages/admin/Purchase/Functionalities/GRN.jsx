@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Eye, SquarePen, Trash2, X, Loader } from "lucide-react";
+import { Eye, Loader, SquarePen, Trash2, X } from "lucide-react";
 import axios from "axios";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
