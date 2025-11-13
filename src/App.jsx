@@ -79,6 +79,7 @@ import PaymentVoucher from './pages/admin/Bank/PaymentVoucher.jsx'
 import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
 import BankLedger from './pages/admin/Bank/BankLedger.jsx'
 import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
+import DayBook from "./pages/admin/DayBook.jsx";
 
 
 function AppContent() {
@@ -105,6 +106,7 @@ function AppContent() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="security" element={<Security />} />
             <Route path="sales" element={<SalesSidebar />} />
+            <Route path="day-book" element={<DayBook />} />
 
             {/* Sales */}
             <Route path="sales/order-taking" element={<OrderTaking />} />
