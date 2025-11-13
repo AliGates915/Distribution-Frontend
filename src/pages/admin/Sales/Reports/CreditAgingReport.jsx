@@ -162,7 +162,7 @@ const CreditAgingReport = () => {
                     <div>Salesman</div>
                     <div>Invoice No</div>
                     <div>Invoice Date</div>
-                    <div>Delivery Date</div>
+                    <div>Recovery Date</div>
                     <div>Allow Days</div>
                     <div>Bill Days</div>
                     <div>Debit</div>

@@ -17,6 +17,7 @@ import {
   DollarSign,
   FileSpreadsheet,
   Scale,
+  BarChart2,
 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 
@@ -65,6 +66,11 @@ const purchaseReports = [
     to: "/admin/report/opening-stock-supplierwise",
     label: "Stock Position",
     icon: <Scale strokeWidth={3} size={40} />,
+  },
+    {
+    to: "/admin/report/stock-price",
+    label: "Stock Price",
+    icon: <BarChart2 strokeWidth={3} size={40} />,
   }
 ];
 

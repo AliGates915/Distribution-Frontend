@@ -36,6 +36,7 @@ import PurchaseDateWisePurchase from "./pages/admin/Purchase/Reports/DateWisePur
 import PurchaseItemWisePurchases from "./pages/admin/Purchase/Reports/ItemWisePurchases.jsx";
 import PurchaseSupplierLedger from "./pages/admin/Purchase/Reports/SupplierLedger.jsx";
 import PurchaseSupplierWisePurchase from "./pages/admin/Purchase/Reports/SupplierWisePurchase.jsx";
+import OpeningStockPrice from "./pages/admin/Purchase/Reports/OpeningStockPrice.jsx";
 
 import DefineSupplier from "./pages/admin/Purchase/SetUp/DefineSupplier.jsx";
 import AmountReceivales from "./pages/admin/Sales/Reports/AmountReceivales.jsx";
@@ -78,6 +79,7 @@ import PaymentVoucher from './pages/admin/Bank/PaymentVoucher.jsx'
 import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
 import BankLedger from './pages/admin/Bank/BankLedger.jsx'
 import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
+
 
 function AppContent() {
   return (
@@ -132,6 +134,7 @@ function AppContent() {
             />
             <Route path="report/opening-stock" element={<OpeningStock />} />
             <Route path="report/opening-stock-supplierwise" element={<OpeningStockSupplierwise />} />
+            <Route path="report/stock-price" element={<OpeningStockPrice />} />
             <Route
               path="report/customerwise-orders"
               element={<CustomerwiseOrders />}
@@ -232,15 +235,15 @@ function AppContent() {
               element={<SalesmanWiseRecovery />}
             />
 
-           
+
             {/* Bank */}
             <Route path="bank" element={<BankSideBar />} />
             <Route path="bank-payment-voucher" element={<PaymentVoucher />} />
             <Route path="bank-receipt-voucher" element={<ReceiptVoucher />} />
 
-              <Route path="bank-ledger" element={<BankLedger />} />
-              <Route path="opening-bank-position" element={<BankPosition />} />
-             {/* Setup */}
+            <Route path="bank-ledger" element={<BankLedger />} />
+            <Route path="opening-bank-position" element={<BankPosition />} />
+            {/* Setup */}
             <Route path="bank/define" element={<DefineBank />} />
           </Route>
         </Routes>
