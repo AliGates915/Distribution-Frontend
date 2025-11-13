@@ -195,7 +195,7 @@ const OpeningStock = () => {
         </div>
       ) : (
         <div className=" space-y-6">
-          <h1 className="text-2xl font-bold text-newPrimary">Opening Stocks</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">Opening Price</h1>
 
           {/* Form */}
           <div className="border rounded-lg shadow bg-white p-6 w-full">
@@ -247,6 +247,7 @@ const OpeningStock = () => {
                   ))}
                 </select>
               </div>
+
             </div>
           </div>
 
@@ -262,17 +263,16 @@ const OpeningStock = () => {
               <div className="min-w-[1000px]">
                 {/* ✅ Table Header */}
                 <div
-                  className={`hidden lg:grid ${editingStockIndex !== null
-                    ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                    : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                    } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
+                  className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200"
                 >
                   <div>Sr</div>
                   <div>Category</div>
                   <div>Type</div>
                   <div>Item</div>
-                  <div>Stock</div>
-                  {editingStockIndex !== null && <div>Action</div>}
+                  <div>Purchase</div>
+                  <div>Total Amount</div>
+
+
                 </div>
 
                 {/* ✅ Table Body */}
@@ -281,10 +281,8 @@ const OpeningStock = () => {
                     <TableSkeleton
                       rows={itemNameList.length > 0 ? itemNameList.length : 5}
                       cols={editingStockIndex !== null ? 8 : 7}
-                      className={`${editingStockIndex !== null
-                        ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                        : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                        }`}
+                      className="lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr]"
+
                     />
                   ) : itemNameList.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -294,10 +292,7 @@ const OpeningStock = () => {
                     currentRecords.map((rec, index) => (
                       <div
                         key={rec.code}
-                        className={`grid ${editingStockIndex !== null
-                          ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                          : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                          } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
+                        className="grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
 
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
@@ -307,75 +302,16 @@ const OpeningStock = () => {
                           {rec.itemName || "-"}
                         </div>
 
-                        {/* Editable Stock */}
+                        <>
+                          <div className="text-gray-600">
+                            {rec.purchase || "-"}
+                          </div>
+                        </>
+
                         <div className="text-gray-600">
-                          {editing[`${index}-stock`] ? (
-                            <input
-                              type="number"
-                              value={rec.stock}
-                              onChange={(e) =>
-                                handleChange(index, "stock", e.target.value)
-                              }
-                              onBlur={() => {
-                                handleBlur(index, "stock");
-                                setEditingStockIndex(index);
-                              }}
-                              autoFocus
-                              className="w-20 border rounded p-1"
-                            />
-                          ) : (
-                            <span
-                              onClick={() => {
-                                handleFocus(index, "stock");
-                                setEditingStockIndex(index);
-                              }}
-                              className="cursor-pointer"
-                            >
-                              {rec.stock || "-"}
-                            </span>
-                          )}
+                          {rec.purchase * rec.stock || "-"}
                         </div>
 
-                        {/* Action Button */}
-                        {editingStockIndex === index && (
-                          <div className="flex gap-3 justify-end">
-                            <button
-                              className="text-newPrimary hover:bg-green-50 rounded p-1"
-                              onClick={async () => {
-                                try {
-                                  await axios.put(
-                                    `${import.meta.env.VITE_API_BASE_URL
-                                    }/item-details/${rec._id}/stock`,
-                                    { stock: rec.stock },
-                                    {
-                                      headers: {
-                                        Authorization: `Bearer ${userInfo?.token}`,
-                                      },
-                                    }
-                                  );
-                                  console.log(
-                                    "✅ Stock updated successfully:",
-                                    rec.itemName,
-                                    rec.stock
-                                  );
-                                  setEditingStockIndex(null);
-                                  toast.success("Stock updated successfully");
-                                } catch (error) {
-                                  toast.success(
-                                    error.response?.data?.message ||
-                                    "Failed to update stock"
-                                  );
-                                  console.error(
-                                    "Failed to update stock:",
-                                    error
-                                  );
-                                }
-                              }}
-                            >
-                              <SaveIcon size={18} />
-                            </button>
-                          </div>
-                        )}
                       </div>
                     ))
                   )}

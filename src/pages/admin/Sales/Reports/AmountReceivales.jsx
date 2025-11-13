@@ -10,7 +10,7 @@ const AmountReceivables = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showZero, setShowZero] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 18;
+  const recordsPerPage = 10;
 
   // 🔹 Fetch receivables from API
   const fetchReceivables = useCallback(async () => {
@@ -111,21 +111,22 @@ const AmountReceivables = () => {
           <div className="overflow-y-auto lg:overflow-x-auto max-h-screen">
             <div className="min-w-[600px]">
               {/* Table Header */}
-              <div className="hidden lg:grid grid-cols-3 gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 border-b border-gray-200">
+              <div className="hidden lg:grid grid-cols-[0.2fr_0.5fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 border-b border-gray-200">
                 <div>SR</div>
                 <div>Customer</div>
                 <div>Balance</div>
               </div>
 
+
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
-                  <TableSkeleton rows={5} cols={3} className="lg:grid-cols-3" />
+                  <TableSkeleton rows={10} cols={3} className="lg:grid grid-cols-[0.2fr_0.5fr_1fr]" />
                 ) : currentRecords.length > 0 ? (
                   currentRecords.map((cust, index) => (
                     <div
                       key={cust.SR}
-                      className="grid grid-cols-1 lg:grid-cols-3 items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                      className="lg:grid grid-cols-[0.2fr_0.5fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{cust.Customer}</div>
