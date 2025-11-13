@@ -15,6 +15,7 @@ const DateWisePurchase = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const [showDateError, setShowDateError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const ledgerRef = useRef(null);
 
@@ -61,21 +62,39 @@ const DateWisePurchase = () => {
     0
   );
 
-  // Pagination
+  // 🔍 Search filter (by GRN ID, Supplier, or Item)
+  const searchedReceivables = receivables.filter((entry) => {
+    const search = searchTerm.toLowerCase();
+    const supplier = entry.SupplierName?.toLowerCase() || "";
+    const grn = entry.grnId?.toString().toLowerCase() || "";
+    const items =
+      entry.products?.map((p) => p.item?.toLowerCase()).join(", ") || "";
+
+    return (
+      supplier.includes(search) ||
+      grn.includes(search) ||
+      items.includes(search)
+    );
+  });
+
+  // Pagination on searched data
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = receivables.slice(
+  const currentRecords = searchedReceivables.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(receivables.length / recordsPerPage);
+  const totalPages = Math.ceil(searchedReceivables.length / recordsPerPage);
+
+  // reset page when search changes
+  useEffect(() => setCurrentPage(1), [searchTerm]);
+
   // console.log({ currentRecords });
   useEffect(() => {
-  if (!dateTo) {
-    setShowDateError(true);
-  }
-}, []);
-
+    if (!dateTo) {
+      setShowDateError(true);
+    }
+  }, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -97,37 +116,51 @@ const DateWisePurchase = () => {
         </div>
 
         {/* Date Filters */}
-        <div className="flex flex-wrap gap-5 mb-6">
-          <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">
-              Date From
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            />
+        <div className="flex flex-wrap justify-between items-end gap-5 mb-6">
+          {/* Date Filters */}
+          <div className="flex flex-wrap gap-5">
+            <div className="w-[200px]">
+              <label className="block text-gray-700 font-medium mb-2">
+                Date From
+              </label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
+
+            <div className="w-[200px]">
+              <label className="block text-gray-700 font-medium mb-2">
+                Date To
+              </label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setShowDateError(false);
+                }}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+              />
+              {showDateError && (
+                <p className="text-red-500 text-sm mt-1">
+                  Please select an end date.
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">
-              Date To
-            </label>
+          {/* Searchbar aligned to the right */}
+          <div className="w-[260px]">
             <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => {
-                setDateTo(e.target.value);
-                setShowDateError(false); // hide error when a date is selected
-              }}
+              type="text"
+              placeholder="Search by supplier or item"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
-            {showDateError && (
-              <p className="text-red-500 text-sm mt-1">
-                Please select an end date.
-              </p>
-            )}
           </div>
         </div>
 

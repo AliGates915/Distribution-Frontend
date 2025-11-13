@@ -13,7 +13,7 @@ const ItemWisePurchase = () => {
   const [selectedItem, setSelectedItem] = useState("");
   const [loading, setLoading] = useState(false);
   const [showItemError, setShowItemError] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const today = new Date().toISOString().split("T")[0];
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState("");
@@ -127,69 +127,87 @@ const ItemWisePurchase = () => {
           </div>
 
           {/* ================= FILTER SECTION ================= */}
-          <div className="flex flex-wrap gap-5 mb-6">
-            {/* Item Dropdown */}
-            <div className="w-[300px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Select Item *
-              </label>
-              <select
-                value={selectedItem}
-                onChange={(e) => {
-                  setSelectedItem(e.target.value);
-                  setShowItemError(false); // hide error once user selects
-                }}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Choose Item</option>
-                {itemList.map((item) => (
-                  <option key={item._id} value={item.itemName}>
-                    {item.itemName}
-                  </option>
-                ))}
-              </select>
-              {showItemError && (
-                <p className="text-red-500 text-sm mt-1">
-                  Please select an item before proceeding.
-                </p>
-              )}
-            </div>
+          <div className="">
+            <div className="flex flex-wrap items-end justify-between gap-5 mb-6">
+              <div className="flex gap-3">
+                {/* Item Dropdown */}
+                <div className="w-[300px]">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Select Item *
+                  </label>
+                  <select
+                    value={selectedItem}
+                    onChange={(e) => {
+                      setSelectedItem(e.target.value);
+                      setShowItemError(false); // hide error once user selects
+                    }}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Choose Item</option>
+                    {itemList.map((item) => (
+                      <option key={item._id} value={item.itemName}>
+                        {item.itemName}
+                      </option>
+                    ))}
+                  </select>
+                  {showItemError && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please select an item before proceeding.
+                    </p>
+                  )}
+                </div>
 
-            {/* From Date */}
-            <div className="w-[200px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Date From
-              </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              />
-            </div>
+                {/* From Date */}
+                <div className="w-[200px]">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Date From
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
 
-            {/* To Date */}
-            <div className="w-[200px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Date To
-              </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              />
-            </div>
+                {/* To Date */}
+                <div className="w-[200px]">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Date To
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
 
-            {/* Filter Button */}
-            <div className="flex items-end">
-              <button
-                onClick={fetchItemwiseReport}
-                disabled={!selectedItem}
-                className="bg-newPrimary text-white px-6 py-3 rounded-md hover:bg-newPrimary/80 disabled:bg-gray-400"
-              >
-                Filter
-              </button>
+                {/* Filter Button */}
+                <div className="flex items-end">
+                  <button
+                    onClick={fetchItemwiseReport}
+                    disabled={!selectedItem}
+                    className="bg-newPrimary text-white px-6 py-3 rounded-md hover:bg-newPrimary/80 disabled:bg-gray-400"
+                  >
+                    Filter
+                  </button>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="w-[280px]">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Search
+                </label>
+                <input
+                  type="text"
+                  placeholder="Search by GRN ID, Supplier, or Item..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                />
+              </div>
             </div>
           </div>
 

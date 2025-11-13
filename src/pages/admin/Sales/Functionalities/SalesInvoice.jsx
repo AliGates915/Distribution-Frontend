@@ -9,16 +9,17 @@ import { InvoiceTemplate } from "../../../../helper/InvoiceTemplate";
 import axios from "axios";
 import { use } from "react";
 import { api } from "../../../../context/ApiService";
-import {  handleSaleInvoicePrint } from "../../../../helper/SalesPrintView";
+import { handleSaleInvoicePrint } from "../../../../helper/SalesPrintView";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedSalesman, setSelectedSalesman] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
   const [isSaving, setIsSaving] = useState(false);
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [date, setDate] = useState(today);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -71,9 +72,8 @@ const SalesInvoice = () => {
     } catch (error) {
       console.error("❌ Failed to fetch SalesInvoice:", error);
       setTimeout(() => {
-         toast.error("Failed to fetch pending orders");
+        toast.error("Failed to fetch pending orders");
       }, 2000);
-     
     } finally {
       setTimeout(() => setLoading(false), 500);
     }
@@ -120,46 +120,45 @@ const SalesInvoice = () => {
 
   // ✅ Edit handler
   // ✅ Edit handler (safe version)
-const handleEdit = (invoice) => {
-  setEditingInvoice(invoice);
-  setInvoiceId(invoice.orderId || "");
-  setInvoiceDate(invoice.date || "");
+  const handleEdit = (invoice) => {
+    setEditingInvoice(invoice);
+    setInvoiceId(invoice.orderId || "");
+    setInvoiceDate(invoice.date || "");
 
-  // Safely access nested data
-  setCustomer(invoice.customerId?.customerName || "N/A");
-  setSalesman(invoice.salesmanId?.employeeName || "N/A");
-  setPreviousBalance(invoice.customerId?.salesBalance || 0);
-  setDeliveryDate(new Date().toISOString().split("T")[0]); // current date
+    // Safely access nested data
+    setCustomer(invoice.customerId?.customerName || "N/A");
+    setSalesman(invoice.salesmanId?.employeeName || "N/A");
+    setPreviousBalance(invoice.customerId?.salesBalance || 0);
+    setDeliveryDate(new Date().toISOString().split("T")[0]); // current date
 
-  // map products correctly
-  const mappedItems = (invoice.products || []).map((p) => ({
-    item: p.itemName || "",
-    rate: p.rate || 0,
-    qty: p.qty || 0,
-    total: p.totalAmount || 0,
-  }));
-  setItems(mappedItems);
+    // map products correctly
+    const mappedItems = (invoice.products || []).map((p) => ({
+      item: p.itemName || "",
+      rate: p.rate || 0,
+      qty: p.qty || 0,
+      total: p.totalAmount || 0,
+    }));
+    setItems(mappedItems);
 
-  setTotalPrice(invoice.totalAmount || 0);
-  setDiscountAmount("");
-  setReceivable(invoice.totalAmount || 0);
-  setReceived("");
-  setBalance(invoice.totalAmount || 0);
+    setTotalPrice(invoice.totalAmount || 0);
+    setDiscountAmount("");
+    setReceivable(invoice.totalAmount || 0);
+    setReceived("");
+    setBalance(invoice.totalAmount || 0);
 
-  // ✅ handle missing agingDate
-  let agingDate = invoice.customerId?.timeLimit;
-  if (!agingDate) {
-    const delivery = new Date();
-    delivery.setDate(delivery.getDate() + 30); // add 30 days
-    agingDate = delivery.toISOString().split("T")[0];
-  } else {
-    agingDate = agingDate.split("T")[0];
-  }
+    // ✅ handle missing agingDate
+    let agingDate = invoice.customerId?.timeLimit;
+    if (!agingDate) {
+      const delivery = new Date();
+      delivery.setDate(delivery.getDate() + 30); // add 30 days
+      agingDate = delivery.toISOString().split("T")[0];
+    } else {
+      agingDate = agingDate.split("T")[0];
+    }
 
-  setReceivingDate(agingDate);
-  setIsSliderOpen(true);
-};
-
+    setReceivingDate(agingDate);
+    setIsSliderOpen(true);
+  };
 
   // ✅ Total recalculation
   useEffect(() => {
@@ -221,12 +220,28 @@ const handleEdit = (invoice) => {
     }
   };
 
+  // Filtered Invoices
+  const filteredInvoices = invoices.filter((invoice) => {
+    const orderId = invoice.orderId?.toLowerCase() || "";
+    const customerName = invoice.customerId?.customerName?.toLowerCase() || "";
+    const salesmanName = invoice.salesmanId?.employeeName?.toLowerCase() || "";
+
+    return (
+      orderId.includes(searchTerm.toLowerCase()) ||
+      customerName.includes(searchTerm.toLowerCase()) ||
+      salesmanName.includes(searchTerm.toLowerCase())
+    );
+  });
+
   // 🔢 Pagination Logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = invoices.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(invoices.length / recordsPerPage);
-// console.log({currentRecords});
+  const currentRecords = filteredInvoices.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredInvoices.length / recordsPerPage);
+  // console.log({currentRecords});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -241,50 +256,74 @@ const handleEdit = (invoice) => {
             <h1 className="text-2xl font-bold text-newPrimary">
               Pending Orders
             </h1>
-             {currentRecords.length > 0 && (
-            <button
-              onClick={() => handleSaleInvoicePrint(currentRecords)}
-              className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
-            >
-              <Printer size={18} /> 
-            </button>
-          )}
+            {currentRecords.length > 0 && (
+              <button
+                onClick={() => handleSaleInvoicePrint(currentRecords)}
+                className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+              >
+                <Printer size={18} />
+              </button>
+            )}
           </div>
 
           {/* 🔹 Filter Fields */}
-          <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-5">
+          <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4 mb-1">
             {/* Date + Invoice in left column */}
-            <div className="flex gap-8 ">
-              <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
-                  Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  max={today}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                />
+            <div className="flex flex-wrap justify-between items-center gap-8 w-full mt-4 mb-5">
+              {/* Left: Date + Salesman */}
+              <div className="flex gap-8 flex-wrap">
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    max={today}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Salesman <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedSalesman}
+                    onChange={(e) => setSelectedSalesman(e.target.value)}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  >
+                    <option value="">Select Salesman</option>
+                    {salesmanList.map((cust) => (
+                      <option key={cust._id} value={cust._id}>
+                        {cust.employeeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              {/* Salesman dropdown on right side */}
-              <div className="flex items-center gap-6 ">
-                <label className="text-gray-700 font-medium w-24">
-                  Salesman <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={selectedSalesman}
-                  onChange={(e) => setSelectedSalesman(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                >
-                  <option value="">Select Salesman</option>
-                  {salesmanList.map((cust) => (
-                    <option key={cust._id} value={cust._id}>
-                      {cust.employeeName}
-                    </option>
-                  ))}
-                </select>
+              {/* Right: Search Bar */}
+              <div className="ml-auto flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by Customer, Salesman..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1); // reset to first page on search
+                  }}
+                  className="w-64 p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+                />
+                {currentRecords.length > 0 && (
+                  <button
+                    onClick={() => handleSaleInvoicePrint(currentRecords)}
+                    className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
+                  >
+                    <Printer size={18} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

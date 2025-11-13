@@ -18,7 +18,7 @@ const OpeningStock = () => {
   const [itemTypeList, setItemTypeList] = useState([]);
   const [editingStockIndex, setEditingStockIndex] = useState(null);
   const [showCategoryError, setShowCategoryError] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const tableRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -33,7 +33,6 @@ const OpeningStock = () => {
   });
 
   // Refresh the Page called api
-  // Refresh the Page called api
   useEffect(() => {
     const fetchAllItems = async () => {
       setLoading(true);
@@ -41,6 +40,7 @@ const OpeningStock = () => {
         const res = await axios.get(
           `${import.meta.env.VITE_API_BASE_URL}/item-details`
         );
+
         setItemNameList(res.data);
       } catch (error) {
         console.error("Failed to fetch all items", error);
@@ -96,7 +96,8 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL
+          `${
+            import.meta.env.VITE_API_BASE_URL
           }/item-type/category/${itemCategory}`
         );
         setItemTypeList(res.data);
@@ -118,7 +119,8 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL
+          `${
+            import.meta.env.VITE_API_BASE_URL
           }/item-details/item-type/${itemType}`
         );
 
@@ -168,11 +170,23 @@ const OpeningStock = () => {
   // ✅ Filter + Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = itemNameList.slice(
+  const filteredItems = itemNameList.filter(
+    (item) =>
+      item.itemName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.itemCategory?.categoryName
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      item.itemType?.itemTypeName
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
+  );
+
+  const currentRecords = filteredItems.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(itemNameList.length / recordsPerPage);
+
+  const totalPages = Math.ceil(filteredItems.length / recordsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -199,55 +213,68 @@ const OpeningStock = () => {
 
           {/* Form */}
           <div className="border rounded-lg shadow bg-white p-6 w-full">
-            <div className="grid grid-cols-3 gap-6 items-end w-full">
-              {/* Category */}
-              <div className="w-full">
-                <label className="block text-gray-700 font-medium mb-1">
-                  Category
-                </label>
-                <select
-                  value={itemCategory}
-                  onChange={(e) => {
-                    setItemCategory(e.target.value);
-                    setShowCategoryError(false); // hide message after selecting
-                  }}
-                  className="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
-                >
-                  <option value="">Select Category</option>
-                  {categoryList.map((cat, idx) => (
-                    <option key={cat._id} value={cat.categoryName}>
-                      {cat.categoryName}
-                    </option>
-                  ))}
-                </select>
-                {showCategoryError && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Please select a category before proceeding.
-                  </p>
-                )}
-              </div>
+            <div className="flex">
+              <div className="grid grid-cols-3 gap-6 items-end w-full">
+                {/* Category */}
+                <div className="w-full">
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={itemCategory}
+                    onChange={(e) => {
+                      setItemCategory(e.target.value);
+                      setShowCategoryError(false); // hide message after selecting
+                    }}
+                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
+                  >
+                    <option value="">Select Category</option>
+                    {categoryList.map((cat, idx) => (
+                      <option key={cat._id} value={cat.categoryName}>
+                        {cat.categoryName}
+                      </option>
+                    ))}
+                  </select>
+                  {showCategoryError && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please select a category before proceeding.
+                    </p>
+                  )}
+                </div>
 
-              {/* Item Type */}
-              <div className="w-full">
-                <label className="block text-gray-700 font-medium mb-1">
-                  Item Type
-                </label>
-                <select
-                  value={itemType}
-                  onChange={(e) => setItemType(e.target.value)}
-                  disabled={!itemCategory}
-                  className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-      ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                >
-                  <option value="">Select Item Type</option>
-                  {itemTypeList.map((type) => (
-                    <option key={type._id} value={type.itemTypeName}>
-                      {type.itemTypeName}
-                    </option>
-                  ))}
-                </select>
+                {/* Item Type */}
+                <div className="w-full">
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Item Type
+                  </label>
+                  <select
+                    value={itemType}
+                    onChange={(e) => setItemType(e.target.value)}
+                    disabled={!itemCategory}
+                    className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
+                  ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  >
+                    <option value="">Select Item Type</option>
+                    {itemTypeList.map((type) => (
+                      <option key={type._id} value={type.itemTypeName}>
+                        {type.itemTypeName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-
+              <div className="w-[350px] justify-end mt-12">
+                {/* Add this after Item Type */}
+                <div className="">
+                  <input
+                    type="text"
+                    placeholder="Search by category, type, or item..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -262,17 +289,13 @@ const OpeningStock = () => {
             <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
               <div className="min-w-[1000px]">
                 {/* ✅ Table Header */}
-                <div
-                  className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200"
-                >
+                <div className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>Sr</div>
                   <div>Category</div>
                   <div>Type</div>
                   <div>Item</div>
                   <div>Purchase</div>
                   <div>Total Amount</div>
-
-
                 </div>
 
                 {/* ✅ Table Body */}
@@ -282,7 +305,6 @@ const OpeningStock = () => {
                       rows={itemNameList.length > 0 ? itemNameList.length : 5}
                       cols={editingStockIndex !== null ? 8 : 7}
                       className="lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr]"
-
                     />
                   ) : itemNameList.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -293,7 +315,6 @@ const OpeningStock = () => {
                       <div
                         key={rec.code}
                         className="grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
-
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{rec?.itemCategory?.categoryName || "-"}</div>
@@ -311,7 +332,6 @@ const OpeningStock = () => {
                         <div className="text-gray-600">
                           {rec.purchase * rec.stock || "-"}
                         </div>
-
                       </div>
                     ))
                   )}
@@ -320,8 +340,8 @@ const OpeningStock = () => {
                   <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
                     <p className="text-sm text-gray-600">
                       Showing {indexOfFirstRecord + 1} to{" "}
-                      {Math.min(indexOfLastRecord, itemNameList.length)} of{" "}
-                      {itemNameList.length} items
+                      {Math.min(indexOfLastRecord, filteredItems.length)} of{" "}
+                      {filteredItems.length} items
                     </p>
 
                     <div className="flex gap-2">
@@ -330,10 +350,11 @@ const OpeningStock = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${currentPage === 1
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Previous
                       </button>
@@ -345,10 +366,11 @@ const OpeningStock = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Next
                       </button>

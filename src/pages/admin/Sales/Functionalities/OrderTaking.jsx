@@ -7,7 +7,7 @@ import axios from "axios";
 import TableSkeleton from "../../Components/Skeleton";
 import { ScaleLoader } from "react-spinners";
 import ViewModal from "../../../../helper/ViewModel";
-import { Loader} from "lucide-react";
+import { Loader } from "lucide-react";
 const OrderTaking = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [orders, setOrders] = useState([]);
@@ -402,8 +402,21 @@ const OrderTaking = () => {
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = orders.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(orders.length / recordsPerPage);
+  const filteredOrders = orders.filter((order) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (order.orderId || "").toLowerCase().includes(term) ||
+      (order.customerId?.customerName || "").toLowerCase().includes(term) ||
+      (order.salesmanId?.employeeName || "").toLowerCase().includes(term)
+    );
+  });
+
+  const currentRecords = filteredOrders.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredOrders.length / recordsPerPage);
+
   // console.log({ orders });
   const handleRemoveItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
@@ -430,12 +443,26 @@ const OrderTaking = () => {
         <div className="px-6 mx-auto">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-newPrimary">Order Taking</h1>
-            <button
-              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-              onClick={() => setIsSliderOpen(true)}
-            >
-              + Add Order
-            </button>
+
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                placeholder="Search by Customer, Salesman..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // reset to first page when searching
+                }}
+                className="w-full md:w-64 p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+              />
+
+              <button
+                className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+                onClick={() => setIsSliderOpen(true)}
+              >
+                + Add Order
+              </button>
+            </div>
           </div>
 
           <div className="rounded-xl shadow border border-gray-200 overflow-hidden">
