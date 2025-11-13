@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
 import { BsBank2 } from "react-icons/bs";
+import { FaBook } from "react-icons/fa";
 
 import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions, MdOutlineSecurity } from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
@@ -47,6 +48,11 @@ const links = [
     to: "/admin/bank",
     label: "Bank",
     icon: <BsBank2 />,
+  },
+    {
+    to: "/admin/day-book",
+    label: "Day Book",
+    icon: <FaBook  />,
   },
   {
     to: "/admin/security",
