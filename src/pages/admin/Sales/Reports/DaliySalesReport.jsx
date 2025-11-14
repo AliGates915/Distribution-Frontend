@@ -38,7 +38,7 @@ const DailySalesReport = () => {
   const [enterAmount, setEnterAmount] = useState("");
   const [newBalance, setNewBalance] = useState(0);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [customerId, setCustomerID] = useState("");
 
   const staticInvoices = [
@@ -400,6 +400,17 @@ const DailySalesReport = () => {
     }
   }, []);
 
+  // Search
+  const filteredSalesItems = currentSalesItems.filter((item) => {
+    return (
+      item.invoiceNo?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.rate?.toString().includes(searchTerm) ||
+      item.qty?.toString().includes(searchTerm) ||
+      item.total?.toString().includes(searchTerm)
+    );
+  });
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -482,7 +493,7 @@ const DailySalesReport = () => {
             </div>
 
             {/* ===== Right Section ===== */}
-            <div className="flex flex-col justify-start">
+            <div className="flex flex-col space-y-2">
               <div className="flex items-center gap-6">
                 <label className="text-gray-700 font-medium w-24">
                   Orders <span className="text-red-500">*</span>
@@ -499,6 +510,15 @@ const DailySalesReport = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="flex justify-end mb-4">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                />
               </div>
             </div>
           </div>
@@ -531,7 +551,7 @@ const DailySalesReport = () => {
                           </div>
                         ) : (
                           <>
-                            {currentSalesItems.map((item, index) => (
+                            {filteredSalesItems.map((item, index) => (
                               <div
                                 key={index}
                                 className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
@@ -856,11 +876,10 @@ const DailySalesReport = () => {
                                     </span>
                                   </div>
                                   <span
-                                    className={`font-medium ${
-                                      invoice.totalAmount < 0
-                                        ? "text-red-600"
-                                        : "text-gray-700"
-                                    }`}
+                                    className={`font-medium ${invoice.totalAmount < 0
+                                      ? "text-red-600"
+                                      : "text-gray-700"
+                                      }`}
                                   >
                                     {invoice.totalAmount.toLocaleString()}
                                   </span>
@@ -901,11 +920,10 @@ const DailySalesReport = () => {
                                   </span>
                                   <div className="flex items-center space-x-2">
                                     <span
-                                      className={`font-medium ${
-                                        invoice.dueAmount < 0
-                                          ? "text-red-600"
-                                          : "text-gray-700"
-                                      }`}
+                                      className={`font-medium ${invoice.dueAmount < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                        }`}
                                     >
                                       {invoice.dueAmount.toLocaleString()}
                                     </span>

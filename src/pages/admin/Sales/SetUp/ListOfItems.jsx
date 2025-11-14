@@ -23,7 +23,7 @@ const ListOfItems = () => {
   const [expiryOption, setExpiryOption] = useState("NoExpiry");
   const [expiryDay, setExpiryDay] = useState("");
   const [itemTypeName, setItemTypeName] = useState("");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [itemList, setItemList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [itemCategory, setItemCategory] = useState({ id: "", name: "" });
@@ -538,14 +538,22 @@ const ListOfItems = () => {
     });
   };
 
+  const filteredItems = itemList.filter((item) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      item.itemName?.toLowerCase().includes(term) ||
+      item.itemType?.itemTypeName?.toLowerCase().includes(term)
+    );
+  });
+
   // Pagination logic
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10; // you can change this
 
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = itemList.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(itemList.length / recordsPerPage);
+  const currentRecords = filteredItems.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredItems.length / recordsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -562,17 +570,33 @@ const ListOfItems = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-6 mb-6">
+      <div className="flex justify-between items-center mt-6 mb-2">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Items List</h1>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
-          onClick={handleAddItem}
-        >
-          + Add Item
-        </button>
+
+        <div className="flex gap-4">
+          {/* Search Bar */}
+          <div className="mb-4 flex justify-end">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by Item Name or Type..."
+              className="px-3 py-2 w-full md:w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
+
+          {/* Add Item Button */}
+          <button
+            className="h-10 bg-newPrimary text-white px-4 rounded-lg hover:bg-primaryDark"
+            onClick={handleAddItem}
+          >
+            + Add Item
+          </button>
+        </div>
       </div>
+
 
       {/* Item Table */}
       <div className="rounded-xl shadow border border-gray-200 overflow-hidden">

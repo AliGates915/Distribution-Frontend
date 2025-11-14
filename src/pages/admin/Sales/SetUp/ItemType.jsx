@@ -25,6 +25,7 @@ const ItemType = () => {
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -229,14 +230,24 @@ const ItemType = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
+  // ✅ Filtered Item Types (for search)
+  const filteredItemTypes = itemTypeList.filter(
+    (item) =>
+      item.itemTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.category?.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // ✅ Derived Pagination Data
+  const totalPages = Math.ceil(filteredItemTypes.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = itemTypeList.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-  const totalPages = Math.ceil(itemTypeList.length / recordsPerPage);
+  const currentRecords = filteredItemTypes.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  // ✅ Reset to first page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
 
   // ✅ Reset to page 1 whenever list updates
   useEffect(() => {
@@ -248,22 +259,38 @@ const ItemType = () => {
       {/* Common Header */}
       <CommanHeader />
       {isSaving && (
-              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
-                <ScaleLoader color="#1E93AB" size={60} />
-              </div>
-            )}
-      <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Item Type</h1>
           <p className="text-gray-500 text-sm">Manage your Item Type details</p>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
-          onClick={handleAddManufacturer}
-        >
-          + Add Item Item
-        </button>
+
+        <div className="flex gap-4">
+          {/* 🔍 Search Bar */}
+          <input
+            type="text"
+            placeholder="Search Item Type..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-3 py-2 w-full md:w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
+          />
+
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-primaryDark"
+            onClick={handleAddManufacturer}
+          >
+            + Add Item Type
+          </button>
+        </div>
       </div>
+
 
       {/* Item Type Table */}
       {/* Item Type Table */}
@@ -373,11 +400,10 @@ const ItemType = () => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Previous
                   </button>
@@ -386,11 +412,10 @@ const ItemType = () => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Next
                   </button>
@@ -407,7 +432,7 @@ const ItemType = () => {
             ref={sliderRef}
             className=" relative w-full md:w-[500px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-           
+
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Item Type" : "Add a New Item Type"}
@@ -466,8 +491,8 @@ const ItemType = () => {
                     ? "Updating..."
                     : "Saving..."
                   : isEdit
-                  ? "Update Item Type"
-                  : "Save Item Type"}
+                    ? "Update Item Type"
+                    : "Save Item Type"}
               </button>
             </div>
           </div>

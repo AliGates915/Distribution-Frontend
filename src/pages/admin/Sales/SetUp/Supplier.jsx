@@ -30,6 +30,7 @@ const SupplierList = () => {
   const [loading, setLoading] = useState(true);
   const [mobileNumber, setMobileNumber] = useState("");
   const [creditTime, setCreditTime] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
@@ -292,40 +293,63 @@ const SupplierList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
+  // ✅ Filtered Suppliers based on search
+  // ✅ Filtered Suppliers based on search
+  const filteredSuppliers = supplierList.filter((s) =>
+    (s.supplierName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.contactPerson || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.address || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.email || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // ✅ Derived Pagination Data
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = supplierList.slice(
+  const currentRecords = filteredSuppliers.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(supplierList.length / recordsPerPage);
+  const totalPages = Math.ceil(filteredSuppliers.length / recordsPerPage);
 
+  // Reset to page 1 when supplierList or searchTerm changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [supplierList]);
+  }, [supplierList, searchTerm]);
+
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Coomon header */}
       <CommanHeader />
       {isSaving && (
-              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
-                <ScaleLoader color="#1E93AB" size={60} />
-              </div>
-            )}
-      <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Suppliers List</h1>
           <p className="text-gray-500 text-sm">Manage your supplier details</p>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
-          onClick={handleAddSupplier}
-        >
-          + Add Supplier
-        </button>
+
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search by name, contact, email, or address..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border p-2 rounded w-full md:w-64"
+          />
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
+            onClick={handleAddSupplier}
+          >
+            + Add Supplier
+          </button>
+        </div>
       </div>
+
 
       {/* Supplier Table */}
 
@@ -441,9 +465,8 @@ const SupplierList = () => {
                           : ""}
                       </p>
                       <p
-                        className={`text-sm font-semibold ${
-                          s.status ? "text-green-600" : "text-red-600"
-                        }`}
+                        className={`text-sm font-semibold ${s.status ? "text-green-600" : "text-red-600"
+                          }`}
                       >
                         {s.status ? "Active" : "Inactive"}
                       </p>
@@ -484,11 +507,10 @@ const SupplierList = () => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Previous
                   </button>
@@ -497,11 +519,10 @@ const SupplierList = () => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Next
                   </button>
@@ -519,7 +540,7 @@ const SupplierList = () => {
             ref={sliderRef}
             className="w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-          
+
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Supplier" : "Add a New Supplier"}
@@ -593,12 +614,12 @@ const SupplierList = () => {
                     value={mobileNumber}
                     required
                     onChange={(e) => {
-                        const value = e.target.value;
+                      const value = e.target.value;
                       // ✅ Allow only digits and '+' sign at start
                       if (/^[0-9+]*$/.test(value)) {
-                         setMobileNumber(value)
+                        setMobileNumber(value)
                       }
-                     }}
+                    }}
                     className="w-full p-2 border rounded"
                     placeholder="e.g. 03001234567"
                   />
@@ -749,14 +770,12 @@ const SupplierList = () => {
                   type="button"
                   disabled
                   onClick={() => setStatus(!status)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    status ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${status ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      status ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${status ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span className="text-gray-400">{status ? "Active" : "Inactive"}</span>
