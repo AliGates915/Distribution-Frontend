@@ -31,6 +31,7 @@ const DefineSupplier = () => {
   const [loading, setLoading] = useState(true);
   const [mobileNumber, setMobileNumber] = useState("");
   const [creditTime, setCreditTime] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
@@ -70,7 +71,6 @@ const DefineSupplier = () => {
       setLoading(true);
       const res = await axios.get(`${API_URL}`);
       setSupplierList(res.data); // store actual categories array
-
     } catch (error) {
       console.error("Failed to fetch Supplier", error);
     } finally {
@@ -103,8 +103,6 @@ const DefineSupplier = () => {
   };
 
   const validateEmail = (email) => {
-
-
     const re = /^\S+@\S+\.\S+$/;
     return re.test(email);
   };
@@ -120,22 +118,18 @@ const DefineSupplier = () => {
       return;
     }
 
-
     setIsSaving(true);
 
     const formData = {
       supplierName,
 
-      contactNumber:phoneNumber,
+      contactNumber: phoneNumber,
       address,
 
       paymentTerms: paymentTerms === "CreditCard" ? "Credit" : paymentTerms, // map CreditCard -> Credit
       creditTime: paymentTerms === "CreditCard" ? creditTime : undefined, // <-- add this state
       creditLimit: paymentTerms === "CreditCard" ? creditLimit : undefined,
-
     };
-
-
 
     try {
       const { token } = userInfo || {};
@@ -263,11 +257,23 @@ const DefineSupplier = () => {
   // 🔹 Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = supplierList.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(supplierList.length / recordsPerPage);
+  // Filter suppliers by name, contact, or address
+  const filteredSuppliers = supplierList.filter(
+    (s) =>
+      (s.supplierName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      String(s.contactNumber || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (s.address || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-console.log({supplierList});
-
+  const currentRecords = filteredSuppliers.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredSuppliers.length / recordsPerPage);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -283,12 +289,21 @@ console.log({supplierList});
           <h1 className="text-2xl font-bold text-newPrimary">Suppliers List</h1>
           <p className="text-gray-500 text-sm">Manage your supplier details</p>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
-          onClick={handleAddSupplier}
-        >
-          + Add Supplier
-        </button>
+        <div className="flex-1 flex justify-end items-center gap-4 w-[300px]">
+          <input
+            type="text"
+            placeholder="Search by name, contact, or address..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full md:w-1/3 p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+          />
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
+            onClick={handleAddSupplier}
+          >
+            + Add Supplier
+          </button>
+        </div>
       </div>
 
       {/* Supplier Table */}
@@ -304,7 +319,9 @@ console.log({supplierList});
               <div>Address</div>
               <div>Payment</div>
 
-              {userInfo?.isAdmin && <div className={`${loading ? "" : "text-right"}`}>Actions</div>}
+              {userInfo?.isAdmin && (
+                <div className={`${loading ? "" : "text-right"}`}>Actions</div>
+              )}
             </div>
 
             {/* ✅ Table Body */}
@@ -327,7 +344,9 @@ console.log({supplierList});
                       key={s._id}
                       className="hidden lg:grid grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
-                      <div className="text-gray-900">{indexOfFirstRecord + index + 1}</div>
+                      <div className="text-gray-900">
+                        {indexOfFirstRecord + index + 1}
+                      </div>
                       <div className="text-gray-700">{s.supplierName}</div>
                       <div className="text-gray-600">{s.contactNumber}</div>
                       <div className="text-gray-600">{s.address}</div>
@@ -377,8 +396,9 @@ console.log({supplierList});
                           : ""}
                       </p>
                       <p
-                        className={`text-sm font-semibold ${s.status ? "text-green-600" : "text-red-600"
-                          }`}
+                        className={`text-sm font-semibold ${
+                          s.status ? "text-green-600" : "text-red-600"
+                        }`}
                       >
                         {s.status ? "Active" : "Inactive"}
                       </p>
@@ -408,35 +428,41 @@ console.log({supplierList});
               <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
                 <p className="text-sm text-gray-600">
                   Showing {indexOfFirstRecord + 1}–
-                  {Math.min(indexOfLastRecord, supplierList.length)} of {supplierList.length} suppliers
+                  {Math.min(indexOfLastRecord, supplierList.length)} of{" "}
+                  {supplierList.length} suppliers
                 </p>
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${currentPage === 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
                   >
                     Previous
                   </button>
 
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                    }`}
                   >
                     Next
                   </button>
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -448,7 +474,6 @@ console.log({supplierList});
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Supplier" : "Add a New Supplier"}
@@ -556,9 +581,6 @@ console.log({supplierList});
                     placeholder="+92 300 1234567"
                   />
                 </div>
-
-
-
               </div>
               <div>
                 <label className="block text-gray-700 font-medium">
@@ -635,12 +657,14 @@ console.log({supplierList});
 
               {/* Status */}
 
-
-
               {/* Save Button */}
 
               <button
-                className={`${isEdit ? "bg-newPrimary hover:bg-newPrimary/80" : "bg-newPrimary hover:bg-newPrimary/80"} text-white px-4 py-2 rounded-lg w-full`}
+                className={`${
+                  isEdit
+                    ? "bg-newPrimary hover:bg-newPrimary/80"
+                    : "bg-newPrimary hover:bg-newPrimary/80"
+                } text-white px-4 py-2 rounded-lg w-full`}
                 onClick={handleSave}
               >
                 {isEdit ? "Update Supplier" : "Save Supplier"}

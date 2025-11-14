@@ -13,7 +13,7 @@ const Recovery = () => {
   const [invoiceList, setInvoiceList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [showCustomerError, setShowCustomerError] = useState(false);
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [customersList, setCustomersList] = useState([]);
   const [selectedOrders, setSelectedOrders] = useState("");
   const [loading, setLoading] = useState(false);
@@ -284,17 +284,30 @@ const Recovery = () => {
     return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
   };
 
+  const filteredData = data.filter((item) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (item.customer?.toLowerCase().includes(term) ?? false) ||
+      (item.salesman?.toLowerCase().includes(term) ?? false) ||
+      (item.invoiceNo?.toLowerCase().includes(term) ?? false)
+    );
+  });
+
   // Pagination Logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = data.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(data.length / recordsPerPage);
+  const currentRecords = filteredData.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+
   // console.log({ currentRecords });
-useEffect(() => {
-  if (!selectedCustomer) {
-    setShowCustomerError(true);
-  }
-}, []);
+  useEffect(() => {
+    if (!selectedCustomer) {
+      setShowCustomerError(true);
+    }
+  }, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -313,7 +326,9 @@ useEffect(() => {
 
           {/* 🔹 Filter Fields */}
           <div className="flex flex-wrap justify-between items-start gap-8 w-full mt-4">
-            <div className="flex flex-col space-y-2">
+            {/* Left Side: Date + Customer */}
+            <div className="flex flex-col space-y-4">
+              {/* Date */}
               <div className="flex items-center gap-6">
                 <label className="text-gray-700 font-medium w-24">
                   Date <span className="text-red-500">*</span>
@@ -326,18 +341,18 @@ useEffect(() => {
                 />
               </div>
 
-              <div className="flex items-start gap-6">
-                <label className="text-gray-700 font-medium w-24 mt-2">
+              {/* Customer */}
+              <div className="flex items-center gap-6">
+                <label className="text-gray-700 font-medium w-24">
                   Customer <span className="text-red-500">*</span>
                 </label>
-
                 <div className="flex flex-col">
                   <select
                     value={selectedCustomer}
                     onChange={(e) => {
                       const val = e.target.value;
                       setSelectedCustomer(val);
-                      setShowCustomerError(!val); // show message again if cleared
+                      setShowCustomerError(!val);
                     }}
                     className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                   >
@@ -348,7 +363,6 @@ useEffect(() => {
                       </option>
                     ))}
                   </select>
-
                   {showCustomerError && (
                     <p className="text-red-500 text-sm mt-1">
                       Please select a customer before proceeding.
@@ -358,29 +372,19 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* <div className="flex items-center gap-6">
-              <label className="text-gray-700 font-medium w-24">
-                Invoice <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedOrders}
+            {/* Right Side: Search Bar */}
+            <div className="flex items-end ml-auto w-full md:w-64 mt-16">
+              <input
+                type="text"
+                placeholder="Search by Customer, Salesman, Invoice..."
+                value={searchTerm}
                 onChange={(e) => {
-                  const invoiceNo = e.target.value;
-                  setSelectedOrders(invoiceNo);
-                  if (selectedCustomer  && invoiceNo) {
-                    fetchRecoveryByInvoice(selectedCustomer , invoiceNo);
-                  }
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // reset to first page
                 }}
-                className="w-full md:w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Select Invoice</option>
-                {invoiceList.map((inv, index) => (
-                  <option key={index} value={inv.invoiceNo}>
-                    {inv.invoiceNo}
-                  </option>
-                ))}
-              </select>
-            </div> */}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+              />
+            </div>
           </div>
 
           {/* 🔹 Table */}

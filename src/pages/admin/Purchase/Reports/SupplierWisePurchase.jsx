@@ -18,6 +18,7 @@ const SupplierWisePurchase = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [showError, setShowError] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const recordsPerPage = 10;
   const ledgerRef = useRef(null);
@@ -101,11 +102,18 @@ const SupplierWisePurchase = () => {
   // 4️⃣ PAGINATION
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = ledgerEntries.slice(
+  const filteredEntries = ledgerEntries.filter(
+    (entry) =>
+      entry.ID?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.SupplierName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.Item?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const currentRecords = filteredEntries.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(ledgerEntries.length / recordsPerPage);
+  const totalPages = Math.ceil(filteredEntries.length / recordsPerPage);
 
   useEffect(() => {
     if (!selectedSupplier) {
@@ -138,58 +146,72 @@ const SupplierWisePurchase = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-5 mb-6">
-            {/* Supplier Select */}
-            <div className="w-[300px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Supplier Name *
-              </label>
-              <select
-                value={selectedSupplier}
-                onChange={(e) => {
-                  setSelectedSupplier(e.target.value);
-                  setShowError(false);
-                }}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Select Supplier</option>
-                {supplierList.map((supp) => (
-                  <option key={supp._id} value={supp._id}>
-                    {supp.supplierName || supp.name}
-                  </option>
-                ))}
-              </select>
-              {showError && (
-                <p className="text-red-500 text-sm mt-1">
-                  Please select a supplier before proceeding.
-                </p>
-              )}
-            </div>
+          <div className="flex flex-wrap items-end justify-between gap-5 mb-1">
+            <div className="flex flex-wrap gap-5 mb-6">
+              {/* Supplier Select */}
+              <div className="w-[300px]">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Supplier Name *
+                </label>
+                <select
+                  value={selectedSupplier}
+                  onChange={(e) => {
+                    setSelectedSupplier(e.target.value);
+                    setShowError(false);
+                  }}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                >
+                  <option value="">Select Supplier</option>
+                  {supplierList.map((supp) => (
+                    <option key={supp._id} value={supp._id}>
+                      {supp.supplierName || supp.name}
+                    </option>
+                  ))}
+                </select>
+                {showError && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a supplier before proceeding.
+                  </p>
+                )}
+              </div>
 
-            {/* From Date */}
-            <div className="w-[200px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Date From
-              </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              />
-            </div>
+              {/* From Date */}
+              <div className="w-[200px]">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Date From
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                />
+              </div>
 
-            {/* To Date */}
-            <div className="w-[200px]">
-              <label className="block text-gray-700 font-medium mb-2">
-                Date To
-              </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-              />
+              {/* To Date */}
+              <div className="w-[200px]">
+                <label className="block text-gray-700 font-medium mb-2">
+                  Date To
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                />
+              </div>
+            </div>
+            <div>
+              {/* Search Bar */}
+              <div className="w-[280px] justify-end mb-6">
+                <input
+                  type="text"
+                  placeholder="Search by ID, Supplier, or Item..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+                />
+              </div>
             </div>
           </div>
 

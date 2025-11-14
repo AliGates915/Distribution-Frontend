@@ -7,13 +7,14 @@ import { ScaleLoader } from "react-spinners";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 import Swal from "sweetalert2";
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 const ExpensePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = new Date().toLocaleDateString("en-CA");
   const [expenses, setExpenses] = useState([]);
   const [expenseDate, setExpenseDate] = useState(today);
   const [expenseName, setExpenseName] = useState("");
@@ -23,6 +24,7 @@ const ExpensePage = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [expenseItems, setExpenseItems] = useState([]);
   const [viewExpense, setViewExpense] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10; // you can adjust page size
 
@@ -99,7 +101,10 @@ const ExpensePage = () => {
       toast.error("Please enter expense name and amount!");
       return;
     }
-    setExpenseItems([...expenseItems, { name: expenseName, amount: parseFloat(amount) }]);
+    setExpenseItems([
+      ...expenseItems,
+      { name: expenseName, amount: parseFloat(amount) },
+    ]);
     setExpenseName("");
     setExpenseDate(today);
     setAmount("");
@@ -112,7 +117,7 @@ const ExpensePage = () => {
   // ================= SAVE / UPDATE EXPENSE =================
   const handleSaveExpense = async (e) => {
     e.preventDefault();
-    if (!expenseDate  || expenseItems.length === 0) {
+    if (!expenseDate || expenseItems.length === 0) {
       toast.error("Please complete all fields!");
       return;
     }
@@ -130,7 +135,10 @@ const ExpensePage = () => {
       setIsSaving(true);
       if (editingExpense) {
         // UPDATE
-        await axios.put(`${API_BASE}/salesman-expense/${editingExpense.id}`, payload);
+        await axios.put(
+          `${API_BASE}/salesman-expense/${editingExpense.id}`,
+          payload
+        );
         toast.success("Expense updated successfully!");
       } else {
         // CREATE
@@ -166,7 +174,7 @@ const ExpensePage = () => {
       setIsSaving(false);
     }
   };
-    const formDate = (date) => {
+  const formDate = (date) => {
     if (!date) return "";
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, "0");
@@ -214,15 +222,34 @@ const ExpensePage = () => {
         });
       } catch (error) {
         console.error("Error deleting expense:", error);
-        toast.error(error.response?.data?.message || "Failed to delete expense");
+        toast.error(
+          error.response?.data?.message || "Failed to delete expense"
+        );
       }
     }
   };
+
+  // filtered array
+  const filteredExpenses = expenses.filter((exp) => {
+    const term = searchTerm.toLowerCase();
+    const itemsNames = exp.items
+      .map((i) => i.name)
+      .join(", ")
+      .toLowerCase();
+    return (
+      exp.salesman.toLowerCase().includes(term) ||
+      itemsNames.includes(term) ||
+      exp.date.toLowerCase().includes(term)
+    );
+  });
+
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(expenses.length / recordsPerPage);
-
+  const currentRecords = filteredExpenses.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
+  const totalPages = Math.ceil(filteredExpenses.length / recordsPerPage);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -236,16 +263,35 @@ const ExpensePage = () => {
         )}
 
         <div className="flex justify-between items-center mb-4">
+          {/* Left: Title */}
           <div>
-            <h1 className="text-2xl font-bold text-newPrimary">City Trader Expense</h1>
-            <p className="text-gray-500 text-sm">Manage your daily expense records</p>
+            <h1 className="text-2xl font-bold text-newPrimary">
+              City Trader Expense
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Manage your daily expense records
+            </p>
           </div>
-          <button
-            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
-            onClick={() => setIsSliderOpen(true)}
-          >
-            + Add Expense
-          </button>
+
+          {/* Right: Search + Add button */}
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              placeholder="Search by Expenses, Date..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // reset to first page on search
+              }}
+              className="w-full md:w-64 p-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+            />
+            <button
+              className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80"
+              onClick={() => setIsSliderOpen(true)}
+            >
+              + Add Expense
+            </button>
+          </div>
         </div>
 
         {/* TABLE */}
@@ -255,8 +301,8 @@ const ExpensePage = () => {
               <div className="hidden lg:grid grid-cols-[80px_150px_1fr_150px_150px] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase border-b">
                 <div>Sr</div>
                 <div>Date</div>
-             
-                <div >Expenses</div>
+
+                <div>Expenses</div>
                 <div>Amount</div>
                 <div className="text-center">Actions</div>
               </div>
@@ -280,8 +326,10 @@ const ExpensePage = () => {
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
                       <div>{formDate(exp.date)}</div>
-                     
-                      <div className="pl-6">{exp.items.map((i) => i.name).join(", ")}</div>
+
+                      <div className="pl-6">
+                        {exp.items.map((i) => i.name).join(", ")}
+                      </div>
                       <div className="font-semibold text-blue-600">
                         {exp.totalAmount}
                       </div>
@@ -313,17 +361,21 @@ const ExpensePage = () => {
                 <div className="flex justify-between items-center py-4 px-6 bg-white border-t rounded-b-xl mt-2 shadow-sm">
                   <p className="text-sm text-gray-600">
                     Showing {indexOfFirstRecord + 1}–
-                    {Math.min(indexOfLastRecord, expenses.length)} of {expenses.length} expenses
+                    {Math.min(indexOfLastRecord, expenses.length)} of{" "}
+                    {expenses.length} expenses
                   </p>
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
                           ? "bg-gray-300 cursor-not-allowed"
                           : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      }`}
                     >
                       Previous
                     </button>
@@ -333,17 +385,17 @@ const ExpensePage = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
                           ? "bg-gray-300 cursor-not-allowed"
                           : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      }`}
                     >
                       Next
                     </button>
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </div>
@@ -449,8 +501,12 @@ const ExpensePage = () => {
                           className="flex items-center justify-between text-sm text-gray-700 py-2 border-b last:border-b-0"
                         >
                           <span className="w-1/12 text-left">{idx + 1}</span>
-                          <span className="w-5/12 text-center">{item.name}</span>
-                          <span className="w-3/12 text-left">{item.amount}</span>
+                          <span className="w-5/12 text-center">
+                            {item.name}
+                          </span>
+                          <span className="w-3/12 text-left">
+                            {item.amount}
+                          </span>
                           <span className="w-3/12 flex justify-center">
                             <button
                               type="button"
@@ -481,7 +537,9 @@ const ExpensePage = () => {
         {viewExpense && (
           <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-              <h2 className="text-xl font-bold text-newPrimary mb-4">Expense Details</h2>
+              <h2 className="text-xl font-bold text-newPrimary mb-4">
+                Expense Details
+              </h2>
               <p>
                 <strong>Date:</strong> {viewExpense.date}
               </p>

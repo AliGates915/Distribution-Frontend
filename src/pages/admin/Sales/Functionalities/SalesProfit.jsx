@@ -13,7 +13,8 @@ const Sales = () => {
   const today = new Date().toLocaleDateString("en-CA");
   const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
-const [showSalesmanError, setShowSalesmanError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSalesmanError, setShowSalesmanError] = useState(false);
 
   // ✅ Fetch Salesman List
   const fetchSalesmanList = useCallback(async () => {
@@ -30,10 +31,10 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
 
   // ✅ Fetch Salesman Report
   const fetchSalesmanReport = useCallback(async () => {
-     if (!selectedSalesman) {
-    setShowSalesmanError(true);
-    return;
-  }
+    if (!selectedSalesman) {
+      setShowSalesmanError(true);
+      return;
+    }
     if (!selectedDate) return;
     try {
       setLoading(true);
@@ -82,6 +83,19 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
   const customerSection = reportData?.customerSection || [];
   const totals = reportData?.totals || { totalPurchase: 0, totalSales: 0 };
 
+  // Seatch
+  const filteredProductSection = productSection.filter(
+    (item) =>
+      item.product?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.supplier?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredCustomerSection = customerSection.filter(
+    (item) =>
+      item.customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.salesArea?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -103,7 +117,8 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-5 mb-6">
+        <div className="flex flex-wrap items-end gap-5 mb-6 w-full">
+          {/* Date */}
           <div className="w-[200px]">
             <label className="block text-gray-700 font-medium mb-2">Date</label>
             <input
@@ -114,11 +129,11 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
             />
           </div>
 
+          {/* Salesman */}
           <div className="w-[300px]">
             <label className="block text-gray-700 font-medium mb-2">
               Salesman <span className="text-red-500">*</span>
             </label>
-
             <div className="flex flex-col">
               <select
                 value={selectedSalesman}
@@ -142,6 +157,17 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="ml-auto w-full md:w-64">
+            <input
+              type="text"
+              placeholder="Search by Customer, Salesman, Invoice..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+            />
           </div>
         </div>
 
@@ -179,7 +205,7 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
 
               {/* Rows */}
               <div className="divide-y divide-gray-100">
-                {productSection.map((row, i) => (
+                {filteredProductSection.map((row, i) => (
                   <div
                     key={i}
                     className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${
@@ -259,7 +285,7 @@ const [showSalesmanError, setShowSalesmanError] = useState(false);
 
               {/* Rows */}
               <div className="divide-y divide-gray-100">
-                {customerSection.map((row, i) => (
+                {filteredCustomerSection.map((row, i) => (
                   <div
                     key={i}
                     className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${
