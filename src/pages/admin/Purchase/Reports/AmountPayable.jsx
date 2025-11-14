@@ -67,40 +67,44 @@ const AmountPayable = () => {
           <h1 className="text-2xl font-bold text-newPrimary">
             Amount Payable Details
           </h1>
-
-          <input
-            type="text"
-            placeholder="Search by supplier name or amount"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-          />
         </div>
 
         {/* Filter Controls */}
-        <div className="flex gap-6 mb-4">
-          <label className="flex items-center gap-2">
+        <div className="flex gap-6 justify-between mb-4">
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="balanceFilter"
+                value="withZero"
+                checked={showZero}
+                onChange={() => setShowZero(true)}
+                className="w-4 h-4"
+              />
+              With Zero
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="balanceFilter"
+                value="withoutZero"
+                checked={!showZero}
+                onChange={() => setShowZero(false)}
+                className="w-4 h-4"
+              />
+              Without Zero
+            </label>
+          </div>
+
+          <div>
             <input
-              type="radio"
-              name="balanceFilter"
-              value="withZero"
-              checked={showZero}
-              onChange={() => setShowZero(true)}
-              className="w-4 h-4"
+              type="text"
+              placeholder="Search by supplier name or amount"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
             />
-            With Zero
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="balanceFilter"
-              value="withoutZero"
-              checked={!showZero}
-              onChange={() => setShowZero(false)}
-              className="w-4 h-4"
-            />
-            Without Zero
-          </label>
+          </div>
         </div>
 
         {/* Table Section */}
@@ -157,11 +161,10 @@ const AmountPayable = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Previous
                     </button>
@@ -170,11 +173,10 @@ const AmountPayable = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Next
                     </button>

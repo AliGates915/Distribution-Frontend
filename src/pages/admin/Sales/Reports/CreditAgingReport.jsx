@@ -10,6 +10,7 @@ const CreditAgingReport = () => {
   const [loading, setLoading] = useState(false);
   const [apiData, setApiData] = useState([]);
   const [salesmanData, setSalesmanData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   // below your totals useState
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -50,8 +51,7 @@ const CreditAgingReport = () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_BASE_URL
+        `${import.meta.env.VITE_API_BASE_URL
         }/credit-aging?salesmanId=${selectedSalesman}`
       );
 
@@ -95,11 +95,25 @@ const CreditAgingReport = () => {
     }
   }, [selectedSalesman, fetchCreditAging]);
 
+  // Search
+  const filteredData = apiData.filter((customer) => {
+    const matchInvoices = customer.invoices.some((inv) =>
+      `${inv.invoiceNo} ${inv.customerName} ${inv.salesman} ${inv.invoiceDate} ${inv.deliveryDate}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      matchInvoices
+    );
+  });
+
   // Pagination calculations
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = apiData.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(apiData.length / recordsPerPage);
+  const currentRecords = filteredData.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredData.length / recordsPerPage);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -124,32 +138,50 @@ const CreditAgingReport = () => {
               </button>
             )}
           </div>
-          <div className="flex items-start gap-6 mb-5">
-            <label className="text-gray-700 font-medium w-24 mt-2">
-              Salesman <span className="text-red-500">*</span>
-            </label>
+          <div className="flex justify-between items-start gap-6 mb-5">
+            {/* Salesman Block */}
+            <div className="flex items-start gap-4">
+              <label className="text-gray-700 font-medium w-24 mt-2">
+                Salesman <span className="text-red-500">*</span>
+              </label>
 
-            <div className="flex flex-col">
-              <select
-                value={selectedSalesman}
-                onChange={(e) => setSelectedSalesman(e.target.value)}
-                className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              >
-                <option value="">Select Salesman</option>
-                {salesmanData.map((cust) => (
-                  <option key={cust._id} value={cust._id}>
-                    {cust.employeeName}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <select
+                  value={selectedSalesman}
+                  onChange={(e) => setSelectedSalesman(e.target.value)}
+                  className="w-[250px] p-2 h-[42px] border border-gray-300 rounded-md 
+        focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                >
+                  <option value="">Select Salesman</option>
+                  {salesmanData.map((cust) => (
+                    <option key={cust._id} value={cust._id}>
+                      {cust.employeeName}
+                    </option>
+                  ))}
+                </select>
 
-              {!selectedSalesman && (
-                <p className="text-red-500 text-sm mt-1">
-                  Please select a salesman to load report.
-                </p>
-              )}
+                {!selectedSalesman && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a salesman to load report.
+                  </p>
+                )}
+              </div>
             </div>
+
+            {/* Search Bar */}
+            <input
+              type="text"
+              placeholder="Search customer, invoice no, date..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 h-[42px] w-[280px] border border-gray-300 rounded-lg 
+    focus:outline-none focus:ring-2 focus:ring-newPrimary"
+            />
           </div>
+
 
           <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
             <div className="overflow-x-auto">
@@ -216,9 +248,8 @@ const CreditAgingReport = () => {
                                 {inv.underCredit.toLocaleString() ?? "-"}
                               </div>
                               <div
-                                className={`font-semibold ${
-                                  inv.due > 0 ? "text-red-600" : "text-gray-500"
-                                }`}
+                                className={`font-semibold ${inv.due > 0 ? "text-red-600" : "text-gray-500"
+                                  }`}
                               >
                                 {inv.due.toLocaleString() ?? "-"}
                               </div>
@@ -267,11 +298,10 @@ const CreditAgingReport = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === 1
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Previous
                     </button>
@@ -281,11 +311,10 @@ const CreditAgingReport = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                      }`}
+                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                     >
                       Next
                     </button>

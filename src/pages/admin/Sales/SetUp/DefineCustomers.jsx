@@ -38,17 +38,26 @@ const DefineCustomers = () => {
   const [areaNameList, setAreaNameList] = useState([]);
   const [salesManList, setSalesManList] = useState([]);
   const [selectedSalesman, setSelectedSalesman] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
+  // Filtered customers based on search term
+  const filteredCustomers = customerList.filter((c) =>
+    c.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.address && c.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // Pagination logic on filtered customers
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = customerList.slice(
+  const currentRecords = filteredCustomers.slice(
     indexOfFirstRecord,
     indexOfLastRecord
   );
-  const totalPages = Math.ceil(customerList.length / recordsPerPage);
 
+  // Total pages based on filtered customers
+  const totalPages = Math.ceil(filteredCustomers.length / recordsPerPage);
 
 
   const handlePageChange = (pageNumber) => {
@@ -335,6 +344,8 @@ const DefineCustomers = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [customerList]);
+
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <CommanHeader />
@@ -348,13 +359,24 @@ const DefineCustomers = () => {
           <h1 className="text-2xl font-bold text-newPrimary">Customers List</h1>
           <p className="text-gray-500 text-sm">Manage your customer details</p>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
-          onClick={handleAddCustomer}
-        >
-          + Add Customer
-        </button>
+
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by Name or Address..."
+            className="px-3 py-2 w-full md:w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
+          />
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
+            onClick={handleAddCustomer}
+          >
+            + Add Customer
+          </button>
+        </div>
       </div>
+
 
       <div className="rounded-xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">

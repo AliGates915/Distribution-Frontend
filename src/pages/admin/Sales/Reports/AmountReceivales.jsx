@@ -70,40 +70,44 @@ const AmountReceivables = () => {
           <h1 className="text-2xl font-bold text-newPrimary">
             Amount Receivable Details
           </h1>
-
-          <input
-            type="text"
-            placeholder="Search by customer name or amount"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-          />
         </div>
 
         {/* Filter Controls */}
-        <div className="flex gap-6 mb-4">
-          <label className="flex items-center gap-2">
+        <div className="flex gap-6 mb-4 justify-between">
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="balanceFilter"
+                value="withZero"
+                checked={showZero}
+                onChange={() => setShowZero(true)}
+                className="w-4 h-4"
+              />
+              With Zero
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="balanceFilter"
+                value="withoutZero"
+                checked={!showZero}
+                onChange={() => setShowZero(false)}
+                className="w-4 h-4"
+              />
+              Without Zero
+            </label>
+          </div>
+
+          <div>
             <input
-              type="radio"
-              name="balanceFilter"
-              value="withZero"
-              checked={showZero}
-              onChange={() => setShowZero(true)}
-              className="w-4 h-4"
+              type="text"
+              placeholder="Search by customer name or amount"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
             />
-            With Zero
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="balanceFilter"
-              value="withoutZero"
-              checked={!showZero}
-              onChange={() => setShowZero(false)}
-              className="w-4 h-4"
-            />
-            Without Zero
-          </label>
+          </div>
         </div>
 
         {/* Table Section */}

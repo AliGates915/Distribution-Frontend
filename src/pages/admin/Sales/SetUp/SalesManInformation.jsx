@@ -30,16 +30,27 @@ const SalesManInformation = () => {
   const [loading, setLoading] = useState(true);
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
   const API_URL = `${import.meta.env.VITE_API_BASE_URL}/employees`;
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
+  // Filtered employees based on search term
+  const filteredEmployees = employeeList.filter((emp) =>
+    emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.departmentName && emp.departmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (emp.address && emp.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (emp.city && emp.city.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Pagination logic applied on filtered employees
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = employeeList.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
-  const totalPages = Math.ceil(employeeList.length / recordsPerPage);
+  const currentRecords = filteredEmployees.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredEmployees.length / recordsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setLoading(true);
@@ -111,69 +122,69 @@ const SalesManInformation = () => {
   };
 
   // ✅ Salesman Form Validation
-const validateSalesmanForm = () => {
-  const errors = [];
+  const validateSalesmanForm = () => {
+    const errors = [];
 
-  if (!employeeName) errors.push("Employee Name is required");
- if(!gender) errors.push("Gender is required");
-  if (!address) errors.push("Address is required");
-  if (!city) errors.push("City is required");
+    if (!employeeName) errors.push("Employee Name is required");
+    if (!gender) errors.push("Gender is required");
+    if (!address) errors.push("Address is required");
+    if (!city) errors.push("City is required");
 
-  return errors;
-};
-
-
- const handleSave = async () => {
-  const errors = validateSalesmanForm();
-  if (errors.length > 0) {
-    Swal.fire({
-      icon: "error",
-      title: "Validation Error",
-      html: errors.join("<br/>"),
-    });
-    return;
-  }
-
-  const { token } = userInfo || {};
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
+    return errors;
   };
 
-  const newEmployee = {
-    departmentName: department,
-    employeeName,
-    address,
-    city,
-    gender,
-    mobile: phoneNumber,
-    nicNo: nic,
-    dob,
-    qualification,
-    bloodGroup,
-    isEnable: enable,
-  };
 
-  try {
-    setIsSaving(true);
-
-    if (isEdit && editId) {
-      await axios.put(`${API_URL}/${editId}`, newEmployee, { headers });
-      toast.success("Employee updated successfully");
-    } else {
-      await axios.post(API_URL, newEmployee, { headers });
-      toast.success("Employee added successfully");
+  const handleSave = async () => {
+    const errors = validateSalesmanForm();
+    if (errors.length > 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        html: errors.join("<br/>"),
+      });
+      return;
     }
 
-    fetchDepartmentTableList();
-    setIsSliderOpen(false);
-  } catch (error) {
-    console.error("Error saving employee:", error);
-    toast.error(error.response?.data?.message || "Failed to save employee");
-  } finally {
-    setIsSaving(false);
-  }
-};
+    const { token } = userInfo || {};
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const newEmployee = {
+      departmentName: department,
+      employeeName,
+      address,
+      city,
+      gender,
+      mobile: phoneNumber,
+      nicNo: nic,
+      dob,
+      qualification,
+      bloodGroup,
+      isEnable: enable,
+    };
+
+    try {
+      setIsSaving(true);
+
+      if (isEdit && editId) {
+        await axios.put(`${API_URL}/${editId}`, newEmployee, { headers });
+        toast.success("Employee updated successfully");
+      } else {
+        await axios.post(API_URL, newEmployee, { headers });
+        toast.success("Employee added successfully");
+      }
+
+      fetchDepartmentTableList();
+      setIsSliderOpen(false);
+    } catch (error) {
+      console.error("Error saving employee:", error);
+      toast.error(error.response?.data?.message || "Failed to save employee");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
 
   const handleEdit = (emp) => {
@@ -261,9 +272,9 @@ const validateSalesmanForm = () => {
         }
       });
   };
- useEffect(() => {
-  setCurrentPage(1);
-}, [employeeList]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [employeeList]);
 
 
   return (
@@ -271,22 +282,35 @@ const validateSalesmanForm = () => {
       {/* Common header */}
       <CommanHeader />
       {isSaving && (
-              <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
-                <ScaleLoader color="#1E93AB" size={60} />
-              </div>
-            )}
-      <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-[9999]">
+          <ScaleLoader color="#1E93AB" size={60} />
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        {/* Title Section */}
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Salesman Information</h1>
           <p className="text-gray-500 text-sm">Manage your salesman details</p>
         </div>
-        <button
-          className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
-          onClick={handleAddEmployee}
-        >
-          + Add Salesman
-        </button>
+
+        {/* Search + Add Button */}
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4 w-full md:w-auto">
+          <input
+            type="text"
+            placeholder="Search by name, department, address, or city..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="px-3 py-2 w-full md:w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
+          />
+          <button
+            className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/90"
+            onClick={handleAddEmployee}
+          >
+            + Add Salesman
+          </button>
+        </div>
       </div>
+
 
       {/* Employee Table */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
@@ -302,7 +326,7 @@ const validateSalesmanForm = () => {
               <div>DOB</div>
               <div>Qualification</div>
               <div>Status</div>
-              <div className={`${loading ? "":"text-right"}`}>Actions</div>
+              <div className={`${loading ? "" : "text-right"}`}>Actions</div>
             </div>
 
             {/* ✅ Table Body */}
@@ -326,7 +350,7 @@ const validateSalesmanForm = () => {
                     <div className="text-gray-900">
                       {indexOfFirstRecord + index + 1}
                     </div>
-                  
+
                     <div className="text-gray-700">{emp?.employeeName || "-"}</div>
                     <div className="text-gray-600">
                       {emp?.departmentName || "-"}
@@ -378,11 +402,10 @@ const validateSalesmanForm = () => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === 1
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Previous
                   </button>
@@ -391,11 +414,10 @@ const validateSalesmanForm = () => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md ${
-                      currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                    }`}
+                    className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                   >
                     Next
                   </button>
@@ -413,7 +435,7 @@ const validateSalesmanForm = () => {
             ref={sliderRef}
             className="relative w-full md:w-[800px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
-            
+
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
                 {isEdit ? "Update Salesman" : "Add a New Salesman"}
@@ -456,7 +478,7 @@ const validateSalesmanForm = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Department 
+                    Department
                   </label>
                   <input
                     type="text"
@@ -508,7 +530,7 @@ const validateSalesmanForm = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Phone Number 
+                    Phone Number
                   </label>
                   <input
                     type="text"
@@ -521,7 +543,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    NIC 
+                    NIC
                   </label>
                   <input
                     type="text"
@@ -541,7 +563,7 @@ const validateSalesmanForm = () => {
 
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Date of Birth 
+                    Date of Birth
                   </label>
                   <input
                     type="date"
@@ -554,7 +576,7 @@ const validateSalesmanForm = () => {
               <div className="flex gap-4">
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Qualification 
+                    Qualification
                   </label>
                   <input
                     type="text"
@@ -565,7 +587,7 @@ const validateSalesmanForm = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <label className="block text-gray-700 font-medium">
-                    Blood Group 
+                    Blood Group
                   </label>
                   <input
                     type="text"
@@ -581,14 +603,12 @@ const validateSalesmanForm = () => {
                 <button
                   type="button"
                   onClick={() => setEnable(!enable)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                    enable ? "bg-green-500" : "bg-gray-300"
-                  }`}
+                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enable ? "bg-green-500" : "bg-gray-300"
+                    }`}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                      enable ? "translate-x-7" : "translate-x-0"
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enable ? "translate-x-7" : "translate-x-0"
+                      }`}
                   />
                 </button>
                 <span>{enable ? "Enabled" : "Disabled"}</span>

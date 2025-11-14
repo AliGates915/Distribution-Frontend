@@ -19,6 +19,7 @@ const ExpensePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10; // you can change page size if needed
   const [showSalesmanError, setShowSalesmanError] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const formDate = (date) => {
     if (!date) return "";
@@ -28,12 +29,12 @@ const ExpensePage = () => {
     const year = d.getFullYear();
     return `${day}-${month}-${year}`;
   };
-  
+
 
   // ✅ Fetch Expenses based on salesman/date
   const fetchExpenses = async () => {
     try {
-     
+
 
       setIsLoading(true);
       const dateQuery = selectedDate ? `?date=${selectedDate}` : ""; // Optional date
@@ -76,18 +77,30 @@ const ExpensePage = () => {
     fetchExpenses();
   }, []);
   // console.log({expenses});
+
+  useEffect(() => {
+    if (!selectedSalesman) {
+      setShowSalesmanError(true);
+    }
+  }, []);
+
+  const filteredExpenses = expenses.filter((exp) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      exp.salesman?.toLowerCase().includes(search) ||
+      exp.items.some((i) => i.name.toLowerCase().includes(search)) ||
+      exp.totalAmount.toString().includes(search) ||
+      exp.date.toLowerCase().includes(search)
+    );
+  });
+
   // 🔹 Pagination calculations
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(expenses.length / recordsPerPage);
+  const currentRecords = filteredExpenses.slice(indexOfFirstRecord, indexOfLastRecord);
+  const totalPages = Math.ceil(filteredExpenses.length / recordsPerPage);
 
-
-  useEffect(() => {
-  if (!selectedSalesman) {
-    setShowSalesmanError(true);
-  }
-}, []);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -111,23 +124,29 @@ const ExpensePage = () => {
           )}
 
           {/* 🔹 Filters */}
-          <div className="flex justify-end items-center w-full gap-4 mb-5">
-          
-           
-              <div className=" whitespace-nowrap">
-                <label className=" text-newPrimary text-lg inline-flex gap-2 items-center font-medium mb-2">
-                  Today Expense Amount:{" "}
-                  <p className="text-black ">{expenseAmount}</p>
+          <div className="flex justify-end items-center w-full gap-4">
+            <div className="flex justify-end items-center w-full gap-4 mb-5">
+
+              {/* Today Expense Amount */}
+              <div className="whitespace-nowrap">
+                <label className="text-newPrimary text-lg inline-flex gap-2 items-center font-medium mb-2">
+                  Today Expense Amount:
+                  <p className="text-black">{expenseAmount}</p>
                 </label>
-                {/* 
-            <input
-              type="text"
-              value={expenseAmount}
-             disabled
-              className="w-full p-3 border h-[40px] border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
-            /> */}
               </div>
-           
+
+              {/* 🔍 Search Bar */}
+              <input
+                type="text"
+                placeholder="Search expenses..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-[280px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+              />
+            </div>
           </div>
 
           {/* ===== TABLE ===== */}
@@ -197,11 +216,10 @@ const ExpensePage = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === 1
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Previous
                       </button>
@@ -213,11 +231,10 @@ const ExpensePage = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === totalPages
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Next
                       </button>
@@ -238,7 +255,7 @@ const ExpensePage = () => {
                 <p>
                   <strong>Date:</strong> {viewExpense.date}
                 </p>
-               
+
                 <div className="mt-3">
                   <h3 className="font-semibold mb-2">Items:</h3>
                   <ul className="space-y-1">
