@@ -80,6 +80,7 @@ import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
 import BankLedger from './pages/admin/Bank/BankLedger.jsx'
 import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
 import DayBook from "./pages/admin/DayBook.jsx";
+import AllorderInvoice from "./pages/admin/AllOrdersInvoice/AllorderInvoice.jsx";
 
 
 function AppContent() {
@@ -247,6 +248,8 @@ function AppContent() {
             <Route path="opening-bank-position" element={<BankPosition />} />
             {/* Setup */}
             <Route path="bank/define" element={<DefineBank />} />
+            {/* All order / invoice */}
+            <Route path="all-orders-invoice" element={<AllorderInvoice />} />
           </Route>
         </Routes>
       </main>

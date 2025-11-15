@@ -28,6 +28,7 @@ import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BiPurchaseTag, BiPurchaseTagAlt } from "react-icons/bi";
 import { IoBagCheckSharp } from "react-icons/io5";
+import { TbFileInvoice } from "react-icons/tb";
 
 
 // 🔹 Link definitions with permission keys
@@ -53,6 +54,13 @@ const links = [
     to: "/admin/day-book",
     label: "Day Book",
     icon: <FaBook  />,
+  },
+  {
+    to: "/admin/all-orders-invoice",
+    label: "All Orders / Invoice",
+    icon: <TbFileInvoice  size={20
+      
+    } />,
   },
   {
     to: "/admin/security",
