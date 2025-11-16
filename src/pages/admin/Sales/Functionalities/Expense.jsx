@@ -250,6 +250,7 @@ const ExpensePage = () => {
     indexOfLastRecord
   );
   const totalPages = Math.ceil(filteredExpenses.length / recordsPerPage);
+  console.log({ viewExpense });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -543,9 +544,7 @@ const ExpensePage = () => {
               <p>
                 <strong>Date:</strong> {viewExpense.date}
               </p>
-              <p>
-                <strong>Salesman:</strong> {viewExpense.salesman}
-              </p>
+
               <div className="mt-3">
                 <h3 className="font-semibold mb-2">Items:</h3>
                 <ul className="space-y-1">
@@ -558,7 +557,11 @@ const ExpensePage = () => {
                 </ul>
               </div>
               <p className="mt-4 font-semibold text-blue-600">
-                Total Amount: {viewExpense.totalAmount}
+                Total Amount:{" "}
+                {viewExpense.items?.reduce(
+                  (sum, item) => sum + (item.amount || 0),
+                  0
+                )}
               </p>
               <button
                 onClick={() => setViewExpense(null)}

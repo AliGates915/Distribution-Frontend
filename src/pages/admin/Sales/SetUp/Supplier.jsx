@@ -156,7 +156,7 @@ const SupplierList = () => {
       contactPerson,
       address,
       mobileNumber,
-      phoneNumber,
+      contactNumber:phoneNumber,
       designation,
       ntn,
       gst,
@@ -217,7 +217,7 @@ const SupplierList = () => {
     setContactPerson(supplier.contactPerson);
     setEmail(supplier.email);
     setAddress(supplier.address);
-    setPhoneNumber(supplier.phoneNumber || "");
+    setPhoneNumber(supplier.contactNumber || "");
     setMobileNumber(supplier.mobileNumber || "");
     setDesignation(supplier.designation || "");
     setNtn(supplier.ntn || "");
@@ -317,6 +317,7 @@ const SupplierList = () => {
   }, [supplierList, searchTerm]);
 
 
+// console.log({supplierList});
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -403,7 +404,7 @@ const SupplierList = () => {
                         {s.address || "-"}
                       </div>
                       <div className="text-gray-600">
-                        {s.phoneNumber || "-"}
+                        {s.contactNumber || "-"}
                       </div>
                       <div className="text-gray-600">
                         {s.paymentTerms}

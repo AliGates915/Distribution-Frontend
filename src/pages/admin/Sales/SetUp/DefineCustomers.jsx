@@ -44,7 +44,7 @@ const DefineCustomers = () => {
 
   // Filtered customers based on search term
   const filteredCustomers = customerList.filter((c) =>
-    c.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.address && c.address.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 

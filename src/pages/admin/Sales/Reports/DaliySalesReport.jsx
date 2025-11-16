@@ -494,23 +494,7 @@ const DailySalesReport = () => {
 
             {/* ===== Right Section ===== */}
             <div className="flex flex-col space-y-2">
-              <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
-                  Orders <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={selectedOrders}
-                  onChange={(e) => setSelectedOrders(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                >
-                  <option value="">Select Orders</option>
-                  {PendingOrdersList?.map((order) => (
-                    <option key={order._id} value={order.invoiceNo}>
-                      {order.invoiceNo}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          
               <div className="flex justify-end mb-4">
                 <input
                   type="text"
