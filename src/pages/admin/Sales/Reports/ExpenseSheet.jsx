@@ -30,17 +30,14 @@ const ExpensePage = () => {
     return `${day}-${month}-${year}`;
   };
 
-
   // ✅ Fetch Expenses based on salesman/date
   const fetchExpenses = async () => {
     try {
-
-
       setIsLoading(true);
       const dateQuery = selectedDate ? `?date=${selectedDate}` : ""; // Optional date
 
       const { data } = await axios.get(
-        `${API_BASE}/salesman-expense/by-date`
+        `${API_BASE}/salesman-expense/by-date?date=${selectedDate}`
       );
 
       if (data.success) {
@@ -68,14 +65,16 @@ const ExpensePage = () => {
 
   // ✅ Auto load today's date and data
   useEffect(() => {
-    const today = new Date().toLocaleDateString("en-CA");
+    const today = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Karachi",
+    });
     setSelectedDate(today);
   }, []);
 
   // ✅ Auto-refresh when salesman or date changes
   useEffect(() => {
-    fetchExpenses();
-  }, []);
+    if (selectedDate) fetchExpenses();
+  }, [selectedDate]);
   // console.log({expenses});
 
   useEffect(() => {
@@ -98,9 +97,11 @@ const ExpensePage = () => {
   // 🔹 Pagination calculations
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredExpenses.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = filteredExpenses.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
   const totalPages = Math.ceil(filteredExpenses.length / recordsPerPage);
-
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -125,27 +126,39 @@ const ExpensePage = () => {
 
           {/* 🔹 Filters */}
           <div className="flex justify-end items-center w-full gap-4">
-            <div className="flex justify-end items-center w-full gap-4 mb-5">
-
-              {/* Today Expense Amount */}
-              <div className="whitespace-nowrap">
-                <label className="text-newPrimary text-lg inline-flex gap-2 items-center font-medium mb-2">
-                  Today Expense Amount:
-                  <p className="text-black">{expenseAmount}</p>
-                </label>
+            <div className="flex justify-between items-center w-full gap-4 mb-5">
+              <div className="flex justify-between items-center mt-8">
+                {/* Date Filter */}
+                <div className="whitespace-nowrap">
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="p-2 border w-[250px] border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
               </div>
+              <div>
+                {/* Today Expense Amount */}
+                <div className="whitespace-nowrap">
+                  <label className="text-newPrimary text-lg inline-flex gap-2 items-center font-medium mb-2">
+                    Today Expense Amount:
+                    <p className="text-black">{expenseAmount}</p>
+                  </label>
+                </div>
 
-              {/* 🔍 Search Bar */}
-              <input
-                type="text"
-                placeholder="Search expenses..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-[280px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-              />
+                {/* 🔍 Search Bar */}
+                <input
+                  type="text"
+                  placeholder="Search expenses..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-[280px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                />
+              </div>
             </div>
           </div>
 
@@ -216,10 +229,11 @@ const ExpensePage = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${currentPage === 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Previous
                       </button>
@@ -231,10 +245,11 @@ const ExpensePage = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                          }`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === totalPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Next
                       </button>
