@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+
 import Swal from "sweetalert2";
 import { SquarePen, Trash2 } from "lucide-react";
 import TableSkeleton from "../Components/Skeleton";
 import CommanHeader from "../Components/CommanHeader";
+import toast from "react-hot-toast";
 
 const PaymentVoucher = () => {
   const [vouchers, setVouchers] = useState([]);
@@ -59,8 +60,10 @@ const PaymentVoucher = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/suppliers`);
-      setSuppliers(res.data || []);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/suppliers`
+      );
+      setSuppliers(res?.data || []);
     } catch {
       setSuppliers([]);
     }
@@ -71,6 +74,7 @@ const PaymentVoucher = () => {
     fetchBanks();
     fetchSuppliers();
   }, []);
+  console.log({ suppliers });
 
   /** ================== AUTO PAYMENT ID ================== **/
   useEffect(() => {
@@ -158,12 +162,38 @@ const PaymentVoucher = () => {
 
   /** ================== SUBMIT ================== **/
   const handleSubmit = async (e) => {
-    if (Number(formData.amountPaid) > formData.supplierPayable) {
-      setAmountError("Amount cannot exceed payable balance");
+      e.preventDefault();
+   if (!formData.bank) {
+  toast.error("Please select a bank");
+  return;
+}
 
-      return; // stop form submission
-    }
-    e.preventDefault();
+if (!formData.supplier) {
+  toast.error("Please select a supplier");
+  return;
+}
+
+if (formData.supplierPayable === 0) {
+  toast.error("Selected supplier has 0 payable balance");
+  return;
+}
+
+if (Number(formData.amountPaid) <= 0) {
+  toast.error("Amount must be greater than 0");
+  return;
+}
+
+if (Number(formData.amountPaid) > formData.supplierPayable) {
+  setAmountError("Amount cannot exceed payable balance");
+  return;
+}
+
+if (Number(formData.amountPaid) > formData.bankBalance) {
+  toast.error("Amount cannot exceed bank balance");
+  return;
+}
+
+  
     setSubmitting(true); // start spinner
     const payload = {
       date: formData.date,
@@ -211,7 +241,9 @@ const PaymentVoucher = () => {
       <CommanHeader />
       <div className="flex justify-between mb-4 px-6">
         <div>
-          <h1 className="text-2xl font-bold text-newPrimary">Bank Payment Vouchers</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">
+            Bank Payment Vouchers
+          </h1>
           <p className="text-sm text-gray-500">
             Showing {filteredData.length} of {vouchers.length}
           </p>
@@ -238,7 +270,9 @@ const PaymentVoucher = () => {
         {loading ? (
           <TableSkeleton rows={6} cols={7} />
         ) : currentRecords.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">No vouchers found</div>
+          <div className="text-center py-6 text-gray-500">
+            No vouchers found
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -257,18 +291,26 @@ const PaymentVoucher = () => {
                 {currentRecords.map((v, i) => (
                   <tr key={v._id} className="border-b hover:bg-gray-50">
                     <td className="px-4 py-3">{indexOfFirst + i + 1}</td>
-                    <td className="px-4 py-3">{v.paymentId}</td>
-                    <td className="px-4 py-3">{v.supplier?.supplierName || "-"}</td>
-                    <td className="px-4 py-3">{v.bank?.bankName || "-"}</td>
-                    <td className="px-4 py-3">Rs. {v.amountPaid}</td>
+                    <td className="px-4 py-3">{v?.paymentId || "-"}</td>
                     <td className="px-4 py-3">
-                      {new Date(v.date).toLocaleDateString()}
+                      {v?.supplier?.supplierName || "-"}
+                    </td>
+                    <td className="px-4 py-3">{v?.bank?.bankName || "-"}</td>
+                    <td className="px-4 py-3">Rs. {v?.amountPaid || "-"}</td>
+                    <td className="px-4 py-3">
+                      {new Date(v?.date).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3 flex gap-2">
-                      <button onClick={() => handleEdit(v)} className="text-blue-600">
+                      <button
+                        onClick={() => handleEdit(v)}
+                        className="text-blue-600"
+                      >
                         <SquarePen size={18} />
                       </button>
-                      <button onClick={() => handleDelete(v._id)} className="text-red-600">
+                      <button
+                        onClick={() => handleDelete(v._id)}
+                        className="text-red-600"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </td>
@@ -329,7 +371,9 @@ const PaymentVoucher = () => {
                   <select
                     value={formData.bank}
                     onChange={(e) => {
-                      const selected = banks.find((b) => b._id === e.target.value);
+                      const selected = banks.find(
+                        (b) => b._id === e.target.value
+                      );
                       setFormData({
                         ...formData,
                         bank: selected?._id,
@@ -364,7 +408,9 @@ const PaymentVoucher = () => {
                   <select
                     value={formData.supplier}
                     onChange={(e) => {
-                      const selected = suppliers.find((s) => s._id === e.target.value);
+                      const selected = suppliers.find(
+                        (s) => s._id === e.target.value
+                      );
                       setFormData({
                         ...formData,
                         supplier: selected?._id,
@@ -372,11 +418,10 @@ const PaymentVoucher = () => {
                       });
                     }}
                     className="w-full border rounded-md p-3"
-                    required
                   >
                     <option value="">Select Supplier</option>
                     {suppliers
-                      .filter((s) => s.payableBalance > 0) // ✅ Only show suppliers with payable > 0
+                      .filter((s) => s.payableBalance > 0)
                       .map((s) => (
                         <option key={s._id} value={s._id}>
                           {s.supplierName}
@@ -384,9 +429,20 @@ const PaymentVoucher = () => {
                       ))}
                   </select>
 
+                  {/* ❗ Show message when no supplier has payable > 0 */}
+                  {suppliers.length > 0 &&
+                    suppliers.filter((s) => s.payableBalance > 0).length ===
+                      0 && (
+                      <p className="text-red-500 text-sm mt-1">
+                        No supplier available — all suppliers have 0 payable
+                        balance.
+                      </p>
+                    )}
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">Payable Balance</label>
+                  <label className="block font-medium mb-1">
+                    Payable Balance
+                  </label>
                   <input
                     type="number"
                     value={formData.supplierPayable}

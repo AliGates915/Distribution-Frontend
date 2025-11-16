@@ -207,7 +207,7 @@ const ItemUnit = () => {
   // }
 
   const filteredItemUnits = itemUnitList.filter((item) =>
-    item.unitName.toLowerCase().includes(searchTerm.toLowerCase())
+    item.unitName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // ✅ Pagination States

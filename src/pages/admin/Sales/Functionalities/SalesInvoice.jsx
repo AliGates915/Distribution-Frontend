@@ -256,14 +256,7 @@ const SalesInvoice = () => {
             <h1 className="text-2xl font-bold text-newPrimary">
               Pending Orders
             </h1>
-            {currentRecords.length > 0 && (
-              <button
-                onClick={() => handleSaleInvoicePrint(currentRecords)}
-                className="flex items-center gap-2 bg-newPrimary text-white px-4 py-2 rounded-md hover:bg-newPrimary/80"
-              >
-                <Printer size={18} />
-              </button>
-            )}
+           
           </div>
 
           {/* 🔹 Filter Fields */}
