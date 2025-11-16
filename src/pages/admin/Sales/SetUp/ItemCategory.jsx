@@ -256,7 +256,7 @@ const ItemCategory = () => {
 
   // 🔍 Filter Categories
   const filteredCategories = categories.filter((cat) =>
-    cat.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
+    cat.categoryName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 🔢 Pagination

@@ -1,25 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CommanHeader from "../admin/Components/CommanHeader";
+import axios from "axios";
+import TableSkeleton from "./Components/Skeleton";
+// your skeleton component
 
 const DayBook = () => {
-  // ---------- STATIC DATA ----------
   const [search, setSearch] = useState("");
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const today = new Date().toLocaleDateString("en-CA");
   const [selectedDate, setSelectedDate] = useState(today);
 
-  const salesRecoveryData = [
-    { sr: 1, description: "Sale - Product A", amount: 500 },
-    { sr: 2, description: "Recovery - Client X", amount: 300 },
-    { sr: 3, description: "Sale - Product B", amount: 250 },
-  ];
+  const [salesRecoveryData, setSalesRecoveryData] = useState([]);
+  const [expenseData, setExpenseData] = useState([]);
+  const [summary, setSummary] = useState({});
 
-  const expenseData = [
-    { sr: 1, description: "Fuel Expense", amount: 200 },
-    { sr: 2, description: "Stationery", amount: 50 },
-    { sr: 3, description: "Snacks", amount: 80 },
-  ];
+  const [loading, setLoading] = useState(false);
 
-  // ---------- SEARCH FILTER ----------
+  // Pagination States
+  const [currentPageSales, setCurrentPageSales] = useState(1);
+  const [currentPageExpense, setCurrentPageExpense] = useState(1);
+  const recordsPerPage = 8;
+
+  const userInfo = JSON.parse(localStorage.getItem("userInfo")) || {};
+  const headers = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
+
+  // Fetch API
+  useEffect(() => {
+    const fetchDayBook = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_BASE_URL}/dayBook?date=${selectedDate}`,
+          headers
+        );
+
+        setSalesRecoveryData(res.data.salesRecovery || []);
+        setExpenseData(res.data.expenses || []);
+        setSummary(res.data.summary || {});
+      } catch (error) {
+        console.error("DayBook error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDayBook();
+  }, [selectedDate]);
+
+  // ---------------- FILTERS ----------------
   const filteredSalesRecovery = salesRecoveryData.filter((item) =>
     item.description.toLowerCase().includes(search.toLowerCase())
   );
@@ -28,32 +55,49 @@ const DayBook = () => {
     item.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ---------- CALCULATIONS ----------
+  // ---------------- PAGINATION ----------------
+  const indexOfLastSales = currentPageSales * recordsPerPage;
+  const indexOfFirstSales = indexOfLastSales - recordsPerPage;
+  const currentSales = filteredSalesRecovery.slice(
+    indexOfFirstSales,
+    indexOfLastSales
+  );
+  const totalSalesPages = Math.ceil(
+    filteredSalesRecovery.length / recordsPerPage
+  );
+
+  const indexOfLastExpense = currentPageExpense * recordsPerPage;
+  const indexOfFirstExpense = indexOfLastExpense - recordsPerPage;
+  const currentExpenses = filteredExpenses.slice(
+    indexOfFirstExpense,
+    indexOfLastExpense
+  );
+  const totalExpensesPages = Math.ceil(
+    filteredExpenses.length / recordsPerPage
+  );
+
+  // ---------------- TOTALS ----------------
   const totalSalesRecovery = filteredSalesRecovery.reduce(
-    (sum, item) => sum + item.amount,
+    (sum, item) => sum + (item.amount || 0),
     0
   );
 
   const totalExpense = filteredExpenses.reduce(
-    (sum, item) => sum + item.amount,
+    (sum, item) => sum + (item.amount || 0),
     0
   );
-
-  const totalProfit = totalSalesRecovery - totalExpense;
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
       <CommanHeader />
 
       <div className="px-6 mx-auto">
-        {/* ---------------- PAGE TITLE ---------------- */}
         <h1 className="text-2xl font-bold text-newPrimary mb-6">Day Book</h1>
 
-        {/* ---------------- DATE + SEARCH BAR ---------------- */}
+        {/* ---------------- DATE + SEARCH ---------------- */}
         <div className="flex justify-between items-center mb-6">
-          {/* Date Input */}
           <div className="flex gap-2">
-            <label className="text-sm  font-medium mb-1">Date</label>
+            <label className="text-sm font-medium mb-1">Date</label>
             <input
               type="date"
               value={selectedDate}
@@ -62,48 +106,102 @@ const DayBook = () => {
             />
           </div>
 
-          {/* Search Input */}
-          <div className="flex flex-col">
-           
-            <input
-              type="text"
-              placeholder="Search description..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border p-2 rounded-md w-64 focus:ring-2 focus:ring-newPrimary"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Search description..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPageSales(1);
+              setCurrentPageExpense(1);
+            }}
+            className="border p-2 rounded-md w-64 focus:ring-2 focus:ring-newPrimary"
+          />
         </div>
 
-        {/* ---------------- TWO SECTION TABLE ---------------- */}
-        <div className="grid grid-cols-2 gap-6">
-
+        {/* ---------------- MAIN TABLES ---------------- */}
+        <div className="grid grid-cols-2 gap-6 items-start">
           {/* SALES + RECOVERY */}
           <div className="border rounded-xl shadow bg-white">
             <div className="bg-gray-100 p-3 text-center text-lg font-semibold">
               Sales + Recovery
             </div>
 
-            <table className="w-full text-left">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-3 border">SR</th>
-                  <th className="p-3 border">Description</th>
-                  <th className="p-3 border">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSalesRecovery.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="p-3 border">{item.sr}</td>
-                    <td className="p-3 border">{item.description}</td>
-                    <td className="p-3 border font-semibold">{item.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {loading ? (
+              <TableSkeleton rows={currentSales.length || 5} cols={3} />
+            ) : (
+              <>
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 border">SR</th>
+                      <th className="p-3 border">Description</th>
+                      <th className="p-3 border">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentSales.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="3"
+                          className="text-center p-4 text-gray-500"
+                        >
+                          No records found
+                        </td>
+                      </tr>
+                    ) : (
+                      currentSales.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="p-3 border">
+                            {indexOfFirstSales + idx + 1}
+                          </td>
+                          <td className="p-3 border">{item.description}</td>
+                          <td className="p-3 border font-semibold">
+                            {item.amount}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
 
-            {/* Total */}
+                {/* Pagination */}
+                {totalSalesPages > 1 && (
+                  <div className="flex justify-between items-center p-3 border-t">
+                    <button
+                      disabled={currentPageSales === 1}
+                      onClick={() =>
+                        setCurrentPageSales((prev) => Math.max(prev - 1, 1))
+                      }
+                      className={`px-3 py-1 rounded ${
+                        currentPageSales === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
+                    >
+                      Prev
+                    </button>
+
+                    <button
+                      disabled={currentPageSales === totalSalesPages}
+                      onClick={() =>
+                        setCurrentPageSales((prev) =>
+                          Math.min(prev + 1, totalSalesPages)
+                        )
+                      }
+                      className={`px-3 py-1 rounded ${
+                        currentPageSales === totalSalesPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="p-4 text-right font-bold text-green-600">
               Total = {totalSalesRecovery}
             </div>
@@ -115,44 +213,115 @@ const DayBook = () => {
               Expense
             </div>
 
-            <table className="w-full text-left">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-3 border">SR</th>
-                  <th className="p-3 border">Description</th>
-                  <th className="p-3 border">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredExpenses.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="p-3 border">{item.sr}</td>
-                    <td className="p-3 border">{item.description}</td>
-                    <td className="p-3 border font-semibold">{item.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {loading ? (
+              <TableSkeleton rows={currentExpenses.length || 5} cols={3} />
+            ) : (
+              <>
+                <table className="w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 border">SR</th>
+                      <th className="p-3 border">Description</th>
+                      <th className="p-3 border">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentExpenses.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="3"
+                          className="text-center p-4 text-gray-500"
+                        >
+                          No records found
+                        </td>
+                      </tr>
+                    ) : (
+                      currentExpenses.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="p-3 border">
+                            {indexOfFirstExpense + idx + 1}
+                          </td>
+                          <td className="p-3 border">{item.description}</td>
+                          <td className="p-3 border font-semibold">
+                            {item.amount}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
 
-            {/* Total */}
+                {/* Pagination */}
+                {totalExpensesPages > 1 && (
+                  <div className="flex justify-between items-center p-3 border-t">
+                    <button
+                      disabled={currentPageExpense === 1}
+                      onClick={() =>
+                        setCurrentPageExpense((prev) => Math.max(prev - 1, 1))
+                      }
+                      className={`px-3 py-1 rounded ${
+                        currentPageExpense === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
+                    >
+                      Prev
+                    </button>
+
+                    <button
+                      disabled={currentPageExpense === totalExpensesPages}
+                      onClick={() =>
+                        setCurrentPageExpense((prev) =>
+                          Math.min(prev + 1, totalExpensesPages)
+                        )
+                      }
+                      className={`px-3 py-1 rounded ${
+                        currentPageExpense === totalExpensesPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
             <div className="p-4 text-right font-bold text-red-600">
               Total Expense = {totalExpense}
             </div>
           </div>
         </div>
 
-        {/* ---------------- FOOTER CALCULATIONS ---------------- */}
-        <div className="mt-6 bg-white shadow p-6 rounded-xl">
-          <p className="text-xl font-semibold">
-            Total Balance =
-            <span className="text-blue-600"> {totalSalesRecovery}</span>
-          </p>
+        {/* ---------------- SUMMARY ---------------- */}
+        {(filteredSalesRecovery.length > 0 || filteredExpenses.length > 0) && (
+          <div className="mt-6 bg-white shadow p-6 rounded-xl">
+            <p className="text-xl font-semibold">
+              Total Income =
+              <span className="text-blue-600">
+                {" "}
+                {summary?.totalIncome || 0}
+              </span>
+            </p>
 
-          <p className="text-xl font-semibold mt-2">
-            Total Profit =
-            <span className="text-green-700"> {totalProfit}</span>
-          </p>
-        </div>
+            <p className="text-xl font-semibold mt-2">
+              Total Expense =
+              <span className="text-red-600">
+                {" "}
+                {summary?.totalExpense || 0}
+              </span>
+            </p>
+
+            <p className="text-xl font-semibold mt-2">
+              Total Profit =
+              <span className="text-green-700">
+                {" "}
+                {summary?.totalProfit || 0}
+              </span>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

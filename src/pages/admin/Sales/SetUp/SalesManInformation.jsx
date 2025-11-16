@@ -35,10 +35,10 @@ const SalesManInformation = () => {
   const recordsPerPage = 10;
 
   // Filtered employees based on search term
-  const filteredEmployees = employeeList.filter((emp) =>
-    emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredEmployees = employeeList?.filter((emp) =>
+    emp.employeeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (emp.departmentName && emp.departmentName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (emp.address && emp.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (emp.address && emp.address?.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (emp.city && emp.city.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
