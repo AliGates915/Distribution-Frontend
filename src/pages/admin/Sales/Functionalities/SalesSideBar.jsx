@@ -135,11 +135,11 @@ const setupChildren = [
   //   label: "Vehicle Information",
   //   icon: <FaCar />,
   // },
-  {
-    to: "/admin/supplier",
-    label: "Supplier",
-    icon: <FaTruck />,
-  },
+  // {
+  //   to: "/admin/supplier",
+  //   label: "Supplier",
+  //   icon: <FaTruck />,
+  // },
 ];
 
 // reportsChildren

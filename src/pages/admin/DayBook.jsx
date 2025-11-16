@@ -24,36 +24,44 @@ const DayBook = () => {
   const headers = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
 
   // Fetch API
-  useEffect(() => {
-    const fetchDayBook = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/dayBook?date=${selectedDate}`,
-          headers
-        );
+ useEffect(() => {
+  const fetchDayBook = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/dayBook?date=${selectedDate}`,
+        headers
+      );
 
-        setSalesRecoveryData(res.data.salesRecovery || []);
-        setExpenseData(res.data.expenses || []);
-        setSummary(res.data.summary || {});
-      } catch (error) {
-        console.error("DayBook error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setSalesRecoveryData(res.data.salesRecovery || []);
 
-    fetchDayBook();
-  }, [selectedDate]);
+      // Flatten expenses
+      const allExpenses = (res.data.expenses || [])
+        .flatMap(item => item.expenses || []);
+
+      setExpenseData(allExpenses);
+
+      setSummary(res.data.summary || {});
+    } catch (error) {
+      console.error("DayBook error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDayBook();
+}, [selectedDate]);
+
 
   // ---------------- FILTERS ----------------
-  const filteredSalesRecovery = salesRecoveryData.filter((item) =>
-    item.description.toLowerCase().includes(search.toLowerCase())
-  );
+const filteredSalesRecovery = salesRecoveryData?.filter((item) =>
+  (item?.description || "").toLowerCase().includes(search.toLowerCase())
+);
 
-  const filteredExpenses = expenseData.filter((item) =>
-    item.description.toLowerCase().includes(search.toLowerCase())
-  );
+
+ const filteredExpenses = expenseData?.filter((item) =>
+  (item?.description || "").toLowerCase().includes(search.toLowerCase())
+);
 
   // ---------------- PAGINATION ----------------
   const indexOfLastSales = currentPageSales * recordsPerPage;
@@ -86,6 +94,7 @@ const DayBook = () => {
     (sum, item) => sum + (item.amount || 0),
     0
   );
+console.log({currentExpenses});
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
