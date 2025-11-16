@@ -74,7 +74,7 @@ const PaymentVoucher = () => {
     fetchBanks();
     fetchSuppliers();
   }, []);
-  console.log({ suppliers });
+  // console.log({ suppliers });
 
   /** ================== AUTO PAYMENT ID ================== **/
   useEffect(() => {
@@ -234,6 +234,7 @@ if (Number(formData.amountPaid) > formData.bankBalance) {
   const indexOfLast = currentPage * recordsPerPage;
   const indexOfFirst = indexOfLast - recordsPerPage;
   const currentRecords = filteredData.slice(indexOfFirst, indexOfLast);
+// console.log({banks});
 
   /** ================== UI ================== **/
   return (
