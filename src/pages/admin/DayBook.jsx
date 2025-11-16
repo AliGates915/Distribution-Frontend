@@ -48,11 +48,11 @@ const DayBook = () => {
 
   // ---------------- FILTERS ----------------
   const filteredSalesRecovery = salesRecoveryData.filter((item) =>
-    item.description.toLowerCase().includes(search.toLowerCase())
+    item.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   const filteredExpenses = expenseData.filter((item) =>
-    item.description.toLowerCase().includes(search.toLowerCase())
+    item.description?.toLowerCase().includes(search.toLowerCase())
   );
 
   // ---------------- PAGINATION ----------------
