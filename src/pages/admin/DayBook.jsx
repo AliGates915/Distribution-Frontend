@@ -54,6 +54,7 @@ const DayBook = () => {
 
 
   // ---------------- FILTERS ----------------
+
 const filteredSalesRecovery = salesRecoveryData?.filter((item) =>
   (item?.description || "").toLowerCase().includes(search.toLowerCase())
 );
@@ -62,6 +63,7 @@ const filteredSalesRecovery = salesRecoveryData?.filter((item) =>
  const filteredExpenses = expenseData?.filter((item) =>
   (item?.description || "").toLowerCase().includes(search.toLowerCase())
 );
+
 
   // ---------------- PAGINATION ----------------
   const indexOfLastSales = currentPageSales * recordsPerPage;

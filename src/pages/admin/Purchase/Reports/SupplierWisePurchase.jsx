@@ -251,7 +251,7 @@ const SupplierWisePurchase = () => {
                   {currentRecords.map((entry, i) => (
                     <div
                       key={i}
-                      className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
+                      className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center px-6 py-3 hover:bg-gray-50 text-sm"
                     >
                       <div>{i + 1 + indexOfFirstRecord}</div>
                       <div>{entry.Date || "-"}</div>
@@ -267,7 +267,7 @@ const SupplierWisePurchase = () => {
                 </div>
 
                 {/* Totals */}
-                <div className="grid grid-cols-[0.3fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+                <div className="grid grid-cols-[0.3fr_0.5fr_0.5fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center whitespace-nowrap bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                   <div></div>
                   <div></div>
                   <div></div>
