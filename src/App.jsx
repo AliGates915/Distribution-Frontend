@@ -81,6 +81,7 @@ import BankLedger from './pages/admin/Bank/BankLedger.jsx'
 import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
 import DayBook from "./pages/admin/DayBook.jsx";
 import AllorderInvoice from "./pages/admin/AllOrdersInvoice/AllorderInvoice.jsx";
+import SalesmanAmountReceivales from "./pages/admin/Sales/Reports/SalesmanAmountReceivales.jsx";
 
 
 function AppContent() {
@@ -121,7 +122,7 @@ function AppContent() {
 
             {/* Reports */}
             <Route
-              path="report/amount-receivable"
+              path="report/customer-amount-receivable"
               element={<AmountReceivales />}
             />
             <Route
@@ -150,6 +151,10 @@ function AppContent() {
             <Route
               path="report/expense-sheet"
               element={<ExpenseSheet />}
+            />
+            <Route
+              path="report/salesman-amount-receivable"
+              element={<SalesmanAmountReceivales />}
             />
             {/* setup */}
             <Route path="define-customers" element={<DefineCustomers />} />

@@ -1,25 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-
 import { api } from "../../../../context/ApiService";
 import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 
-const AmountReceivables = () => {
+const SalesmanAmountReceivables = () => {
   const [receivables, setReceivables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showZero, setShowZero] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
-  // 🔹 Fetch receivables from API
+  // 🔹 Fetch salesman receivables
   const fetchReceivables = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get(
-        `/customer-ledger/receivables?withZero=${showZero}`
-      );
-      // ✅ API returns "data" inside response.data
+
+      // 🔥 API: Only salesman receivables
+      const response = await api.get(`/salesman-report/salesman-recovery`);
+
+      // ✅ your data is inside response.data.data
       setReceivables(response.data || []);
     } catch (error) {
       console.error("Failed to fetch receivables", error);
@@ -27,22 +26,19 @@ const AmountReceivables = () => {
     } finally {
       setTimeout(() => setLoading(false), 800);
     }
-  }, [showZero]);
+  }, []);
 
   useEffect(() => {
     fetchReceivables();
   }, [fetchReceivables]);
+  console.log(receivables);
+  
 
-  // 🔹 Filter by Zero Balance toggle
-  const filteredCustomers = showZero
-    ? receivables
-    : receivables.filter((c) => parseFloat(c.Balance) !== 0);
-
-  // 🔹 Search filter (matches by Customer name or Balance)
-  const searchedCustomers = filteredCustomers.filter(
+  // 🔹 Search filter (employee name or recovery balance)
+  const searchedCustomers = receivables.filter(
     (r) =>
-      r.Customer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.Balance?.toString().includes(searchTerm)
+      r.employeeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.recoveryBalance?.toString().includes(searchTerm)
   );
 
   // 🔹 Pagination
@@ -56,9 +52,7 @@ const AmountReceivables = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, showZero]);
-
-  console.log({ currentRecords });
+  }, [searchTerm]);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -68,46 +62,19 @@ const AmountReceivables = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
-           Customer Amount Receivable Details
+            Salesman Amount Receivable Details
           </h1>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex gap-6 mb-4 justify-between">
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="balanceFilter"
-                value="withZero"
-                checked={showZero}
-                onChange={() => setShowZero(true)}
-                className="w-4 h-4"
-              />
-              With Zero
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="balanceFilter"
-                value="withoutZero"
-                checked={!showZero}
-                onChange={() => setShowZero(false)}
-                className="w-4 h-4"
-              />
-              Without Zero
-            </label>
-          </div>
-
-          <div>
-            <input
-              type="text"
-              placeholder="Search by customer name or amount"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
-            />
-          </div>
+        {/* Only Search */}
+        <div className="flex justify-end mb-4">
+          <input
+            type="text"
+            placeholder="Search by salesman or amount"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="px-3 py-2 w-[280px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-newPrimary"
+          />
         </div>
 
         {/* Table Section */}
@@ -117,29 +84,35 @@ const AmountReceivables = () => {
               {/* Table Header */}
               <div className="hidden lg:grid grid-cols-[0.2fr_0.5fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 border-b border-gray-200">
                 <div>SR</div>
-                <div>Customer</div>
+                <div>Salesman</div>
                 <div>Balance</div>
               </div>
-
 
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
-                  <TableSkeleton rows={10} cols={3} className="lg:grid grid-cols-[0.2fr_0.5fr_1fr]" />
+                  <TableSkeleton
+                    rows={currentRecords.length || 5}
+                    cols={3}
+                    className="lg:grid grid-cols-[0.2fr_0.5fr_1fr]"
+                  />
                 ) : currentRecords.length > 0 ? (
                   currentRecords.map((cust, index) => (
                     <div
-                      key={cust.SR}
+                      key={cust._id}
                       className="lg:grid grid-cols-[0.2fr_0.5fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                     >
                       <div>{indexOfFirstRecord + index + 1}</div>
-                      <div>{cust.Customer}</div>
+                      <div>{cust.employeeName}</div>
                       <div>
-                        {parseFloat(cust.Balance).toLocaleString("en-PK", {
-                          style: "currency",
-                          currency: "PKR",
-                          minimumFractionDigits: 2,
-                        })}
+                        {parseFloat(cust.recoveryBalance).toLocaleString(
+                          "en-PK",
+                          {
+                            style: "currency",
+                            currency: "PKR",
+                            minimumFractionDigits: 2,
+                          }
+                        )}
                       </div>
                     </div>
                   ))
@@ -149,6 +122,7 @@ const AmountReceivables = () => {
                   </div>
                 )}
               </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
@@ -164,22 +138,25 @@ const AmountReceivables = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Previous
                     </button>
+
                     <button
                       onClick={() =>
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Next
                     </button>
@@ -194,4 +171,4 @@ const AmountReceivables = () => {
   );
 };
 
-export default AmountReceivables;
+export default SalesmanAmountReceivables;

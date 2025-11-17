@@ -145,8 +145,8 @@ const setupChildren = [
 // reportsChildren
 const reportsChildren = [
   {
-    to: "/admin/report/amount-receivable",
-    label: "Amount Receivable",
+    to: "/admin/report/customer-amount-receivable",
+    label: " Customer Amount Receivable",
     icon: <FaMoneyBillWave />,
   },
   {
@@ -194,6 +194,11 @@ const reportsChildren = [
   //   label: "Opening Stock",
   //   icon: <Scale strokeWidth={3} size={40} />,
   // },
+  {
+    to: "/admin/report/salesman-amount-receivable",
+    label: " Salesman Amount Receivable",
+    icon: <FaMoneyBillWave />,
+  },
 ];
 
 const SalesSidebar = () => {
