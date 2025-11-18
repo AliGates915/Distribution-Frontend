@@ -22,7 +22,7 @@ const ListOfItems = () => {
   const [shelvesList, setShelvesList] = useState([]);
   const [expiryOption, setExpiryOption] = useState("NoExpiry");
   const [expiryDay, setExpiryDay] = useState("");
-  const [itemTypeName, setItemTypeName] = useState("");
+  // const [itemTypeName, setItemTypeName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [itemList, setItemList] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -37,20 +37,20 @@ const ListOfItems = () => {
   const [supplier, setSupplier] = useState("");
   const [shelveLocation, setShelveLocation] = useState("");
   const [itemUnit, setItemUnit] = useState("");
-  const [perUnit, setPerUnit] = useState("");
+  // const [perUnit, setPerUnit] = useState("");
   const [purchase, setPurchase] = useState("");
   const [sales, setSales] = useState("");
   const [stock, setStock] = useState("");
   const [price, setPrice] = useState("");
   const [barcode, setBarcode] = useState("");
-  const [reorder, setReorder] = useState("");
+  // const [reorder, setReorder] = useState("");
   const [enabled, setEnabled] = useState(true);
   const [isEdit, setIsEdit] = useState(false);
   const [editId, setEditId] = useState(null);
   const sliderRef = useRef(null);
   const [loading, setLoading] = useState(true);
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  // const [image, setImage] = useState(null);
+  // const [imagePreview, setImagePreview] = useState(null);
   const [itemTypeList, setItemTypeList] = useState([]);
 
   const userInfo = JSON.parse(localStorage.getItem("userInfo"));
@@ -99,6 +99,8 @@ const ListOfItems = () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/item-details`
       );
+      console.log("Type", res.data);
+      
       setItemList(res.data); // store actual categories array
     } catch (error) {
       console.error("Failed to fetch item details", error);
@@ -281,15 +283,15 @@ const ListOfItems = () => {
     let errors = [];
 
     if (!itemCategory.id) errors.push("Item Category is required");
-    if (!itemType) errors.push("Item Type is required");
+    // if (!itemType) errors.push("Item Type is required");
     if (!itemKind) errors.push("Item Kind is required");
     if (!itemName) errors.push("Item Name is required");
     if (!itemUnit) errors.push("Item Unit is required");
-    if (!perUnit) errors.push("Per Unit is required");
+    // if (!perUnit) errors.push("Per Unit is required");
     // if (!purchase) errors.push("Purchase is required");
     // if (!sales) errors.push("Sales is required");
     // if (!stock) errors.push("Stock is required");
-    if (!image && !imagePreview) errors.push("Product image is required");
+    // if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
     if (expiryOption === "HasExpiry" && !expiryDay) {
@@ -323,13 +325,13 @@ const ListOfItems = () => {
     // formData.append("manufacturer", manufacture);
     formData.append("supplier", supplier);
     // formData.append("purchase", parseFloat(purchase) || 0);
-    formData.append("itemType", itemType);
+    // formData.append("itemType", itemType);
     // formData.append("stock", parseInt(stock) || 0);
     // formData.append("price", parseFloat(sales) || 0);
     formData.append("shelveLocation", shelveLocation);
     formData.append("itemUnit", itemUnit);
-    formData.append("perUnit", parseInt(perUnit) || 0);
-    formData.append("reorder", parseInt(reorder) || 0);
+    // formData.append("perUnit", parseInt(perUnit) || 0);
+    // formData.append("reorder", parseInt(reorder) || 0);
     formData.append("isEnable", enabled);
     formData.append("primaryBarcode", primaryBarcode);
     formData.append("secondaryBarcode", barcode);
@@ -341,9 +343,9 @@ const ListOfItems = () => {
     } else {
       formData.append("noHasExpiray", true); // no expiry case
     }
-    if (image) {
-      formData.append("itemImage", image);
-    }
+    // if (image) {
+    //   formData.append("itemImage", image);
+    // }
 
     try {
       const headers = {
@@ -828,7 +830,7 @@ const ListOfItems = () => {
                     </div>
 
                     {/* Item Type */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Item Type <span className="text-red-500">*</span>
                       </label>
@@ -837,7 +839,7 @@ const ListOfItems = () => {
                         required
                         disabled={!itemCategory}
                         className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-                    ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                        ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
                         onChange={(e) => setItemType(e.target.value)}
                       >
                         <option value="">Select Item Type</option>
@@ -847,7 +849,8 @@ const ListOfItems = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
+
                     {/* Item Kind */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-400 font-medium">
@@ -968,7 +971,7 @@ const ListOfItems = () => {
                     </div>
 
                     {/* Per Unit */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Per Unit <span className="text-red-500">*</span>
                       </label>
@@ -978,7 +981,7 @@ const ListOfItems = () => {
                         onChange={(e) => setPerUnit(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Purchase */}
                     {/* <div className="flex-1 block min-w-0">
@@ -1027,7 +1030,7 @@ const ListOfItems = () => {
 
                   <div className="flex gap-4">
                     {/* Reorder */}
-                    <div className="flex-1 min-w-0">
+                    {/* <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Reorder
                       </label>
@@ -1037,7 +1040,7 @@ const ListOfItems = () => {
                         onChange={(e) => setReorder(e.target.value)}
                         className="w-full p-2 border rounded"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Secandory Barcode */}
                     <div className="flex-1 min-w-0">
@@ -1117,8 +1120,9 @@ const ListOfItems = () => {
                   </div>
                 </div>
               </div>
+
               {/* Image Upload */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Product Images <span className="text-red-500">*</span>
                 </label>
@@ -1160,7 +1164,6 @@ const ListOfItems = () => {
                   </div>
                 </div>
 
-                {/* Image Preview */}
                 {imagePreview && (
                   <div className="mt-4">
                     <h3 className="text-sm font-medium text-gray-700 mb-2">
@@ -1181,7 +1184,7 @@ const ListOfItems = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {/* Enable / Disable */}
               <div className="flex items-center gap-3">

@@ -279,13 +279,13 @@ const CustomerLedger = () => {
                 </div>
               ) : (
                 <>
-                  <div className="hidden lg:grid grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
+                  <div className="hidden lg:grid grid-cols-[0.3fr_1fr_1.5fr_2.5fr_1fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase">
                     <div>SR</div>
                     <div>Date</div>
                     <div>ID</div>
                     <div>Description</div>
-                    <div>Debit</div>
-                    <div>Credit</div>
+                    {/* <div>Debit</div>
+                    <div>Credit</div> */}
                     <div>Balance</div>
                   </div>
 
@@ -293,31 +293,31 @@ const CustomerLedger = () => {
                     {currentRecords.map((entry, i) => (
                       <div
                         key={entry._id || i}
-                        className="grid grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
+                        className="grid grid-cols-[0.3fr_1fr_1.5fr_2.5fr_1fr_1fr_1fr] items-center gap-4 px-6 py-3 hover:bg-gray-50 text-sm"
                       >
                         <div>{i + 1 + indexOfFirstRecord}</div>
                         <div>{entry.Date}</div>
                         <div>{entry.ID || "-"}</div>
                         <div>{entry.Description || "-"}</div>
-                        <div>{entry.Debit || "-"}</div>
-                        <div>{entry.Credit || "-"}</div>
+                        {/* <div>{entry.Debit || "-"}</div>
+                        <div>{entry.Credit || "-"}</div> */}
                         <div>{entry.Balance || "-"}</div>
                       </div>
                     ))}
                   </div>
 
                   {/* Totals */}
-                  <div className="grid grid-cols-[0.3fr_0.7fr_0.7fr_2fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
+                  <div className="grid grid-cols-[0.3fr_1fr_1.5fr_2.5fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                     <div></div>
                     <div></div>
                     <div></div>
                     <div></div>
-                    <div className="text-red-600">
+                    {/* <div className="text-red-600">
                       Total Debit: {totalDebit.toLocaleString()}
                     </div>
                     <div className="text-green-600">
                       Total Credit: {totalCredit.toLocaleString()}
-                    </div>
+                    </div> */}
                     <div className="text-green-600">
                       Total Balance: {totalBalance.toLocaleString()}
                     </div>
