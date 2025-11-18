@@ -45,9 +45,8 @@ export const handleDirectPrint = (reportData = {}) => {
   ).toLocaleDateString()}</p>
 
         <!-- 🔹 PRODUCT SECTION -->
-        ${
-          productSection.length
-            ? `
+        ${productSection.length
+      ? `
           <h3 style="text-align:left; margin-top:25px;">Product-wise Sales</h3>
           <table>
             <thead>
@@ -65,8 +64,8 @@ export const handleDirectPrint = (reportData = {}) => {
             </thead>
             <tbody>
               ${productSection
-                .map(
-                  (p, i) => `
+        .map(
+          (p, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${p.supplier || "-"}</td>
@@ -77,11 +76,11 @@ export const handleDirectPrint = (reportData = {}) => {
                     <td>${p.purchaseTotal?.toLocaleString() || 0}</td>
                     <td>${p.saleTotal?.toLocaleString() || 0}</td>
                     <td>${(
-                      (p.saleTotal || 0) - (p.purchaseTotal || 0)
-                    ).toLocaleString()}</td>
+              (p.saleTotal || 0) - (p.purchaseTotal || 0)
+            ).toLocaleString()}</td>
                   </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
             <tfoot>
               <tr>
@@ -89,19 +88,18 @@ export const handleDirectPrint = (reportData = {}) => {
                 <td>${totals.totalPurchase?.toLocaleString() || 0}</td>
                 <td>${totals.totalSales?.toLocaleString() || 0}</td>
                 <td>${(
-                  (totals.totalSales || 0) - (totals.totalPurchase || 0)
-                ).toLocaleString()}</td>
+        (totals.totalSales || 0) - (totals.totalPurchase || 0)
+      ).toLocaleString()}</td>
               </tr>
             </tfoot>
           </table>
           `
-            : "<p style='text-align:center;margin-top:10px;color:#999;'>No product data found.</p>"
-        }
+      : "<p style='text-align:center;margin-top:10px;color:#999;'>No product data found.</p>"
+    }
 
         <!-- 🔹 CUSTOMER SECTION -->
-        ${
-          customerSection.length
-            ? `
+        ${customerSection.length
+      ? `
           <h3 style="text-align:left; margin-top:35px;">Customer-wise Sales & Recovery</h3>
           <table>
             <thead>
@@ -116,8 +114,8 @@ export const handleDirectPrint = (reportData = {}) => {
             </thead>
             <tbody>
               ${customerSection
-                .map(
-                  (c, i) => `
+        .map(
+          (c, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${c.customer || "-"}</td>
@@ -126,22 +124,22 @@ export const handleDirectPrint = (reportData = {}) => {
                     <td>${c.sales?.toLocaleString() || 0}</td>
                     <td>${c.recovery?.toLocaleString() || 0}</td>
                   </tr>`
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="4" style="text-align:right;">Totals:</td>
                 <td>${totals.totalSales?.toLocaleString() || 0}</td>
                 <td>${customerSection
-                  .reduce((sum, c) => sum + (c.recovery || 0), 0)
-                  .toLocaleString()}</td>
+        .reduce((sum, c) => sum + (c.recovery || 0), 0)
+        .toLocaleString()}</td>
               </tr>
             </tfoot>
           </table>
           `
-            : "<p style='text-align:center;margin-top:10px;color:#999;'>No customer data found.</p>"
-        }
+      : "<p style='text-align:center;margin-top:10px;color:#999;'>No customer data found.</p>"
+    }
 
         <p style="margin-top:30px; font-size:11px; color:#777; text-align:center;">
           This is a system-generated Salesman Report and does not require a signature.
@@ -221,8 +219,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -234,8 +232,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -325,8 +323,8 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -338,8 +336,8 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -427,8 +425,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -438,8 +436,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Balance || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -517,16 +515,16 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map((entry, i) => {
-                const item = entry.products?.[0]?.item || "-";
-                const qty = entry.products?.[0]?.qty || 0;
-                const rate = entry.products?.[0]?.rate || 0;
-                const total = entry.totalAmount || 0;
-                const formattedDate = new Date(
-                  entry.grnDate
-                ).toLocaleDateString("en-GB");
+      .map((entry, i) => {
+        const item = entry.products?.[0]?.item || "-";
+        const qty = entry.products?.[0]?.qty || 0;
+        const rate = entry.products?.[0]?.rate || 0;
+        const total = entry.totalAmount || 0;
+        const formattedDate = new Date(
+          entry.grnDate
+        ).toLocaleDateString("en-GB");
 
-                return `
+        return `
                     <tr>
                       <td>${i + 1}</td>
                       <td>${formattedDate}</td>
@@ -536,8 +534,8 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
                       <td>${rate.toLocaleString()}</td>
                       <td>${total.toLocaleString()}</td>
                     </tr>`;
-              })
-              .join("")}
+      })
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -605,16 +603,15 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
           </thead>
           <tbody>
             ${apiData
-              .map(
-                (group, i) => `
+      .map(
+        (group, i) => `
                   <tr class="customer-row">
                     <td>${i + 1}</td>
                     <td colspan="10">${group.customerName}</td>
                   </tr>
-                  ${
-                    group.invoices
-                      ?.map(
-                        (inv) => `
+                  ${group.invoices
+            ?.map(
+              (inv) => `
                         <tr>
                           <td></td>
                           <td></td>
@@ -628,12 +625,12 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
                           <td>${inv.due?.toLocaleString() || 0}</td>
                           <td>${inv.outstanding?.toLocaleString() || 0}</td>
                         </tr>`
-                      )
-                      .join("") || ""
-                  }
+            )
+            .join("") || ""
+          }
                 `
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -724,9 +721,8 @@ export const handleDailySalesPrint = (
         <p>Phone: 0318-4486979</p>
         <hr />
         <h2>Daily Sales Report</h2>
-        <p><b>Date:</b> ${new Date().toLocaleDateString()} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Salesman:</b> ${
-    selectedSalesmanName || "-"
-  }</p>
+        <p><b>Date:</b> ${new Date().toLocaleDateString()} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Salesman:</b> ${selectedSalesmanName || "-"
+    }</p>
 
         <!-- 🔹 Sales Items Table -->
         <h3 style="margin-top:20px;">Sales Items</h3>
@@ -742,11 +738,10 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${
-              salesItems.length
-                ? salesItems
-                    .map(
-                      (s) => `
+            ${salesItems.length
+      ? salesItems
+        .map(
+          (s) => `
                     <tr>
                       <td>${s.invoiceNo || "-"}</td>
                       <td>${s.customer || "-"}</td>
@@ -755,10 +750,10 @@ export const handleDailySalesPrint = (
                       <td>${s.qty || 0}</td>
                       <td>${(s.total || 0).toLocaleString()}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="6">No sales records found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="6">No sales records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
@@ -781,11 +776,10 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${
-              paymentReceived.length
-                ? paymentReceived
-                    .map(
-                      (p) => `
+            ${paymentReceived.length
+      ? paymentReceived
+        .map(
+          (p) => `
                     <tr>
                       <td>${p.invoiceNo || "-"}</td>
                       <td>${p.customer || "-"}</td>
@@ -793,10 +787,10 @@ export const handleDailySalesPrint = (
                       <td>${(p.received || 0).toLocaleString()}</td>
                       <td>${(p.balance || 0).toLocaleString()}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="5">No payment records found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="5">No payment records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
@@ -820,21 +814,20 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${
-              recoveries.length
-                ? recoveries
-                    .map(
-                      (r) => `
+            ${recoveries.length
+      ? recoveries
+        .map(
+          (r) => `
                     <tr>
                       <td>${r.customer || "-"}</td>
                       <td>${r.invoices?.join(", ") || "-"}</td>
                       <td>${(r.totalRecovery || 0).toLocaleString()}</td>
                       <td>${(r.dueRecovery || 0).toLocaleString()}</td>
                     </tr>`
-                    )
-                    .join("")
-                : `<tr><td colspan="4">No recovery records found.</td></tr>`
-            }
+        )
+        .join("")
+      : `<tr><td colspan="4">No recovery records found.</td></tr>`
+    }
           </tbody>
           <tfoot>
             <tr>
@@ -880,18 +873,14 @@ export const handleSaleInvoicePrint = (orders = []) => {
       <body>
   `);
 
-  // ✅ Loop through all orders and print each one
   orders.forEach((order, index) => {
     const products = order.products || [];
 
-    const totalQty = products.reduce(
-      (sum, p) => sum + (parseFloat(p.qty) || 0),
-      0
-    );
-    const totalAmount = products.reduce(
-      (sum, p) => sum + (parseFloat(p.totalAmount) || 0),
-      0
-    );
+    const totalQty = products.reduce((sum, p) => sum + (parseFloat(p.qty) || 0), 0);
+    const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.totalAmount) || 0), 0);
+
+    const orderId = order.orderId || order.invoiceNo || "-";
+    const orderDate = order.date || order.invoiceDate || "-";
 
     win.document.write(`
       <h1>Distribution System Pvt. Ltd.</h1>
@@ -901,8 +890,8 @@ export const handleSaleInvoicePrint = (orders = []) => {
       <h2>Sales Invoice ${index + 1}</h2>
 
       <div style="margin-bottom:15px; font-size:13px;">
-        <b>Date:</b> ${new Date(order.date).toLocaleDateString()}<br/>
-        <b>Order ID:</b> ${order.orderId}<br/>
+        <b>Date:</b> ${new Date(orderDate).toLocaleDateString()}<br/>
+        <b>Order ID / Invoice No:</b> ${orderId}<br/>
         <b>Salesman:</b> ${order.salesmanId?.employeeName || "-"}<br/>
         <b>Customer:</b> ${order.customerId?.customerName || "-"}<br/>
         <b>Address:</b> ${order.customerId?.address || "-"}<br/>
@@ -923,18 +912,18 @@ export const handleSaleInvoicePrint = (orders = []) => {
         </thead>
         <tbody>
           ${products
-            .map(
-              (p, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${p.itemName}</td>
-                  <td>${p.itemUnit}</td>
-                  <td>${p.qty}</td>
-                  <td>${p.rate.toLocaleString()}</td>
-                  <td>${p.totalAmount.toLocaleString()}</td>
-                </tr>`
-            )
-            .join("")}
+        .map(
+          (p, i) => `
+              <tr>
+                <td>${i + 1}</td>
+                <td>${p.itemName || p.item}</td>
+                <td>${p.itemUnit || "-"}</td>
+                <td>${p.qty}</td>
+                <td>${(p.rate || 0).toLocaleString()}</td>
+                <td>${(p.totalAmount || p.total || 0).toLocaleString()}</td>
+              </tr>`
+        )
+        .join("")}
         </tbody>
         <tfoot>
           <tr>
@@ -953,14 +942,11 @@ export const handleSaleInvoicePrint = (orders = []) => {
     `);
   });
 
-  win.document.write(`
-      </body>
-    </html>
-  `);
-
+  win.document.write(`</body></html>`);
   win.document.close();
   win.print();
 };
+
 
 export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
   if (!ledgerEntries.length) return;
@@ -1028,8 +1014,8 @@ export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-              .map(
-                (entry, i) => `
+      .map(
+        (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -1042,8 +1028,8 @@ export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Debit || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Credit || 0).toLocaleString()}</td>
                   </tr>`
-              )
-              .join("")}
+      )
+      .join("")}
           </tbody>
           <tfoot>
             <tr>
