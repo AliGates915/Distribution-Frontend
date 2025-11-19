@@ -263,8 +263,12 @@ const SalesInvoice = () => {
   });
 
   // 🔹 Filtered Records based on active tab
-  const filteredRecords = (activeTab === "pending" ? invoices : salesInvoices).filter((invoice) => {
-    const orderId = (activeTab === "pending" ? invoice.orderId : invoice.invoiceNo || "").toLowerCase();
+  const filteredRecords = (
+    activeTab === "pending" ? invoices : salesInvoices
+  ).filter((invoice) => {
+    const orderId = (
+      activeTab === "pending" ? invoice.orderId : invoice.invoiceNo || ""
+    ).toLowerCase();
     const customerName = (invoice.customerId?.customerName || "").toLowerCase();
     const salesmanName = (invoice.salesmanId?.employeeName || "").toLowerCase();
 
@@ -289,22 +293,27 @@ const SalesInvoice = () => {
   const totalPages = Math.ceil(filteredInvoices.length / recordsPerPage);
   // console.log({currentRecords});
 
-
   // For Pending & Invoices (filtered by searchTerm)
   const indexOfLastPending = currentPagePending * recordsPerPage;
   const indexOfFirstPending = indexOfLastPending - recordsPerPage;
-  const currentPendingRecords = filteredRecords.slice(indexOfFirstPending, indexOfLastPending);
+  const currentPendingRecords = filteredRecords.slice(
+    indexOfFirstPending,
+    indexOfLastPending
+  );
   const totalPendingPages = Math.ceil(filteredRecords.length / recordsPerPage);
 
   const indexOfLastInvoice = currentPageInvoices * recordsPerPage;
   const indexOfFirstInvoice = indexOfLastInvoice - recordsPerPage;
-  const currentInvoiceRecords = filteredRecords.slice(indexOfFirstInvoice, indexOfLastInvoice);
+  const currentInvoiceRecords = filteredRecords.slice(
+    indexOfFirstInvoice,
+    indexOfLastInvoice
+  );
   const totalInvoicePages = Math.ceil(filteredRecords.length / recordsPerPage);
 
-
-  const gridColumns = activeTab === "pending"
-    ? "0.2fr 1fr 1fr 1fr 1fr 1fr 1fr" // 7 columns
-    : "0.2fr 1fr 1fr 1fr 1fr 1fr";     // 6 columns
+  const gridColumns =
+    activeTab === "pending"
+      ? "0.2fr 1fr 1fr 1fr 1fr 1fr 1fr" // 7 columns
+      : "0.2fr 1fr 1fr 1fr 1fr 1fr"; // 6 columns
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -319,7 +328,6 @@ const SalesInvoice = () => {
             <h1 className="text-2xl font-bold text-newPrimary">
               Pending Orders
             </h1>
-
           </div>
 
           {/* 🔹 Filter Fields */}
@@ -327,38 +335,40 @@ const SalesInvoice = () => {
             {/* Date + Invoice in left column */}
             <div className="flex flex-wrap justify-between items-center gap-8 w-full mt-4 mb-5">
               {/* Left: Date + Salesman */}
-              <div className="flex gap-8 flex-wrap">
-                <div className="flex items-center gap-6">
-                  <label className="text-gray-700 font-medium w-24">
-                    Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={date}
-                    max={today}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                  />
-                </div>
+              {activeTab === "pending" && (
+                <div className="flex gap-8 flex-wrap">
+                  <div className="flex items-center gap-6">
+                    <label className="text-gray-700 font-medium w-24">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={date}
+                      max={today}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    />
+                  </div>
 
-                <div className="flex items-center gap-6">
-                  <label className="text-gray-700 font-medium w-24">
-                    Salesman <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedSalesman}
-                    onChange={(e) => setSelectedSalesman(e.target.value)}
-                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                  >
-                    <option value="">Select Salesman</option>
-                    {salesmanList.map((cust) => (
-                      <option key={cust._id} value={cust._id}>
-                        {cust.employeeName}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-6">
+                    <label className="text-gray-700 font-medium w-24">
+                      Salesman <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedSalesman}
+                      onChange={(e) => setSelectedSalesman(e.target.value)}
+                      className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    >
+                      <option value="">Select Salesman</option>
+                      {salesmanList.map((cust) => (
+                        <option key={cust._id} value={cust._id}>
+                          {cust.employeeName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Right: Search Bar */}
               <div className="ml-auto flex items-center gap-2">
@@ -375,7 +385,13 @@ const SalesInvoice = () => {
 
                 {/* Print Button */}
                 <button
-                  onClick={() => handleSaleInvoicePrint(activeTab === "pending" ? currentPendingRecords : currentInvoiceRecords)}
+                  onClick={() =>
+                    handleSaleInvoicePrint(
+                      activeTab === "pending"
+                        ? currentPendingRecords
+                        : currentInvoiceRecords
+                    )
+                  }
                   className="p-2 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition-colors flex items-center"
                   title="Print"
                 >
@@ -387,8 +403,11 @@ const SalesInvoice = () => {
 
           <div className="flex gap-4 mb-4">
             <button
-              className={`px-6 py-2 rounded-lg font-semibold ${activeTab === "pending" ? "bg-newPrimary text-white" : "bg-gray-200"
-                }`}
+              className={`px-6 py-2 rounded-lg font-semibold ${
+                activeTab === "pending"
+                  ? "bg-newPrimary text-white"
+                  : "bg-gray-200"
+              }`}
               onClick={() => {
                 setActiveTab("pending");
                 setCurrentPagePending(1); // reset pending page
@@ -397,8 +416,11 @@ const SalesInvoice = () => {
               All Pending
             </button>
             <button
-              className={`px-6 py-2 rounded-lg font-semibold ${activeTab === "invoices" ? "bg-newPrimary text-white" : "bg-gray-200"
-                }`}
+              className={`px-6 py-2 rounded-lg font-semibold ${
+                activeTab === "invoices"
+                  ? "bg-newPrimary text-white"
+                  : "bg-gray-200"
+              }`}
               onClick={() => {
                 setActiveTab("invoices");
                 setCurrentPageInvoices(1); // reset invoices page
@@ -408,17 +430,21 @@ const SalesInvoice = () => {
             </button>
           </div>
 
-
           {/* ✅ Table */}
           <div className="rounded-xl border border-gray-200 overflow-hidden">
             <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
               <div className="min-w-[1000px]">
-                <div className="hidden lg:grid gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200"
+                <div
+                  className="hidden lg:grid gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200"
                   style={{ gridTemplateColumns: gridColumns }}
                 >
                   <div>SR</div>
-                  <div>{activeTab === "pending" ? "Order ID" : "Invoice No."}</div>
-                  <div>{activeTab === "pending" ? "Order Date" : "Invoice Date"}</div>
+                  <div>
+                    {activeTab === "pending" ? "Order ID" : "Invoice No."}
+                  </div>
+                  <div>
+                    {activeTab === "pending" ? "Order Date" : "Invoice Date"}
+                  </div>
                   <div>Salesman</div>
                   <div>Customer</div>
                   <div>Amount</div>
@@ -430,25 +456,46 @@ const SalesInvoice = () => {
                     <TableSkeleton
                       rows={10}
                       cols={activeTab === "pending" ? 7 : 6}
-                      className={activeTab === "pending"
-                        ? "lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                        : "lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr]"
+                      className={
+                        activeTab === "pending"
+                          ? "lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                          : "lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr]"
                       }
                     />
-                  ) : (activeTab === "pending" ? currentPendingRecords : currentInvoiceRecords).length === 0 ? (
+                  ) : (activeTab === "pending"
+                      ? currentPendingRecords
+                      : currentInvoiceRecords
+                    ).length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
-                      No {activeTab === "pending" ? "Pending Orders" : "Sales Invoices"} Found
+                      No{" "}
+                      {activeTab === "pending"
+                        ? "Pending Orders"
+                        : "Sales Invoices"}{" "}
+                      Found
                     </div>
                   ) : (
-                    (activeTab === "pending" ? currentPendingRecords : currentInvoiceRecords).map((invoice, index) => (
+                    (activeTab === "pending"
+                      ? currentPendingRecords
+                      : currentInvoiceRecords
+                    ).map((invoice, index) => (
                       <div
                         key={invoice._id || invoice.invoiceNo}
                         className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                         style={{ gridTemplateColumns: gridColumns }}
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
-                        <div>{activeTab === "pending" ? invoice.orderId : invoice.invoiceNo || "-"}</div>
-                        <div>{formDate(activeTab === "pending" ? invoice.date : invoice.invoiceDate)}</div>
+                        <div>
+                          {activeTab === "pending"
+                            ? invoice.orderId
+                            : invoice.invoiceNo || "-"}
+                        </div>
+                        <div>
+                          {formDate(
+                            activeTab === "pending"
+                              ? invoice.date
+                              : invoice.invoiceDate
+                          )}
+                        </div>
                         <div>{invoice.salesmanId?.employeeName || "-"}</div>
                         <div>{invoice.customerId?.customerName || "-"}</div>
                         <div>{invoice.totalAmount ?? "-"}</div>
@@ -468,24 +515,39 @@ const SalesInvoice = () => {
                   )}
                 </div>
 
-
                 {activeTab === "pending" && totalPendingPages > 1 && (
                   <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
                     <p className="text-sm text-gray-600">
-                      Showing {indexOfFirstPending + 1} to {Math.min(indexOfLastPending, filteredInvoices.length)} of {filteredInvoices.length} invoices
+                      Showing {indexOfFirstPending + 1} to{" "}
+                      {Math.min(indexOfLastPending, filteredInvoices.length)} of{" "}
+                      {filteredInvoices.length} invoices
                     </p>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setCurrentPagePending((prev) => Math.max(prev - 1, 1))}
+                        onClick={() =>
+                          setCurrentPagePending((prev) => Math.max(prev - 1, 1))
+                        }
                         disabled={currentPagePending === 1}
-                        className={`px-3 py-1 rounded-md ${currentPagePending === 1 ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPagePending === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Previous
                       </button>
                       <button
-                        onClick={() => setCurrentPagePending((prev) => Math.min(prev + 1, totalPendingPages))}
+                        onClick={() =>
+                          setCurrentPagePending((prev) =>
+                            Math.min(prev + 1, totalPendingPages)
+                          )
+                        }
                         disabled={currentPagePending === totalPendingPages}
-                        className={`px-3 py-1 rounded-md ${currentPagePending === totalPendingPages ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPagePending === totalPendingPages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Next
                       </button>
@@ -493,24 +555,41 @@ const SalesInvoice = () => {
                   </div>
                 )}
 
-
                 {activeTab === "invoices" && totalInvoicePages > 1 && (
                   <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
                     <p className="text-sm text-gray-600">
-                      Showing {indexOfFirstInvoice + 1} to {Math.min(indexOfLastInvoice, salesInvoices.length)} of {salesInvoices.length} invoices
+                      Showing {indexOfFirstInvoice + 1} to{" "}
+                      {Math.min(indexOfLastInvoice, salesInvoices.length)} of{" "}
+                      {salesInvoices.length} invoices
                     </p>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setCurrentPageInvoices((prev) => Math.max(prev - 1, 1))}
+                        onClick={() =>
+                          setCurrentPageInvoices((prev) =>
+                            Math.max(prev - 1, 1)
+                          )
+                        }
                         disabled={currentPageInvoices === 1}
-                        className={`px-3 py-1 rounded-md ${currentPageInvoices === 1 ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPageInvoices === 1
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Previous
                       </button>
                       <button
-                        onClick={() => setCurrentPageInvoices((prev) => Math.min(prev + 1, totalInvoicePages))}
+                        onClick={() =>
+                          setCurrentPageInvoices((prev) =>
+                            Math.min(prev + 1, totalInvoicePages)
+                          )
+                        }
                         disabled={currentPageInvoices === totalInvoicePages}
-                        className={`px-3 py-1 rounded-md ${currentPageInvoices === totalInvoicePages ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPageInvoices === totalInvoicePages
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                        }`}
                       >
                         Next
                       </button>

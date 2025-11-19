@@ -16,9 +16,8 @@ const AmountReceivables = () => {
   const fetchReceivables = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get(
-        `/customer-ledger/receivables?withZero=${showZero}`
-      );
+     const response = await api.get(`/customer-ledger/receivables`);
+
       // ✅ API returns "data" inside response.data
       setReceivables(response.data || []);
     } catch (error) {
@@ -27,16 +26,14 @@ const AmountReceivables = () => {
     } finally {
       setTimeout(() => setLoading(false), 800);
     }
-  }, [showZero]);
+  }, []);
 
   useEffect(() => {
     fetchReceivables();
   }, [fetchReceivables]);
 
   // 🔹 Filter by Zero Balance toggle
-  const filteredCustomers = showZero
-    ? receivables
-    : receivables.filter((c) => parseFloat(c.Balance) !== 0);
+ const filteredCustomers = receivables;
 
   // 🔹 Search filter (matches by Customer name or Balance)
   const searchedCustomers = filteredCustomers.filter(
@@ -56,7 +53,7 @@ const AmountReceivables = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, showZero]);
+  }, [searchTerm]);
 
   console.log({ currentRecords });
 
@@ -73,31 +70,8 @@ const AmountReceivables = () => {
         </div>
 
         {/* Filter Controls */}
-        <div className="flex gap-6 mb-4 justify-between">
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="balanceFilter"
-                value="withZero"
-                checked={showZero}
-                onChange={() => setShowZero(true)}
-                className="w-4 h-4"
-              />
-              With Zero
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="balanceFilter"
-                value="withoutZero"
-                checked={!showZero}
-                onChange={() => setShowZero(false)}
-                className="w-4 h-4"
-              />
-              Without Zero
-            </label>
-          </div>
+        <div className="flex gap-6 mb-4 justify-end">
+          
 
           <div>
             <input
