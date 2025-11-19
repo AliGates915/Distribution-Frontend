@@ -132,7 +132,7 @@ const Sales = () => {
           {/* Salesman */}
           <div className="w-[300px]">
             <label className="block text-gray-700 font-medium mb-2">
-              Salesman <span className="text-red-500">*</span>
+              Sales Officer <span className="text-red-500">*</span>
             </label>
             <div className="flex flex-col">
               <select
@@ -143,7 +143,7 @@ const Sales = () => {
                 }}
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
               >
-                <option value="">Select Salesman</option>
+                <option value="">Select Sale Officer</option>
                 {salesmanList.map((s) => (
                   <option key={s._id} value={s._id}>
                     {s.employeeName}
@@ -163,7 +163,7 @@ const Sales = () => {
           <div className="ml-auto w-full md:w-64">
             <input
               type="text"
-              placeholder="Search by Customer, Salesman, Invoice..."
+              placeholder="Search by Customer, Sales Officer, Invoice..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"

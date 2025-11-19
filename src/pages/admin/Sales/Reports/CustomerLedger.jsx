@@ -101,12 +101,12 @@ const CustomerLedger = () => {
   }, [fetchCustomerLedger]);
 
   // Calculate totals
-  const totalDebit = ledgerEntries.reduce(
-    (sum, entry) => sum + (parseFloat(entry.Debit) || 0),
-    0
-  );
   const totalCredit = ledgerEntries.reduce(
     (sum, entry) => sum + (parseFloat(entry.Credit) || 0),
+    0
+  );
+  const totalDebit = ledgerEntries.reduce(
+    (sum, entry) => sum + (parseFloat(entry.Debit) || 0),
     0
   );
   const totalBalance = ledgerEntries.reduce(
@@ -283,9 +283,9 @@ const CustomerLedger = () => {
                     <div>SR</div>
                     <div>Date</div>
                     <div>ID</div>
-                    <div>Description</div>
-                    {/* <div>Debit</div>
-                    <div>Credit</div> */}
+                    <div>Description</div>                 
+                    <div>Credit</div> 
+                    <div>Debit</div>
                     <div>Balance</div>
                   </div>
 
@@ -299,8 +299,8 @@ const CustomerLedger = () => {
                         <div>{entry.Date}</div>
                         <div>{entry.ID || "-"}</div>
                         <div>{entry.Description || "-"}</div>
-                        {/* <div>{entry.Debit || "-"}</div>
-                        <div>{entry.Credit || "-"}</div> */}
+                        <div>{entry.Credit || "-"}</div>
+                        <div>{entry.Debit || "-"}</div>
                         <div>{entry.Balance || "-"}</div>
                       </div>
                     ))}
@@ -312,12 +312,12 @@ const CustomerLedger = () => {
                     <div></div>
                     <div></div>
                     <div></div>
-                    {/* <div className="text-red-600">
-                      Total Debit: {totalDebit.toLocaleString()}
+                    <div className="text-red-600">
+                      Total Credit: {totalCredit.toLocaleString()}
                     </div>
                     <div className="text-green-600">
-                      Total Credit: {totalCredit.toLocaleString()}
-                    </div> */}
+                      Total Debit: {totalDebit.toLocaleString()}
+                    </div>
                     <div className="text-green-600">
                       Total Balance: {totalBalance.toLocaleString()}
                     </div>
