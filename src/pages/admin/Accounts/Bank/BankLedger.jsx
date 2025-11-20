@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import CommanHeader from "../../admin/Components/CommanHeader";
-import TableSkeleton from "../../admin/Components/Skeleton";
+
+
 import { Printer } from "lucide-react";
 import { toast } from "react-toastify";
-import { api } from "../../../context/ApiService";
+import { api } from "../../../../context/ApiService";
+import CommanHeader from "../../Components/CommanHeader";
+import TableSkeleton from "../../Components/Skeleton";
 
 const BankLedger = () => {
   const [banks, setBanks] = useState([]);

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { api } from "../../../context/ApiService";
-import CommanHeader from "../../admin/Components/CommanHeader";
-import TableSkeleton from "../../admin/Components/Skeleton";
+
+import CommanHeader from "../../Components/CommanHeader";
+import TableSkeleton from "../../Components/Skeleton";
+import { api } from "../../../../context/ApiService";
 
 const BankPosition = () => {
   const [banks, setBanks] = useState([]);

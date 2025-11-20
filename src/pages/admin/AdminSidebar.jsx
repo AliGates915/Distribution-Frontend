@@ -22,15 +22,19 @@ import { FaUserGroup } from "react-icons/fa6";
 import { BsBank2 } from "react-icons/bs";
 import { FaBook } from "react-icons/fa";
 
-import { MdOutlineAccountBalanceWallet, MdOutlineIntegrationInstructions, MdOutlineSecurity } from "react-icons/md";
+import {
+  MdOutlineAccountBalanceWallet,
+  MdOutlineIntegrationInstructions,
+  MdOutlineSecurity,
+} from "react-icons/md";
 import { FcSalesPerformance } from "react-icons/fc";
 import { RiLogoutBoxRLine, RiDashboardFill } from "react-icons/ri";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { BiPurchaseTag, BiPurchaseTagAlt } from "react-icons/bi";
 import { IoBagCheckSharp } from "react-icons/io5";
 import { TbFileInvoice } from "react-icons/tb";
-
-
+import { MdOutlineManageAccounts } from "react-icons/md";
+import { RiBankCard2Line, RiBankCardLine  } from "react-icons/ri";
 // 🔹 Link definitions with permission keys
 const links = [
   { to: "/admin", label: "Dashboard", icon: <RiDashboardFill /> },
@@ -45,34 +49,40 @@ const links = [
     label: "Sales ",
     icon: <BiPurchaseTagAlt />,
   },
-   {
-    to: "/admin/bank",
-    label: "Bank",
-    icon: <BsBank2 />,
+  {
+    to: "/admin/accounts",
+    label: "Accounts",
+    icon: <MdOutlineManageAccounts />,
+    children: [
+      {
+        to: "/admin/expense",
+        label: "Expense",
+        icon: <RiBankCard2Line />,
+      },
+       {
+        to: "/admin/bank",
+        label: "Bank",
+        icon: <BsBank2 />,
+      },
+      {
+        to: "/admin/day-book",
+        label: "Day Book",
+        icon: <FaBook />,
+      },
+    ],
   },
-    {
-    to: "/admin/day-book",
-    label: "Day Book",
-    icon: <FaBook  />,
-  },
+
   {
     to: "/admin/all-orders-invoice",
     label: "All Orders / Invoice",
-    icon: <TbFileInvoice  size={20
-      
-
-
-
-      
-    } />,
+    icon: <TbFileInvoice size={20} />,
   },
   {
     to: "/admin/security",
     label: "Security",
     icon: <MdOutlineSecurity />,
   },
- 
- ];
+];
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -193,17 +203,15 @@ const AdminSidebar = () => {
             )
           )}
         </nav>
-          {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className="inline-flex items-center w-full gap-2 px-2 sm:px-4 py-2 mt-2 rounded font-semibold text-gray-700 hover:bg-red-600 hover:text-white transition"
-      >
-        <RiLogoutBoxRLine size={18}/>
-        <span className="hidden sm:inline">Logout</span>
-      </button>
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center w-full gap-2 px-2 sm:px-4 py-2 mt-2 rounded font-semibold text-gray-700 hover:bg-red-600 hover:text-white transition"
+        >
+          <RiLogoutBoxRLine size={18} />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
-
-    
     </aside>
   );
 };

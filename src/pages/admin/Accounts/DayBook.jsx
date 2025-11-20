@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import CommanHeader from "../admin/Components/CommanHeader";
+
 import axios from "axios";
-import TableSkeleton from "./Components/Skeleton";
+import CommanHeader from "../Components/CommanHeader";
+import TableSkeleton from "../Components/Skeleton";
+
 // your skeleton component
 
 const DayBook = () => {
