@@ -10,6 +10,7 @@ import axios from "axios";
 import { use } from "react";
 import { api } from "../../../../context/ApiService";
 import { handleSaleInvoicePrint } from "../../../../helper/SalesPrintView";
+import ViewInvoiceModal from "../../../../helper/ViewInvoiceModal";
 
 const SalesInvoice = () => {
   const [invoices, setInvoices] = useState([]);
@@ -313,7 +314,8 @@ const SalesInvoice = () => {
   const gridColumns =
     activeTab === "pending"
       ? "0.2fr 1fr 1fr 1fr 1fr 1fr 1fr" // 7 columns
-      : "0.2fr 1fr 1fr 1fr 1fr 1fr"; // 6 columns
+      : "0.2fr 1fr 1fr 1fr 1fr 1fr 1fr"; // 7 columns for invoices too
+  console.log({ currentInvoiceRecords });
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -352,14 +354,14 @@ const SalesInvoice = () => {
 
                   <div className="flex items-center gap-6">
                     <label className="text-gray-700 font-medium w-24">
-                      Salesman <span className="text-red-500">*</span>
+                      Sales Officer
                     </label>
                     <select
                       value={selectedSalesman}
                       onChange={(e) => setSelectedSalesman(e.target.value)}
                       className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                     >
-                      <option value="">Select Salesman</option>
+                      <option value="">Select Sales Officer</option>
                       {salesmanList.map((cust) => (
                         <option key={cust._id} value={cust._id}>
                           {cust.employeeName}
@@ -374,7 +376,7 @@ const SalesInvoice = () => {
               <div className="ml-auto flex items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Search by Customer, Salesman..."
+                  placeholder="Search by Customer, Sales Officer ..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -448,6 +450,9 @@ const SalesInvoice = () => {
                   <div>Salesman</div>
                   <div>Customer</div>
                   <div>Amount</div>
+
+                  {activeTab === "invoices" && <div>Action</div>}
+
                   {activeTab === "pending" && <div>Action</div>}
                 </div>
 
@@ -507,6 +512,29 @@ const SalesInvoice = () => {
                               title="Edit"
                             >
                               <SquarePen size={18} />
+                            </button>
+                          </div>
+                        )}
+
+                        {activeTab === "invoices" && (
+                          <div className="flex gap-3 justify-start">
+                            <button
+                              onClick={() => {
+                                setSelectedInvoice(invoice);
+                                setIsView(true);
+                              }}
+                              className="text-amber-600 hover:bg-green-50 rounded p-1 transition-colors"
+                              title="View Invoice"
+                            >
+                              <Eye size={18} />
+                            </button>
+
+                            <button
+                              onClick={() => handleSaleInvoicePrint([invoice])}
+                              className="text-blue-600 hover:bg-blue-50 rounded p-1 transition-colors"
+                              title="Print Invoice"
+                            >
+                              <Printer size={18} />
                             </button>
                           </div>
                         )}
@@ -856,6 +884,15 @@ const SalesInvoice = () => {
             </div>
           )}
         </div>
+      )}
+      {isView && selectedInvoice && (
+        <ViewInvoiceModal
+          data={selectedInvoice}
+          onClose={() => {
+            setSelectedInvoice(null);
+            setIsView(false);
+          }}
+        />
       )}
     </div>
   );
