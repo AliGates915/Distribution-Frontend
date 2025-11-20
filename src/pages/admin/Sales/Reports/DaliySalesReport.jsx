@@ -16,17 +16,26 @@ const DailySalesReport = () => {
   const [mode, setMode] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showSalesmanError, setShowSalesmanError] = useState(false);
+// Pagination states (3 different tables)
+const [salesPage, setSalesPage] = useState(1);
+const [paymentPage, setPaymentPage] = useState(1);
+const [recoveryPage, setRecoveryPage] = useState(1);
+
+const recordsPerPage = 10;
 
   const [loading, setLoading] = useState(true);
   const [salesman, setSalesman] = useState([]);
   const [salesmanList, setSalesmanList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 10;
+ 
   const [selectedSalesman, setSelectedSalesman] = useState("");
   const [selectedOrders, setSelectedOrders] = useState("");
   const [PendingOrdersList, setPeningOrdersList] = useState([]);
   const today = new Date().toLocaleDateString("en-CA");
-  const [selectedDate, setSelectedDate] = useState(today);
+
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState("");
+
   const [isSliderOpen, setIsSliderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [paymentType, setPaymentType] = useState("Cash");
@@ -90,29 +99,7 @@ const DailySalesReport = () => {
     setDueAmount(totalDue);
   }, [selectedInvoices]);
 
-  // Fetching customer List
-  const fetchCustomersBySalesman = async (salesmanId) => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/customers/isPending/${salesmanId}`);
-
-      // 🧠 Ensure it’s always an array
-      const data = response.data;
-      if (Array.isArray(data)) {
-        setCustomersList(data);
-      } else if (data && typeof data === "object") {
-        setCustomersList([data]); // wrap single object as array
-      } else {
-        setCustomersList([]);
-      }
-    } catch (error) {
-      console.error(" Failed to fetch customers by salesman:", error);
-      toast.error("Failed to load customers for this salesman");
-    } finally {
-      setTimeout(() => setLoading(false), 2000);
-    }
-  };
-
+ 
   // ✅ Fetch Orders for Selected Pending Customer
   const fetchOrdersByCustomer = async (customerId) => {
     try {
@@ -175,12 +162,12 @@ const DailySalesReport = () => {
 
   // Fetch Pening Orders List
   const fetchPendingOrdersList = useCallback(async () => {
-    if (!selectedSalesman || !selectedDate) return;
+    if (!selectedSalesman || !dateFrom) return;
 
     try {
       setLoading(true);
       const response = await api.get(
-        `/sales-invoice/invoice-no?salesmanId=${selectedSalesman}&date=${selectedDate}`
+        `/sales-invoice/invoice-no?salesmanId=${selectedSalesman}&date=${dateFrom}`
       );
 
       const invoices = response?.data || [];
@@ -190,7 +177,7 @@ const DailySalesReport = () => {
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
-  }, [selectedSalesman, selectedDate]);
+  }, [selectedSalesman, dateFrom]);
 
   useEffect(() => {
     fetchPendingOrdersList();
@@ -231,38 +218,40 @@ const DailySalesReport = () => {
 
     try {
       setLoading(true);
+
       const response = await api.get(
-        `/sales-invoice/daily-report/${selectedSalesman}/${selectedOrders}?date=${selectedDate}`
+        `/sales-invoice/daily-report/${selectedSalesman}/${selectedOrders}?from=${dateFrom}&to=${dateTo}`
       );
 
       setSalesmanList({
-        salesItems: response?.salesItems || [],
-        paymentReceived: response?.customerPayments || [],
-        recoveries: response?.recoveries || [],
+        salesItems: response?.data?.salesItems || [],
+        paymentReceived: response?.data?.customerPayments || [],
+        recoveries: response?.data?.recoveries || [],
       });
 
-      setSelectedOrder(response);
+      setSelectedOrder(response.data);
     } catch (error) {
       console.error(" Failed to fetch order-based data:", error);
       toast.error("Failed to load order data");
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
-  }, [selectedOrders, selectedDate]);
+  }, [selectedOrders, dateFrom, dateTo]);
+
+useEffect(() => {
+  if (selectedOrders && dateFrom && dateTo) {
+    fetchOrderBasedData();
+  }
+}, [selectedOrders, dateFrom, dateTo, fetchOrderBasedData]);
+
 
   useEffect(() => {
-    if (selectedOrders && selectedDate) {
-      fetchOrderBasedData();
-    }
-  }, [selectedOrders, selectedDate, fetchOrderBasedData]);
-
-  useEffect(() => {
-    if (selectedSalesman && selectedDate) {
+    if (selectedSalesman && dateFrom) {
       const fetchPendingOrdersWithDate = async () => {
         try {
           setLoading(true);
           const response = await api.get(
-            `/sales-invoice/daily-report/${selectedSalesman}?date=${selectedDate}`
+            `/sales-invoice/daily-report/${selectedSalesman}?from=${dateFrom}&to=${dateTo}`
           );
           setSalesmanList({
             salesItems: response.salesItems || [],
@@ -280,7 +269,7 @@ const DailySalesReport = () => {
       };
       fetchPendingOrdersWithDate();
     }
-  }, [selectedSalesman, selectedDate]);
+  }, [selectedSalesman, dateFrom,dateTo]);
 
   // Reset invoices when customer changes
   useEffect(() => {
@@ -368,11 +357,25 @@ const DailySalesReport = () => {
     setPaymentType("Cash");
   };
 
+const filteredSalesItems =
+  (salesmanList?.salesItems || []).filter((item) => {
+    return (
+      item.invoiceNo?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.rate?.toString().includes(searchTerm) ||
+      item.qty?.toString().includes(searchTerm) ||
+      item.total?.toString().includes(searchTerm)
+    );
+  });
+
   const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentSalesItems =
-    salesmanList?.salesItems?.slice(indexOfFirstRecord, indexOfLastRecord) ||
-    [];
+const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+
+const currentSalesItems = (filteredSalesItems || []).slice(
+  indexOfFirstRecord,
+  indexOfLastRecord
+);
+
   const currentPaymentReceived =
     salesmanList?.paymentReceived?.slice(
       indexOfFirstRecord,
@@ -381,9 +384,8 @@ const DailySalesReport = () => {
   const currentRecoveries =
     salesmanList?.recoveries?.slice(indexOfFirstRecord, indexOfLastRecord) ||
     [];
-  const totalPages = Math.ceil(
-    (salesmanList?.salesItems?.length || 0) / recordsPerPage
-  );
+
+
 
   useEffect(() => {
     setCurrentPage(1);
@@ -401,15 +403,9 @@ const DailySalesReport = () => {
   }, []);
 
   // Search
-  const filteredSalesItems = currentSalesItems.filter((item) => {
-    return (
-      item.invoiceNo?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.rate?.toString().includes(searchTerm) ||
-      item.qty?.toString().includes(searchTerm) ||
-      item.total?.toString().includes(searchTerm)
-    );
-  });
+  
+console.log(salesmanList);
+
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -448,22 +444,46 @@ const DailySalesReport = () => {
             {/* ===== Left Section ===== */}
             <div className="flex flex-col space-y-2">
               {/* Date Field */}
+              {/* Date From */}
               <div className="flex items-center gap-6">
-                <label className="text-gray-700 font-medium w-24">
-                  Date <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  max={today}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
-                />
+                <div className="flex items-center gap-6">
+                  <label className="text-gray-700 font-medium w-24">
+                    Date From <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    max={today}
+                    onChange={(e) => {
+                      setDateFrom(e.target.value);
+                      // disable old logic
+                    }}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+
+                {/* Date To */}
+                <div className="flex items-center gap-6 mt-2">
+                  <label className="text-gray-700 font-medium w-24">
+                    Date To <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    max={today}
+                    onChange={(e) => {
+                      setDateTo(e.target.value);
+                      // disable old logic
+                    }}
+                    className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
               </div>
+
               {/* Salesman Field */}
               <div className="flex items-start gap-6">
                 <label className="text-gray-700 font-medium w-24 mt-2">
-                  Salesman <span className="text-red-500">*</span>
+                  Sales Officer <span className="text-red-500">*</span>
                 </label>
 
                 <div className="flex flex-col">
@@ -475,7 +495,7 @@ const DailySalesReport = () => {
                     }}
                     className="w-[250px] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                   >
-                    <option value="">Select Salesman</option>
+                    <option value="">Select Sales Officer</option>
                     {salesman?.map((cust) => (
                       <option key={cust._id} value={cust._id}>
                         {cust.employeeName}
@@ -485,7 +505,7 @@ const DailySalesReport = () => {
 
                   {showSalesmanError && (
                     <p className="text-red-500 text-sm mt-1">
-                      Please select a salesman before proceeding.
+                      Please select a sales Officer before proceeding.
                     </p>
                   )}
                 </div>
@@ -494,7 +514,6 @@ const DailySalesReport = () => {
 
             {/* ===== Right Section ===== */}
             <div className="flex flex-col space-y-2">
-          
               <div className="flex justify-end mb-4">
                 <input
                   type="text"
@@ -535,7 +554,7 @@ const DailySalesReport = () => {
                           </div>
                         ) : (
                           <>
-                            {filteredSalesItems.map((item, index) => (
+                            {currentSalesItems.map((item, index) => (
                               <div
                                 key={index}
                                 className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
@@ -860,10 +879,11 @@ const DailySalesReport = () => {
                                     </span>
                                   </div>
                                   <span
-                                    className={`font-medium ${invoice.totalAmount < 0
-                                      ? "text-red-600"
-                                      : "text-gray-700"
-                                      }`}
+                                    className={`font-medium ${
+                                      invoice.totalAmount < 0
+                                        ? "text-red-600"
+                                        : "text-gray-700"
+                                    }`}
                                   >
                                     {invoice.totalAmount.toLocaleString()}
                                   </span>
@@ -904,10 +924,11 @@ const DailySalesReport = () => {
                                   </span>
                                   <div className="flex items-center space-x-2">
                                     <span
-                                      className={`font-medium ${invoice.dueAmount < 0
-                                        ? "text-red-600"
-                                        : "text-gray-700"
-                                        }`}
+                                      className={`font-medium ${
+                                        invoice.dueAmount < 0
+                                          ? "text-red-600"
+                                          : "text-gray-700"
+                                      }`}
                                     >
                                       {invoice.dueAmount.toLocaleString()}
                                     </span>
