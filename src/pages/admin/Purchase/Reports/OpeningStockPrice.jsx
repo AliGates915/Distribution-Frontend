@@ -324,10 +324,9 @@ const OpeningStock = () => {
             <div className="overflow-y-auto lg:overflow-x-auto max-h-[800px]">
               <div className="min-w-[1000px]">
                 {/* ✅ Table Header */}
-                <div className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
+                <div className="hidden lg:grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
                   <div>Sr</div>
                   <div>Category</div>
-                  <div>Type</div>
                   <div>Item</div>
                   <div>Purchase</div>
                   <div>Total Amount</div>
@@ -339,7 +338,7 @@ const OpeningStock = () => {
                     <TableSkeleton
                       rows={itemNameList.length > 0 ? itemNameList.length : 5}
                       cols={editingStockIndex !== null ? 8 : 7}
-                      className="lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr]"
+                      className="lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr]"
                     />
                   ) : itemNameList.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -349,11 +348,10 @@ const OpeningStock = () => {
                     currentRecords.map((rec, index) => (
                       <div
                         key={rec.code}
-                        className="grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
+                        className="grid grid-cols-[0.5fr_1fr_1fr_2fr_1fr] items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{rec?.itemCategory?.categoryName || "-"}</div>
-                        <div>{rec?.itemType?.itemTypeName || "-"}</div>
                         <div className="font-medium text-gray-900">
                           {rec.itemName || "-"}
                         </div>

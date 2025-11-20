@@ -338,13 +338,13 @@ const OpeningStock = () => {
                 {/* ✅ Table Header */}
                 <div
                   className={`hidden lg:grid ${editingStockIndex !== null
-                    ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                    : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                    ? "grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
+                    : "grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
                     } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
                 >
                   <div>Sr</div>
                   <div>Category</div>
-                  <div>Type</div>
+                 
                   <div>Item</div>
                   <div>Stock</div>
                   {editingStockIndex !== null && <div>Action</div>}
@@ -357,8 +357,8 @@ const OpeningStock = () => {
                       rows={itemNameList.length > 0 ? itemNameList.length : 5}
                       cols={editingStockIndex !== null ? 8 : 7}
                       className={`${editingStockIndex !== null
-                        ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                        : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                        ? "lg:grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
+                        : "lg:grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
                         }`}
                     />
                   ) : itemNameList.length === 0 ? (
@@ -370,13 +370,13 @@ const OpeningStock = () => {
                       <div
                         key={rec.code}
                         className={`grid ${editingStockIndex !== null
-                          ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                          : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                          ? "grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
+                          : "grid-cols-[0.5fr_1fr_1fr_1fr_0.1fr_auto]"
                           } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{rec?.itemCategory?.categoryName || "-"}</div>
-                        <div>{rec?.itemType?.itemTypeName || "-"}</div>
+                       
                         <div className="font-medium text-gray-900">
                           {rec.itemName || "-"}
                         </div>
