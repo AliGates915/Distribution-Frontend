@@ -45,8 +45,9 @@ export const handleDirectPrint = (reportData = {}) => {
   ).toLocaleDateString()}</p>
 
         <!-- 🔹 PRODUCT SECTION -->
-        ${productSection.length
-      ? `
+        ${
+          productSection.length
+            ? `
           <h3 style="text-align:left; margin-top:25px;">Product-wise Sales</h3>
           <table>
             <thead>
@@ -64,8 +65,8 @@ export const handleDirectPrint = (reportData = {}) => {
             </thead>
             <tbody>
               ${productSection
-        .map(
-          (p, i) => `
+                .map(
+                  (p, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${p.supplier || "-"}</td>
@@ -76,11 +77,11 @@ export const handleDirectPrint = (reportData = {}) => {
                     <td>${p.purchaseTotal?.toLocaleString() || 0}</td>
                     <td>${p.saleTotal?.toLocaleString() || 0}</td>
                     <td>${(
-              (p.saleTotal || 0) - (p.purchaseTotal || 0)
-            ).toLocaleString()}</td>
+                      (p.saleTotal || 0) - (p.purchaseTotal || 0)
+                    ).toLocaleString()}</td>
                   </tr>`
-        )
-        .join("")}
+                )
+                .join("")}
             </tbody>
             <tfoot>
               <tr>
@@ -88,18 +89,19 @@ export const handleDirectPrint = (reportData = {}) => {
                 <td>${totals.totalPurchase?.toLocaleString() || 0}</td>
                 <td>${totals.totalSales?.toLocaleString() || 0}</td>
                 <td>${(
-        (totals.totalSales || 0) - (totals.totalPurchase || 0)
-      ).toLocaleString()}</td>
+                  (totals.totalSales || 0) - (totals.totalPurchase || 0)
+                ).toLocaleString()}</td>
               </tr>
             </tfoot>
           </table>
           `
-      : "<p style='text-align:center;margin-top:10px;color:#999;'>No product data found.</p>"
-    }
+            : "<p style='text-align:center;margin-top:10px;color:#999;'>No product data found.</p>"
+        }
 
         <!-- 🔹 CUSTOMER SECTION -->
-        ${customerSection.length
-      ? `
+        ${
+          customerSection.length
+            ? `
           <h3 style="text-align:left; margin-top:35px;">Customer-wise Sales & Recovery</h3>
           <table>
             <thead>
@@ -114,8 +116,8 @@ export const handleDirectPrint = (reportData = {}) => {
             </thead>
             <tbody>
               ${customerSection
-        .map(
-          (c, i) => `
+                .map(
+                  (c, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${c.customer || "-"}</td>
@@ -124,22 +126,22 @@ export const handleDirectPrint = (reportData = {}) => {
                     <td>${c.sales?.toLocaleString() || 0}</td>
                     <td>${c.recovery?.toLocaleString() || 0}</td>
                   </tr>`
-        )
-        .join("")}
+                )
+                .join("")}
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="4" style="text-align:right;">Totals:</td>
                 <td>${totals.totalSales?.toLocaleString() || 0}</td>
                 <td>${customerSection
-        .reduce((sum, c) => sum + (c.recovery || 0), 0)
-        .toLocaleString()}</td>
+                  .reduce((sum, c) => sum + (c.recovery || 0), 0)
+                  .toLocaleString()}</td>
               </tr>
             </tfoot>
           </table>
           `
-      : "<p style='text-align:center;margin-top:10px;color:#999;'>No customer data found.</p>"
-    }
+            : "<p style='text-align:center;margin-top:10px;color:#999;'>No customer data found.</p>"
+        }
 
         <p style="margin-top:30px; font-size:11px; color:#777; text-align:center;">
           This is a system-generated Salesman Report and does not require a signature.
@@ -219,8 +221,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-      .map(
-        (entry, i) => `
+              .map(
+                (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -232,8 +234,8 @@ export const handleLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
                   </tr>`
-      )
-      .join("")}
+              )
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -323,8 +325,8 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-      .map(
-        (entry, i) => `
+              .map(
+                (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -336,8 +338,8 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Total || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Amount || 0).toLocaleString()}</td>
                   </tr>`
-      )
-      .join("")}
+              )
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -425,8 +427,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-      .map(
-        (entry, i) => `
+              .map(
+                (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -436,8 +438,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Balance || 0).toLocaleString()}</td>
                   </tr>`
-      )
-      .join("")}
+              )
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -515,16 +517,16 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-      .map((entry, i) => {
-        const item = entry.products?.[0]?.item || "-";
-        const qty = entry.products?.[0]?.qty || 0;
-        const rate = entry.products?.[0]?.rate || 0;
-        const total = entry.totalAmount || 0;
-        const formattedDate = new Date(
-          entry.grnDate
-        ).toLocaleDateString("en-GB");
+              .map((entry, i) => {
+                const item = entry.products?.[0]?.item || "-";
+                const qty = entry.products?.[0]?.qty || 0;
+                const rate = entry.products?.[0]?.rate || 0;
+                const total = entry.totalAmount || 0;
+                const formattedDate = new Date(
+                  entry.grnDate
+                ).toLocaleDateString("en-GB");
 
-        return `
+                return `
                     <tr>
                       <td>${i + 1}</td>
                       <td>${formattedDate}</td>
@@ -534,8 +536,8 @@ export const handleDateWisePrint = (ledgerEntries = []) => {
                       <td>${rate.toLocaleString()}</td>
                       <td>${total.toLocaleString()}</td>
                     </tr>`;
-      })
-      .join("")}
+              })
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -603,15 +605,16 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
           </thead>
           <tbody>
             ${apiData
-      .map(
-        (group, i) => `
+              .map(
+                (group, i) => `
                   <tr class="customer-row">
                     <td>${i + 1}</td>
                     <td colspan="10">${group.customerName}</td>
                   </tr>
-                  ${group.invoices
-            ?.map(
-              (inv) => `
+                  ${
+                    group.invoices
+                      ?.map(
+                        (inv) => `
                         <tr>
                           <td></td>
                           <td></td>
@@ -625,12 +628,12 @@ export const handleCreditAgingPrint = (apiData = [], totals = {}) => {
                           <td>${inv.due?.toLocaleString() || 0}</td>
                           <td>${inv.outstanding?.toLocaleString() || 0}</td>
                         </tr>`
-            )
-            .join("") || ""
-          }
+                      )
+                      .join("") || ""
+                  }
                 `
-      )
-      .join("")}
+              )
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
@@ -721,8 +724,9 @@ export const handleDailySalesPrint = (
         <p>Phone: 0318-4486979</p>
         <hr />
         <h2>Daily Sales Report</h2>
-        <p><b>Date:</b> ${new Date().toLocaleDateString()} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Salesman:</b> ${selectedSalesmanName || "-"
-    }</p>
+        <p><b>Date:</b> ${new Date().toLocaleDateString()} &nbsp;&nbsp; | &nbsp;&nbsp; <b>Salesman:</b> ${
+    selectedSalesmanName || "-"
+  }</p>
 
         <!-- 🔹 Sales Items Table -->
         <h3 style="margin-top:20px;">Sales Items</h3>
@@ -738,10 +742,11 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${salesItems.length
-      ? salesItems
-        .map(
-          (s) => `
+            ${
+              salesItems.length
+                ? salesItems
+                    .map(
+                      (s) => `
                     <tr>
                       <td>${s.invoiceNo || "-"}</td>
                       <td>${s.customer || "-"}</td>
@@ -750,10 +755,10 @@ export const handleDailySalesPrint = (
                       <td>${s.qty || 0}</td>
                       <td>${(s.total || 0).toLocaleString()}</td>
                     </tr>`
-        )
-        .join("")
-      : `<tr><td colspan="6">No sales records found.</td></tr>`
-    }
+                    )
+                    .join("")
+                : `<tr><td colspan="6">No sales records found.</td></tr>`
+            }
           </tbody>
           <tfoot>
             <tr>
@@ -776,10 +781,11 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${paymentReceived.length
-      ? paymentReceived
-        .map(
-          (p) => `
+            ${
+              paymentReceived.length
+                ? paymentReceived
+                    .map(
+                      (p) => `
                     <tr>
                       <td>${p.invoiceNo || "-"}</td>
                       <td>${p.customer || "-"}</td>
@@ -787,10 +793,10 @@ export const handleDailySalesPrint = (
                       <td>${(p.received || 0).toLocaleString()}</td>
                       <td>${(p.balance || 0).toLocaleString()}</td>
                     </tr>`
-        )
-        .join("")
-      : `<tr><td colspan="5">No payment records found.</td></tr>`
-    }
+                    )
+                    .join("")
+                : `<tr><td colspan="5">No payment records found.</td></tr>`
+            }
           </tbody>
           <tfoot>
             <tr>
@@ -814,20 +820,21 @@ export const handleDailySalesPrint = (
             </tr>
           </thead>
           <tbody>
-            ${recoveries.length
-      ? recoveries
-        .map(
-          (r) => `
+            ${
+              recoveries.length
+                ? recoveries
+                    .map(
+                      (r) => `
                     <tr>
                       <td>${r.customer || "-"}</td>
                       <td>${r.invoices?.join(", ") || "-"}</td>
                       <td>${(r.totalRecovery || 0).toLocaleString()}</td>
                       <td>${(r.dueRecovery || 0).toLocaleString()}</td>
                     </tr>`
-        )
-        .join("")
-      : `<tr><td colspan="4">No recovery records found.</td></tr>`
-    }
+                    )
+                    .join("")
+                : `<tr><td colspan="4">No recovery records found.</td></tr>`
+            }
           </tbody>
           <tfoot>
             <tr>
@@ -852,22 +859,46 @@ export const handleSaleInvoicePrint = (orders = []) => {
   if (!orders.length) return;
 
   const win = window.open("", "", "width=900,height=700");
+
   win.document.write(`
     <html>
       <head>
-        <title>Sales Invoice</title>
+        <title>Sales Tax Invoice</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1, h2, p { margin: 0; text-align: center; }
-          h1 { font-size: 22px; font-weight: bold; }
-          h2 { margin-top: 8px; text-decoration: underline; }
-          p { font-size: 14px; color: #555; }
-          hr { border: none; border-top: 1px solid #aaa; margin: 10px 0 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-          th, td { border: 1px solid #999; padding: 6px; text-align: center; }
-          th { background: #f2f2f2; }
-          tfoot td { font-weight: bold; background: #fafafa; }
-          .note { font-size: 11px; color: #777; margin-top: 20px; text-align: center; }
+          body { font-family: Arial, sans-serif; padding: 25px; }
+
+          .heading { text-align: center; font-size: 22px; font-weight: bold; text-transform: uppercase; }
+          .sub-heading { text-align: center; font-size: 16px; margin-bottom: 25px; }
+
+          /* FIXED perfect row alignment */
+          .row {
+            width: 100%;
+            display: flex;
+            margin: 4px 0;
+            font-size: 14px;
+          }
+          .left-block { width: 50%; }
+          .right-block { width: 50%; text-align: left; padding-left: 80px; } /* SAME LEFT PADDING FOR ALL */
+
+          .label { font-weight: bold; width: 120px; display: inline-block; }
+
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+          th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+          th { background: #f5f5f5; }
+
+          .totals-box { width: 280px; margin-left: auto; margin-top: 10px; font-size: 14px; }
+          .totals-box div { display: flex; justify-content: space-between; padding: 4px 0; }
+
+          .words { margin-top: 20px; font-size: 14px; font-weight: bold; }
+
+          .sign-row {
+            margin-top: 40px; width: 100%;
+            display: flex; justify-content: space-between; text-align: center;
+          }
+          .sign-box { width: 30%; }
+          .sign-box .line { border-top: 1px solid #000; margin-bottom: 5px; }
+
+          hr { border: none; border-top: 1px solid #aaa; margin: 40px 0; }
         </style>
       </head>
       <body>
@@ -876,76 +907,117 @@ export const handleSaleInvoicePrint = (orders = []) => {
   orders.forEach((order, index) => {
     const products = order.products || [];
 
-    const totalQty = products.reduce((sum, p) => sum + (parseFloat(p.qty) || 0), 0);
-    const totalAmount = products.reduce((sum, p) => sum + (parseFloat(p.totalAmount) || 0), 0);
+    const totalAmount = products.reduce(
+      (sum, p) => sum + (parseFloat(p.totalAmount) || 0),
+      0
+    );
 
-    const orderId = order.orderId || order.invoiceNo || "-";
-    const orderDate = order.date || order.invoiceDate || "-";
+    const invoiceNo = order.invoiceNo || "-";
+    const invoiceDate = order.invoiceDate
+      ? new Date(order.invoiceDate).toLocaleDateString()
+      : "-";
+
+    const customer = order.customerId || {};
 
     win.document.write(`
-      <h1>Distribution System Pvt. Ltd.</h1>
-      <p>Mall of Lahore, Cantt</p>
-      <p>Phone: 0318-4486979</p>
-      <hr />
-      <h2>Sales Invoice ${index + 1}</h2>
 
-      <div style="margin-bottom:15px; font-size:13px;">
-        <b>Date:</b> ${new Date(orderDate).toLocaleDateString()}<br/>
-        <b>Order ID / Invoice No:</b> ${orderId}<br/>
-        <b>Salesman:</b> ${order.salesmanId?.employeeName || "-"}<br/>
-        <b>Customer:</b> ${order.customerId?.customerName || "-"}<br/>
-        <b>Address:</b> ${order.customerId?.address || "-"}<br/>
-        <b>Phone:</b> ${order.customerId?.phoneNumber || "-"}<br/>
-        <b>Status:</b> ${order.status || "-"}<br/>
+      <div class="heading">SALES TAX INVOICE TO FOLLOW</div>
+      <div class="sub-heading">City Trader Pvt. Ltd.</div>
+
+      <!-- TOP SECTION FIXED ALIGNMENT -->
+      <div class="row">
+        <div class="left-block"><span class="label">Particular:</span> ${customer.customerName || "-"}</div>
+        <div class="right-block"><span class="label">Area:</span> ${customer.salesArea || "-"}</div>
       </div>
 
+      <div class="row">
+        <div class="left-block"><span class="label">Date:</span> ${invoiceDate}</div>
+        <div class="right-block"><span class="label">Sales Officer:</span> ${order.salesmanId?.employeeName || "-"}</div>
+      </div>
+
+      <div class="row">
+        <div class="left-block"><span class="label">Serial No:</span> ${invoiceNo}</div>
+        <div class="right-block"><span class="label">Terms:</span> Credit</div>
+      </div>
+
+      <div class="row">
+        <div class="left-block"><span class="label">Ref No:</span> ${order.orderTakingId?.orderId || "-"}</div>
+        <div class="right-block"><span class="label">Code:</span> ${order.recoveryId || "-"}</div>
+      </div>
+
+      <div class="row">
+        <div class="left-block"><span class="label">Phone:</span> ${customer.phoneNumber || "-"}</div>
+        <div class="right-block"><span class="label">Other:</span> -</div>
+      </div>
+
+      <!-- PRODUCT TABLE -->
       <table>
         <thead>
           <tr>
-            <th>Sr</th>
-            <th>Item</th>
-            <th>Unit</th>
+            <th>Code</th>
+            <th>Name</th>
             <th>Qty</th>
             <th>Rate</th>
-            <th>Total Amount</th>
+            <th>Amount</th>
           </tr>
         </thead>
+
         <tbody>
           ${products
-        .map(
-          (p, i) => `
-              <tr>
-                <td>${i + 1}</td>
-                <td>${p.itemName || p.item}</td>
-                <td>${p.itemUnit || "-"}</td>
-                <td>${p.qty}</td>
-                <td>${(p.rate || 0).toLocaleString()}</td>
-                <td>${(p.totalAmount || p.total || 0).toLocaleString()}</td>
-              </tr>`
-        )
-        .join("")}
+            .map(
+              p => `
+                <tr>
+                  <td>${invoiceNo}</td>
+                  <td>${p.itemName}</td>
+                  <td>${p.qty}</td>
+                  <td>${p.rate.toLocaleString()}</td>
+                  <td>${p.totalAmount.toLocaleString()}</td>
+                </tr>`
+            )
+            .join("")}
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="3" style="text-align:right;">Totals:</td>
-            <td>${totalQty}</td>
-            <td>-</td>
-            <td>${totalAmount.toLocaleString()}</td>
-          </tr>
-        </tfoot>
       </table>
 
-      <p class="note">
-        This is a system-generated sales invoice and does not require a signature.
-      </p>
-      ${index < orders.length - 1 ? "<hr style='margin:30px 0;'/>" : ""}
+      <!-- TOTALS -->
+      <div class="totals-box">
+        <div><span>Amount:</span> <span>${totalAmount.toLocaleString()}</span></div>
+        <div><span>Additional Discount:</span> <span>0</span></div>
+        <div><span>Trade Offer:</span> <span>${order.received || 0}</span></div>
+        <div><span><b>Net Amount:</b></span> <span><b>${order.totalAmount.toLocaleString()}</b></span></div>
+      </div>
+
+      <!-- AMOUNT IN WORDS -->
+      <div class="words">IN WORDS: ${numberToWords(order.totalAmount).toUpperCase()} ONLY</div>
+
+      <!-- SIGNATURE ROW -->
+      <div class="sign-row">
+        <div class="sign-box"><div class="line"></div>Salesman</div>
+        <div class="sign-box"><div class="line"></div>Authorize</div>
+        <div class="sign-box"><div class="line"></div>Shopkeeper</div>
+      </div>
+
+      ${index < orders.length - 1 ? "<hr/>" : ""}
     `);
   });
 
-  win.document.write(`</body></html>`);
+  win.document.write("</body></html>");
   win.document.close();
   win.print();
 };
+
+
+/* Convert number to words */
+function numberToWords(num) {
+  const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+  const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+  if (num < 20) return a[num];
+  if (num < 100) return b[Math.floor(num/10)] + " " + a[num%10];
+  if (num < 1000) return a[Math.floor(num/100)] + " Hundred " + numberToWords(num%100);
+  if (num < 1000000) return numberToWords(Math.floor(num/1000)) + " Thousand " + numberToWords(num%1000);
+
+  return "";
+}
 
 
 export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
@@ -1014,8 +1086,8 @@ export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
           </thead>
           <tbody>
             ${ledgerEntries
-      .map(
-        (entry, i) => `
+              .map(
+                (entry, i) => `
                   <tr>
                     <td>${i + 1}</td>
                     <td>${entry.Date || "-"}</td>
@@ -1028,8 +1100,8 @@ export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
                     <td>${parseFloat(entry.Debit || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Credit || 0).toLocaleString()}</td>
                   </tr>`
-      )
-      .join("")}
+              )
+              .join("")}
           </tbody>
           <tfoot>
             <tr>
