@@ -49,7 +49,7 @@ const Sales = () => {
       }
 
       const response = await api.get(query);
-      const data = response.data;
+      const data = response;
 
       if (data?.success) {
         setReportData(data);
@@ -75,7 +75,7 @@ const Sales = () => {
   }, [fetchSalesmanList]);
 
   useEffect(() => {
-    if (selectedSalesman && dateFrom && dateTo) {
+    if (selectedSalesman && dateFrom) {
       fetchSalesmanReport();
     }
   }, [selectedSalesman, dateFrom, dateTo]);
