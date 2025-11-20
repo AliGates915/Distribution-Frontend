@@ -32,7 +32,6 @@ const SalesmanAmountReceivables = () => {
     fetchReceivables();
   }, [fetchReceivables]);
   console.log(receivables);
-  
 
   // 🔹 Search filter (employee name or recovery balance)
   const searchedCustomers = receivables.filter(
@@ -53,6 +52,11 @@ const SalesmanAmountReceivables = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+  // 🔹 Total Recovery Balance Calculation
+  const totalBalance = searchedCustomers.reduce(
+    (sum, r) => sum + (parseFloat(r.recoveryBalance) || 0),
+    0
+  );
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -94,7 +98,7 @@ const SalesmanAmountReceivables = () => {
                   <TableSkeleton
                     rows={currentRecords.length || 5}
                     cols={3}
-                    className="lg:grid grid-cols-[0.2fr_0.5fr_1fr]"
+                    className="lg:grid-cols-[0.2fr_0.5fr_1fr]"
                   />
                 ) : currentRecords.length > 0 ? (
                   currentRecords.map((cust, index) => (
@@ -122,6 +126,21 @@ const SalesmanAmountReceivables = () => {
                   </div>
                 )}
               </div>
+              {/* ✅ TOTAL RECOVERY BALANCE ROW */}
+           
+              {!loading && searchedCustomers.length > 0 && (
+                <div className="grid grid-cols-[0.2fr_0.5fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-sm font-semibold text-gray-700 border-t">
+                  <div></div>
+                  <div className="text-right">Total Balance:</div>
+                  <div className="text-blue-600">
+                    {Number(totalBalance.toFixed(0)).toLocaleString("en-PK", {
+                      style: "currency",
+                      currency: "PKR",
+                      minimumFractionDigits: 0,
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Pagination */}
               {totalPages > 1 && (
