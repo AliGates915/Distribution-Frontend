@@ -630,8 +630,8 @@ const PaymentToSupplier = () => {
               <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
                 <h2 className="text-xl font-bold text-newPrimary">
                   {editingVoucher
-                    ? "Update Payment Receipt Voucher"
-                    : "Add a New Payment Receipt Voucher"}
+                    ? "Update Supplier Payment"
+                    : "Add Supplier Payment"}
                 </h2>
                 <button
                   className="text-2xl text-gray-500 hover:text-gray-700"
@@ -736,7 +736,7 @@ const PaymentToSupplier = () => {
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="block text-gray-700 font-medium mb-2">
-                        Amount Received <span className="text-red-500">*</span>
+                        Amount Paid <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"

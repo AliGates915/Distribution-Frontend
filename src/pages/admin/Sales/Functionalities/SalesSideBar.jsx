@@ -92,9 +92,9 @@ const setupChildren = [
     label: "Item Category",
     icon: <FaThList />,
   },
-  { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
+  // { to: "/admin/item-type", label: "Item Type", icon: <FaBox /> },
 
-  { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
+  // { to: "/admin/item-unit", label: "Item Unit", icon: <FaBalanceScale /> },
 
   // {
   //   to: "/admin/manufacture",

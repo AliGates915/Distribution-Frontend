@@ -31,7 +31,6 @@ const ListOfItems = () => {
   const [itemType, setItemType] = useState("");
   const [itemName, setItemName] = useState("");
   const [itemCategoryId, setItemCategoryId] = useState("");
-  const [primaryBarcode, setPrimaryBarcode] = useState("");
   const [details, setDetails] = useState("");
   const [manufacture, setManufacture] = useState("");
   const [supplier, setSupplier] = useState("");
@@ -53,8 +52,12 @@ const ListOfItems = () => {
   // const [imagePreview, setImagePreview] = useState(null);
   const [itemTypeList, setItemTypeList] = useState([]);
 
-  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const generateDummyBarcode = () => {
+    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  };
+  const [primaryBarcode, setPrimaryBarcode] = useState(generateDummyBarcode());
   // Utility to generate random barcode string
   const generateRandomBarcode = () => {
     const prefix = "PBC"; // you can change prefix
@@ -99,8 +102,8 @@ const ListOfItems = () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/item-details`
       );
-      console.log("Type", res.data);
-      
+      console.log("Details", res.data);
+
       setItemList(res.data); // store actual categories array
     } catch (error) {
       console.error("Failed to fetch item details", error);
@@ -144,7 +147,7 @@ const ListOfItems = () => {
     try {
       setIsSaving(true);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/categories`
+        `${import.meta.env.VITE_API_BASE_URL}/categories/list`
       );
       setCategoryList(res.data); // store actual categories array
     } catch (error) {
@@ -164,7 +167,7 @@ const ListOfItems = () => {
     const fetchItemTypes = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/item-type/category/${itemCategory.name
+          `${import.meta.env.VITE_API_BASE_URL}/item-details/category/${itemCategory.name
           }`
         );
         setItemTypeList(res.data);
@@ -219,7 +222,7 @@ const ListOfItems = () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/suppliers/list`
+        `${import.meta.env.VITE_API_BASE_URL}/suppliers`
       );
       setSupplierList(res.data); // store actual categories array
     } catch (error) {
@@ -255,27 +258,21 @@ const ListOfItems = () => {
     setIsSliderOpen(true);
     setIsEdit(false);
     setEditId(null);
-    setItemCategory("");
+    setItemCategory({ id: "", name: "" }); // ✅
     setItemType("");
     setItemName("");
     setDetails("");
     setManufacture("");
     setSupplier("");
-    setShelveLocation("");
     setItemUnit("");
     setPerUnit("");
-    // setPurchase("");
-    // setSales("");
-    // setStock("");
     setPrice("");
-    setBarcode("");
     setReorder("");
     setEnabled(true);
     setImage(null);
     setImagePreview(null);
     setExpiryOption("NoExpiry");
     setExpiryDay("");
-    setPrimaryBarcode(generateRandomBarcode());
   };
   // form validation
 
@@ -283,15 +280,7 @@ const ListOfItems = () => {
     let errors = [];
 
     if (!itemCategory.id) errors.push("Item Category is required");
-    // if (!itemType) errors.push("Item Type is required");
-    if (!itemKind) errors.push("Item Kind is required");
     if (!itemName) errors.push("Item Name is required");
-    if (!itemUnit) errors.push("Item Unit is required");
-    // if (!perUnit) errors.push("Per Unit is required");
-    // if (!purchase) errors.push("Purchase is required");
-    // if (!sales) errors.push("Sales is required");
-    // if (!stock) errors.push("Stock is required");
-    // if (!image && !imagePreview) errors.push("Product image is required");
 
     // expiry ke liye special case
     if (expiryOption === "HasExpiry" && !expiryDay) {
@@ -314,62 +303,40 @@ const ListOfItems = () => {
       return;
     }
     setIsSaving(true);
-    const formData = new FormData();
-
-    formData.append(
-      "itemId",
-      editId ? itemCategoryId : `ITEM-${nextItemCategoryId}`
-    );
-    formData.append("itemName", itemName);
-    formData.append("itemCategory", itemCategory.id);
-    // formData.append("manufacturer", manufacture);
-    formData.append("supplier", supplier);
-    // formData.append("purchase", parseFloat(purchase) || 0);
-    // formData.append("itemType", itemType);
-    // formData.append("stock", parseInt(stock) || 0);
-    // formData.append("price", parseFloat(sales) || 0);
-    formData.append("shelveLocation", shelveLocation);
-    formData.append("itemUnit", itemUnit);
-    // formData.append("perUnit", parseInt(perUnit) || 0);
-    // formData.append("reorder", parseInt(reorder) || 0);
-    formData.append("isEnable", enabled);
-    formData.append("primaryBarcode", primaryBarcode);
-    formData.append("secondaryBarcode", barcode);
-    formData.append("itemKind", itemKind);
-    // ✅ expiry logic
-    if (expiryOption === "HasExpiry") {
-      formData.append("hasExpiry", parseInt(expiryDay) || 0);
-      formData.append("noHasExpiray", false); // explicit
-    } else {
-      formData.append("noHasExpiray", true); // no expiry case
-    }
-    // if (image) {
-    //   formData.append("itemImage", image);
-    // }
+    const payload = {
+      itemId: editId ? itemCategoryId : `ITEM-${nextItemCategoryId}`,
+      itemName,
+      itemCategory: itemCategory.id,
+      supplier,
+      shelveLocation,
+      itemUnit,
+      isEnable: enabled,
+      primaryBarcode,
+      secondaryBarcode: barcode,
+      itemKind,
+      hasExpiry: expiryOption === "HasExpiry" ? parseInt(expiryDay) || 0 : 0,
+      noHasExpiray: expiryOption === "NoExpiry"
+    };
 
     try {
       const headers = {
         Authorization: `Bearer ${userInfo.token}`,
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "application/json",
       };
 
       if (isEdit && editId) {
-        await axios.put(
-          `${import.meta.env.VITE_API_BASE_URL}/item-details/${editId}`,
-          formData,
-          { headers }
-        );
-        toast.success(" Item List updated successfully");
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/item-details/${editId}`, payload, { headers });
+        toast.success("Item List updated successfully");
       } else {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/item-details`,
-          formData,
-          { headers }
-        );
-        toast.success(" Item List added successfully");
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/item-details`, payload, { headers });
+        toast.success("Item List added successfully");
       }
+
+      // Refresh table
+      fetchData(); // ✅ Add this line
+
+      // Close slider
       reState();
-      fetchData();
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "An error occurred");
@@ -420,31 +387,29 @@ const ListOfItems = () => {
     setManufacture(item?.manufacturer?._id || "");
     setSupplier(item?.supplier?._id || "");
     setShelveLocation(item?.shelveLocation?._id || "");
-    setItemUnit(item?.itemUnit._id || "");
+    setItemUnit(item?.itemUnit?._id || "");
     setItemType(item?.itemType?._id || "");
-    setItemCategoryId(item.itemId);
+    setItemCategoryId(item?.itemId);
     // Normal fields
-    setItemName(item.itemName || "");
-    setPerUnit(item.perUnit ? item.perUnit.toString() : "");
+    setItemName(item?.itemName || "");
+    // setPerUnit(item?.perUnit ? item.perUnit.toString() : "");
     // setPurchase(item.purchase ? item.purchase.toString() : "");
     // setSales(item.price.toString() ?? "");
     // setStock(item.stock ? item.stock.toString() : "");
-    setBarcode(item.secondaryBarcode || "");
-    setReorder(item.reorder ? item.reorder.toString() : "");
+    setBarcode(item?.secondaryBarcode || "");
+    // setReorder(item.reorder ? item.reorder.toString() : "");
     setItemKind(item.itemKind || "");
-    setPrimaryBarcode(item.primaryBarcode || generateRandomBarcode());
+    setPrimaryBarcode(generateDummyBarcode());
 
-    // ✅ Expiry fields
-    if (item.noHasExpiray) {
-      // case: No Expiry
+    // Expiry fields
+    if (item.noHasExpiray === true) {
       setExpiryOption("NoExpiry");
       setExpiryDay("");
-    } else if (item.hasExpiray && item.hasExpiray > 0) {
-      // case: Has Expiry
+    } else if (item.hasExpiry && item.hasExpiry > 0) {
       setExpiryOption("HasExpiry");
-      setExpiryDay(item.hasExpiray.toString());
+      setExpiryDay(item.hasExpiry.toString());
     } else {
-      // default safe fallback
+      // fallback if neither exists
       setExpiryOption("NoExpiry");
       setExpiryDay("");
     }
@@ -453,8 +418,8 @@ const ListOfItems = () => {
     setEnabled(item.isEnable !== undefined ? item.isEnable : true);
 
     // Image
-    setImagePreview(item?.itemImage?.url || "");
-    setImage(null);
+    // setImagePreview(item?.itemImage?.url || "");
+    // setImage(null);
 
     setIsSliderOpen(true);
   };
@@ -540,11 +505,12 @@ const ListOfItems = () => {
     });
   };
 
+
   const filteredItems = itemList.filter((item) => {
     const term = searchTerm.toLowerCase();
     return (
       item.itemName?.toLowerCase().includes(term) ||
-      item.itemType?.itemTypeName?.toLowerCase().includes(term)
+      item.itemCategory?.categoryName?.toLowerCase().includes(term)
     );
   });
 
@@ -560,6 +526,7 @@ const ListOfItems = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -610,9 +577,6 @@ const ListOfItems = () => {
                 <div>Sr</div>
                 <div>Item Category</div>
                 <div>Item Name</div>
-                {/* <div>Purchase</div> */}
-                {/* <div>Sales</div>
-                <div>Stock</div> */}
                 {userInfo?.isAdmin && <div className="">Actions</div>}
               </div>
 
@@ -637,13 +601,8 @@ const ListOfItems = () => {
                       {indexOfFirstRecord + index + 1}
                       {/* Item Category (with icon) */}
                       <div className="flex items-center gap-3">
-                        <img
-                          src={item.itemImage?.url || item.itemImage}
-                          alt="Product Icon"
-                          className="w-7 h-7 object-cover rounded-full"
-                        />
                         <span className="font-medium text-gray-900">
-                          {item?.itemType?.itemTypeName || "-"}
+                          {item?.itemCategory?.categoryName || "-"}
                         </span>
                       </div>
 
@@ -651,21 +610,6 @@ const ListOfItems = () => {
                       <div className="text-gray-600">
                         {item.itemName || "-"}
                       </div>
-
-                      {/* Purchase */}
-                      {/* <div className="font-semibold text-gray-600">
-                        {item.purchase || "-"}
-                      </div> */}
-
-                      {/* Sales */}
-                      {/* <div className="font-semibold text-gray-600">
-                        {item.price ?? "-"}
-                      </div> */}
-
-                      {/* Stock */}
-                      {/* <div className="font-semibold text-gray-600">
-                        {item.stock || "-"}
-                      </div> */}
 
                       {/* Actions */}
                       {userInfo?.isAdmin && (
@@ -734,7 +678,7 @@ const ListOfItems = () => {
         <div className="fixed inset-0 bg-gray-600/50 flex items-center justify-center z-50">
           <div
             ref={sliderRef}
-            className="relative w-full md:w-[900px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+            className="relative w-full md:w-[700px] bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
           >
             <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white rounded-t-2xl">
               <h2 className="text-xl font-bold text-newPrimary">
@@ -754,9 +698,6 @@ const ListOfItems = () => {
                   setShelveLocation("");
                   setItemUnit("");
                   setPerUnit("");
-                  // setPurchase("");
-                  // setSales("");
-                  // setStock("");
                   setPrice("");
                   setBarcode("");
                   setReorder("");
@@ -790,20 +731,21 @@ const ListOfItems = () => {
                         placeholder="Enter Category ID"
                       />
                     </div>
-
                     {/* Primary Barcode */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Primary Barcode <span className="text-red-500">*</span>
                       </label>
 
-                      {/* Show barcode preview only if entered */}
-                      {primaryBarcode && (
+                      {primaryBarcode ? (
                         <div className="">
                           <Barcode value={primaryBarcode} height={30} />
                         </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm mt-2">No barcode generated</p>
                       )}
                     </div>
+
                   </div>
                 </div>
                 {/* Section 2 */}
@@ -829,69 +771,6 @@ const ListOfItems = () => {
                       </select>
                     </div>
 
-                    {/* Item Type */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Item Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={itemType}
-                        required
-                        disabled={!itemCategory}
-                        className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-                        ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                        onChange={(e) => setItemType(e.target.value)}
-                      >
-                        <option value="">Select Item Type</option>
-                        {itemTypeList.map((type) => (
-                          <option key={type._id} value={type._id}>
-                            {type.itemTypeName}
-                          </option>
-                        ))}
-                      </select>
-                    </div> */}
-
-                    {/* Item Kind */}
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-400 font-medium">
-                        Item Kind <span className="text-red-500">*</span>
-                      </label>
-
-                      <select
-                        value={itemKind}
-                        disabled
-                        required
-                        onChange={(e) => setItemKind(e.target.value)}
-                        className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed text-gray-700"
-                      >
-                        <option value="Finished Goods">Finished Goods</option>
-                      </select>
-
-                      {/* Hidden input ensures value passes in form submission */}
-                      <input type="hidden" name="itemKind" value={itemKind} />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-5">
-                    {/* Manufacture */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Manufacture
-                      </label>
-                      <select
-                        value={manufacture}
-                        required
-                        onChange={(e) => setManufacture(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="">Select Manufacture</option>
-                        {manufacturerList.map((manufacture) => (
-                          <option key={manufacture._id} value={manufacture._id}>
-                            {manufacture.manufacturerName}
-                          </option>
-                        ))}
-                      </select>
-                    </div> */}
                     {/* Supplier */}
                     <div className="flex-1 min-w-0">
                       <label className="block text-gray-700 font-medium">
@@ -911,33 +790,10 @@ const ListOfItems = () => {
                         ))}
                       </select>
                     </div>
-                    {/* Shelve Location */}
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-400 font-medium">
-                        Shelve Location
-                      </label>
-                      <select
-                        value={shelveLocation}
-                        onChange={(e) => setShelveLocation(e.target.value)}
-                        disabled
-                        className="w-full p-2 border bg-gray-100 rounded"
-                      >
-                        <option value="">Select Location</option>
-                        {shelvesList.map((shelves) => (
-                          <option key={shelves._id} value={shelves._id}>
-                            {shelves.shelfNameCode}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
-                </div>
 
-                {/* Section 2 */}
-                {/* Item Name */}
-                <div className="border px-4 py-6 rounded-lg bg-formBgGray space-y-4">
                   <div className="flex gap-5">
-                    <div className="flex-1 min-w-0">
+                    <div className="w-[49%] min-w-0">
                       <label className="block text-gray-700 font-medium">
                         Item Name <span className="text-red-500">*</span>
                       </label>
@@ -949,127 +805,11 @@ const ListOfItems = () => {
                         className="w-full p-2 border rounded"
                       />
                     </div>
-
-                    {/* Item Unit */}
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Item Unit <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={itemUnit}
-                        required
-                        onChange={(e) => setItemUnit(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="">Select Unit</option>
-                        {itemUnitList.map((unit) => (
-                          <option key={unit._id} value={unit._id}>
-                            {unit.unitName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Per Unit */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Per Unit <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={perUnit}
-                        onChange={(e) => setPerUnit(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div> */}
-
-                    {/* Purchase */}
-                    {/* <div className="flex-1 block min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Purchase <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={purchase}
-                        required
-                        onChange={(e) => setPurchase(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div> */}
-                  </div>
-
-                  <div className="flex gap-5">
-                    {/* Sales */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Sales <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={sales}
-                        required
-                        onChange={(e) => setSales(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div> */}
-
-                    {/* Stock */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Stock <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={stock}
-                        required
-                        onChange={(e) => setStock(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div> */}
-                  </div>
-
-                  <div className="flex gap-4">
-                    {/* Reorder */}
-                    {/* <div className="flex-1 min-w-0">
-                      <label className="block text-gray-700 font-medium">
-                        Reorder
-                      </label>
-                      <input
-                        type="number"
-                        value={reorder}
-                        onChange={(e) => setReorder(e.target.value)}
-                        className="w-full p-2 border rounded"
-                      />
-                    </div> */}
-
-                    {/* Secandory Barcode */}
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-gray-400 font-medium">
-                        Secondary Barcode
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={barcode}
-                        onChange={(e) => setBarcode(e.target.value)}
-                        className="w-full p-2 border rounded"
-                        placeholder="e.g. BAR1234567890"
-                        minLength={5}
-                        maxLength={14}
-                        onBlur={(e) => setBarcode(e.target.value)} // update on blur
-                      />
-
-                      {/* Show barcode only if input is not empty */}
-                      {barcode && (
-                        <div className="mt-3">
-                          <Barcode value={barcode} height={60} />
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
+
               </div>
-              <div className="flex gap-20">
+              {/* <div className="flex gap-20">
                 <div>
                   <label className="block text-gray-700 font-medium">
                     Expiry Day
@@ -1119,90 +859,8 @@ const ListOfItems = () => {
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* Image Upload */}
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Product Images <span className="text-red-500">*</span>
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      stroke="currentColor"
-                      fill="none"
-                      viewBox="0 0 48 48"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <div className="flex text-sm text-gray-600 justify-center">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-newPrimary hover:text-newPrimary focus-within:outline-none"
-                      >
-                        <span>Upload files</span>
-                        <input
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          onChange={handleImageUpload}
-                          className="sr-only"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
-                  </div>
-                </div>
-
-                {imagePreview && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">
-                      Uploaded Image
-                    </h3>
-                    <div className="relative group w-48 h-32">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover rounded-md border border-gray-200"
-                      />
-                      <button
-                        onClick={removeImage}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div> */}
 
-              {/* Enable / Disable */}
-              <div className="flex items-center gap-3">
-                <label className="text-gray-700 font-medium">
-                  Enable / Disable
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setEnabled(!enabled)}
-                  className={`w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300 ${enabled ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${enabled ? "translate-x-7" : "translate-x-0"
-                      }`}
-                  />
-                </button>
-              </div>
 
               {/* Save Button */}
               <button

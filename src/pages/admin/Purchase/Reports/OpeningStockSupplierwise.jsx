@@ -20,6 +20,7 @@ const OpeningStock = () => {
   const [showCategoryError, setShowCategoryError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const tableRef = useRef(null);
+  const [showZeroStock, setShowZeroStock] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
@@ -34,6 +35,7 @@ const OpeningStock = () => {
 
   // Refresh the Page called api
   // Refresh the Page called api
+  // Fetch all items initially
   useEffect(() => {
     const fetchAllItems = async () => {
       setLoading(true);
@@ -43,14 +45,15 @@ const OpeningStock = () => {
         );
         setItemNameList(res.data);
       } catch (error) {
-        console.error("Failed to fetch all items", error);
+        console.error("Failed to fetch items", error);
       } finally {
         setTimeout(() => setLoading(false), 1000);
       }
     };
 
     fetchAllItems();
-  }, [isClearing]); // ✅ Add this dependency
+  }, [isClearing]); // refresh if clearing form
+
 
   // CategoryList Fetch
   const fetchCategoryList = useCallback(async () => {
@@ -89,51 +92,50 @@ const OpeningStock = () => {
   }, [fetchSupplierList]);
 
   // Fetch itemTypes when category changes
-  useEffect(() => {
-    if (!itemCategory || isClearing) return; // only call when category selected
+  // useEffect(() => {
+  //   if (!itemCategory || isClearing) return; // only call when category selected
 
-    const fetchItemTypes = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/item-type/category/${itemCategory}`
-        );
-        setItemTypeList(res.data);
-      } catch (error) {
-        console.error("Failed to fetch item types", error);
-      } finally {
-        setTimeout(() => setLoading(false), 1000);
-      }
-    };
+  //   const fetchItemTypes = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await axios.get(
+  //         `${
+  //           import.meta.env.VITE_API_BASE_URL
+  //         }/item-type/category/${itemCategory}`
+  //       );
+  //       setItemTypeList(res.data);
+  //     } catch (error) {
+  //       console.error("Failed to fetch item types", error);
+  //     } finally {
+  //       setTimeout(() => setLoading(false), 1000);
+  //     }
+  //   };
 
-    fetchItemTypes();
-  }, [itemCategory, isClearing]);
+  //   fetchItemTypes();
+  // }, [itemCategory, isClearing]);
 
   // when itemType Select then Table repaint according api response
   useEffect(() => {
-    if (!itemType || isClearing) return;
+    if (!itemCategory) return; // do nothing if no category selected
 
-    const fetchItems = async () => {
-      setLoading(true);
+    const fetchItemsByCategory = async () => {
+      setLoading(true); // show loader
       try {
         const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
-          }/item-details/item-type/${itemType}`
+          `${import.meta.env.VITE_API_BASE_URL}/item-details/category/${itemCategory}`
         );
-
-        setItemNameList(res.data);
+        setItemNameList(res.data); // update table data
       } catch (error) {
-        console.error("Failed to fetch items", error);
+        console.error("Failed to fetch items by category", error);
+        setItemNameList([]); // clear table on error
       } finally {
-        setTimeout(() => setLoading(false), 1000);
+        setTimeout(() => setLoading(false), 500); // hide loader
       }
     };
 
-    fetchItems();
-  }, [itemType, isClearing]);
+    fetchItemsByCategory();
+  }, [itemCategory]);
+
 
   // Track editing state per cell
   const [editing, setEditing] = useState({});
@@ -171,16 +173,27 @@ const OpeningStock = () => {
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   // Filter items by category, type, or item
-  const filteredItems = itemNameList.filter(
-    (item) =>
-      (item?.itemCategory?.categoryName || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (item?.itemType?.itemTypeName || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (item?.itemName || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = itemNameList
+    .filter(item => {
+      const matchesCategory = itemCategory
+        ? item?.itemCategory?.categoryName?.toLowerCase() === itemCategory.toLowerCase()
+        : true;
+
+      const matchesSearch =
+        (item?.itemName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (item?.itemCategory?.categoryName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
+      // ✅ Filter based on stock zero / non-zero
+      const matchesStock = showZeroStock ? true : parseFloat(item.stock) !== 0;
+
+      return matchesCategory && matchesSearch && matchesStock;
+    });
+
+
 
   const currentRecords = filteredItems.slice(
     indexOfFirstRecord,
@@ -190,7 +203,7 @@ const OpeningStock = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemCategory, itemType]);
+  }, [itemCategory]);
 
   useEffect(() => {
     if (!itemCategory) {
@@ -209,7 +222,7 @@ const OpeningStock = () => {
         </div>
       ) : (
         <div className=" space-y-6">
-          <h1 className="text-2xl font-bold text-newPrimary">Opening Stocks</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">Stock Position</h1>
 
           {/* Form */}
           <div className="border rounded-lg shadow bg-white p-6 w-full">
@@ -243,7 +256,7 @@ const OpeningStock = () => {
                 </div>
 
                 {/* Item Type */}
-                <div className="w-full">
+                {/* <div className="w-full">
                   <label className="block text-gray-700 font-medium mb-1">
                     Item Type
                   </label>
@@ -252,7 +265,7 @@ const OpeningStock = () => {
                     onChange={(e) => setItemType(e.target.value)}
                     disabled={!itemCategory}
                     className={`w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200 
-                ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                    ${!itemCategory ? "bg-gray-100 cursor-not-allowed" : ""}`}
                   >
                     <option value="">Select Item Type</option>
                     {itemTypeList.map((type) => (
@@ -261,7 +274,7 @@ const OpeningStock = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
               </div>
 
               <div className="w-[350px] justify-end mt-12">
@@ -279,6 +292,39 @@ const OpeningStock = () => {
             </div>
           </div>
 
+          <div className="flex gap-6 mt-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="stockFilter"
+                value="withZero"
+                checked={showZeroStock}
+                onChange={() => {
+                  setLoading(true); // show loader
+                  setShowZeroStock(true);
+                  setTimeout(() => setLoading(false), 300); // hide loader after short delay
+                }}
+                className="w-4 h-4"
+              />
+              With Zero
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="stockFilter"
+                value="withoutZero"
+                checked={!showZeroStock}
+                onChange={() => {
+                  setLoading(true); // show loader
+                  setShowZeroStock(false);
+                  setTimeout(() => setLoading(false), 300); // hide loader after short delay
+                }}
+                className="w-4 h-4"
+              />
+              Without Zero
+            </label>
+          </div>
+
           {/* Table */}
 
           {/* TABLE / CARDS */}
@@ -291,11 +337,10 @@ const OpeningStock = () => {
               <div className="min-w-[1000px]">
                 {/* ✅ Table Header */}
                 <div
-                  className={`hidden lg:grid ${
-                    editingStockIndex !== null
-                      ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                      : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                  } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
+                  className={`hidden lg:grid ${editingStockIndex !== null
+                    ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                    : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                    } gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200`}
                 >
                   <div>Sr</div>
                   <div>Category</div>
@@ -311,11 +356,10 @@ const OpeningStock = () => {
                     <TableSkeleton
                       rows={itemNameList.length > 0 ? itemNameList.length : 5}
                       cols={editingStockIndex !== null ? 8 : 7}
-                      className={`${
-                        editingStockIndex !== null
-                          ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                          : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                      }`}
+                      className={`${editingStockIndex !== null
+                        ? "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                        : "lg:grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                        }`}
                     />
                   ) : itemNameList.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-white">
@@ -325,11 +369,10 @@ const OpeningStock = () => {
                     currentRecords.map((rec, index) => (
                       <div
                         key={rec.code}
-                        className={`grid ${
-                          editingStockIndex !== null
-                            ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                            : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
-                        } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
+                        className={`grid ${editingStockIndex !== null
+                          ? "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                          : "grid-cols-[0.5fr_1fr_1fr_2fr_1fr_auto]"
+                          } items-center gap-4 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition`}
                       >
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{rec?.itemCategory?.categoryName || "-"}</div>
@@ -375,8 +418,7 @@ const OpeningStock = () => {
                               onClick={async () => {
                                 try {
                                   await axios.put(
-                                    `${
-                                      import.meta.env.VITE_API_BASE_URL
+                                    `${import.meta.env.VITE_API_BASE_URL
                                     }/item-details/${rec._id}/stock`,
                                     { stock: rec.stock },
                                     {
@@ -395,7 +437,7 @@ const OpeningStock = () => {
                                 } catch (error) {
                                   toast.success(
                                     error.response?.data?.message ||
-                                      "Failed to update stock"
+                                    "Failed to update stock"
                                   );
                                   console.error(
                                     "Failed to update stock:",
@@ -426,11 +468,10 @@ const OpeningStock = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === 1
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Previous
                       </button>
@@ -442,11 +483,10 @@ const OpeningStock = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === totalPages
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Next
                       </button>
