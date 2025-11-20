@@ -7,6 +7,10 @@ import CommanHeader from "../../Components/CommanHeader";
 import TableSkeleton from "../../Components/Skeleton";
 
 const ExpensePage = () => {
+  const today = new Date().toLocaleDateString("en-CA");
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState("");
+
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [salesmanList, setSalesmanList] = useState([]);
@@ -34,23 +38,26 @@ const ExpensePage = () => {
   const fetchExpenses = async () => {
     try {
       setIsLoading(true);
-      const dateQuery = selectedDate ? `?date=${selectedDate}` : ""; // Optional date
 
-      const { data } = await axios.get(
-        `${API_BASE}/salesman-expense/by-date?date=${selectedDate}`
-      );
+      let url = `${API_BASE}/salesman-expense/by-date`; // default
+
+      // Date range selected
+      if (dateFrom && dateTo) {
+        url = `${API_BASE}/salesman-expense/by-date?from=${dateFrom}&to=${dateTo}`;
+      }
+      
+
+      const { data } = await axios.get(url);
 
       if (data.success) {
         const mapped = data.data.map((exp) => ({
           id: exp._id,
           date: exp.date.split("T")[0],
-          salesman: exp.salesmanId?.employeeName || "N/A",
-          items: exp.expenses.map((e) => ({
-            name: e.expenseName,
-            amount: e.amount,
-          })),
-          totalAmount: exp.totalAmount,
+          headName: exp.head?.headName || "N/A",
+          amount: exp.amount,
+          description: exp.description,
         }));
+
         setExpenses(mapped);
         setExpenseAmount(data.totalExpense || 0);
       } else {
@@ -65,16 +72,22 @@ const ExpensePage = () => {
 
   // ✅ Auto load today's date and data
   useEffect(() => {
-    const today = new Date().toLocaleDateString("en-CA", {
-      timeZone: "Asia/Karachi",
-    });
+    const today = new Date().toLocaleDateString("en-CA");
     setSelectedDate(today);
   }, []);
 
   // ✅ Auto-refresh when salesman or date changes
+  // 🔥 When user selects Date From & Date To → fetch range API
   useEffect(() => {
-    if (selectedDate) fetchExpenses();
-  }, [selectedDate]);
+    if (dateFrom && dateTo) {
+      fetchExpenses();
+    }
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
   // console.log({expenses});
 
   useEffect(() => {
@@ -87,9 +100,9 @@ const ExpensePage = () => {
     const search = searchTerm.toLowerCase();
 
     return (
-      exp.salesman?.toLowerCase().includes(search) ||
-      exp.items.some((i) => i.name.toLowerCase().includes(search)) ||
-      exp.totalAmount.toString().includes(search) ||
+      exp.headName.toLowerCase().includes(search) ||
+      exp.description?.toLowerCase().includes(search) ||
+      exp.amount.toString().includes(search) ||
       exp.date.toLowerCase().includes(search)
     );
   });
@@ -127,17 +140,40 @@ const ExpensePage = () => {
           {/* 🔹 Filters */}
           <div className="flex justify-end items-center w-full gap-4">
             <div className="flex justify-between items-center w-full gap-4 mb-5">
-              <div className="flex justify-between items-center mt-8">
-                {/* Date Filter */}
-                <div className="whitespace-nowrap">
+              <div className="flex justify-between items-center mt-8 gap-3">
+                {/* Date From */}
+                <div className="whitespace-nowrap flex  gap-3 items-start">
+                  <label className="text-sm font-semibold ">
+                    Date From <span className="text-red-600">*</span>
+                  </label>
                   <input
                     type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="p-2 border w-[250px] border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                    value={dateFrom}
+                    onChange={(e) => {
+                      setDateFrom(e.target.value);
+                      setSelectedDate(""); // disable old filter
+                    }}
+                    className="p-2 border w-[180px] border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
+                  />
+                </div>
+
+                {/* Date To */}
+                <div className="whitespace-nowrap flex gap-3 items-start">
+                  <label className="text-sm font-semibold ">
+                    Date To <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => {
+                      setDateTo(e.target.value);
+                      setSelectedDate(""); // disable old filter
+                    }}
+                    className="p-2 border w-[180px] border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-newPrimary"
                   />
                 </div>
               </div>
+
               <div>
                 {/* Today Expense Amount */}
                 <div className="whitespace-nowrap">
@@ -196,12 +232,11 @@ const ExpensePage = () => {
                         <div>{indexOfFirstRecord + index + 1}</div>
                         <div>{formDate(exp.date)}</div>
                         {/* <div className="text-center">{exp.salesman}</div> */}
-                        <div className="text-center">
-                          {exp.items.map((i) => i.name).join(", ")}
-                        </div>
+                        <div className="text-center">{exp.headName}</div>
                         <div className="font-semibold text-blue-600">
-                          {exp.totalAmount}
+                          {exp.amount}
                         </div>
+
                         <div className="flex justify-center gap-2">
                           <button
                             onClick={() => setViewExpense(exp)}
@@ -272,19 +307,17 @@ const ExpensePage = () => {
                 </p>
 
                 <div className="mt-3">
-                  <h3 className="font-semibold mb-2">Items:</h3>
-                  <ul className="space-y-1">
-                    {viewExpense.items.map((item, idx) => (
-                      <li key={idx} className="flex justify-between text-sm">
-                        <span>{item.name}</span>
-                        <span>{item.amount}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p>
+                    <strong>Expense Head:</strong> {viewExpense.headName}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {viewExpense.description}
+                  </p>
+                  <p className="mt-4 font-semibold text-blue-600">
+                    Amount: {viewExpense.amount}
+                  </p>
                 </div>
-                <p className="mt-4 font-semibold text-blue-600">
-                  Total Amount: {viewExpense.totalAmount}
-                </p>
+
                 <button
                   onClick={() => setViewExpense(null)}
                   className="mt-6 w-full bg-newPrimary text-white py-2 rounded-lg hover:bg-newPrimary/80"
