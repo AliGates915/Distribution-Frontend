@@ -212,37 +212,37 @@ const recordsPerPage = 10;
     }
   }, [selectedSalesman, fetchPendingOrderData]);
 
-  // ✅ Fetch Table Data Based on Selected Order
-  const fetchOrderBasedData = useCallback(async () => {
-    if (!selectedOrders) return;
+//   // ✅ Fetch Table Data Based on Selected Order
+//   const fetchOrderBasedData = useCallback(async () => {
+//     if (!selectedOrders) return;
 
-    try {
-      setLoading(true);
+//     try {
+//       setLoading(true);
 
-      const response = await api.get(
-        `/sales-invoice/daily-report/${selectedSalesman}/${selectedOrders}?from=${dateFrom}&to=${dateTo}`
-      );
+//       const response = await api.get(
+//         `/sales-invoice/daily-report/${selectedSalesman}/${selectedOrders}?from=${dateFrom}&to=${dateTo}`
+//       );
 
-      setSalesmanList({
-        salesItems: response?.data?.salesItems || [],
-        paymentReceived: response?.data?.customerPayments || [],
-        recoveries: response?.data?.recoveries || [],
-      });
+//       setSalesmanList({
+//         salesItems: response?.data?.salesItems || [],
+//         paymentReceived: response?.data?.customerPayments || [],
+//         recoveries: response?.data?.recoveries || [],
+//       });
 
-      setSelectedOrder(response.data);
-    } catch (error) {
-      console.error(" Failed to fetch order-based data:", error);
-      toast.error("Failed to load order data");
-    } finally {
-      setTimeout(() => setLoading(false), 2000);
-    }
-  }, [selectedOrders, dateFrom, dateTo]);
+//       setSelectedOrder(response.data);
+//     } catch (error) {
+//       console.error(" Failed to fetch order-based data:", error);
+//       toast.error("Failed to load order data");
+//     } finally {
+//       setTimeout(() => setLoading(false), 2000);
+//     }
+//   }, [selectedOrders, dateFrom, dateTo]);
 
-useEffect(() => {
-  if (selectedOrders && dateFrom && dateTo) {
-    fetchOrderBasedData();
-  }
-}, [selectedOrders, dateFrom, dateTo, fetchOrderBasedData]);
+// useEffect(() => {
+//   if (selectedOrders && dateFrom && dateTo) {
+//     fetchOrderBasedData();
+//   }
+// }, [selectedOrders, dateFrom, dateTo, fetchOrderBasedData]);
 
 
   useEffect(() => {
@@ -404,7 +404,7 @@ const currentSalesItems = (filteredSalesItems || []).slice(
 
   // Search
   
-console.log(salesmanList);
+console.log(currentRecoveries);
 
 
   return (
@@ -721,12 +721,12 @@ console.log(salesmanList);
                                     .toLocaleString()}
                                 </div>
                                 <div></div>
-                                {/* <div className="text-green-600">
+                                <div className="text-green-600">
                               Total Rec:{" "}
                               {currentRecoveries
-                                .reduce((sum, item) => sum + item.recovery, 0)
+                                .reduce((sum, item) => sum + item.totalRecovery, 0)
                                 .toLocaleString() || "-"}
-                            </div> */}
+                            </div>
                               </div>
                             </>
                           )}
