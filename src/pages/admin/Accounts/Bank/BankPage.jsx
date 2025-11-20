@@ -21,7 +21,8 @@ import {
   FileSpreadsheet,
   Scale,
 } from "lucide-react";
-import CommanHeader from "../Components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
+
 
 // 🔹 Functionalities
 const purchaseFunctionalities = [

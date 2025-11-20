@@ -3,8 +3,8 @@ import axios from "axios";
 
 import Swal from "sweetalert2";
 import { SquarePen, Trash2 } from "lucide-react";
-import TableSkeleton from "../Components/Skeleton";
-import CommanHeader from "../Components/CommanHeader";
+import CommanHeader from "../../Components/CommanHeader";
+import TableSkeleton from "../../Components/Skeleton";
 import toast from "react-hot-toast";
 
 const PaymentVoucher = () => {

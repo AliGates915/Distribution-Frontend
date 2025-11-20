@@ -48,17 +48,16 @@ import SalesArea from "./pages/admin/Sales/SetUp/SalesArea.jsx";
 
 // =================== ACCOUNTS SECTION IMPORTS
 
-import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
-import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
+// import AccountSideBar from "./pages/admin/Accounts/Functionalities/AccountSideBar.jsx";
+// import ExpenseVoucher from "./pages/admin/Accounts/Functionalities/ExpenseVoucher.jsx";
 
-
-import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
-import DateWiseRecovery from "./pages/admin/Accounts/Reports/DateWiseRecovery.jsx";
-import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.jsx";
-import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
+// import DateWiseCashRecived from "./pages/admin/Accounts/Reports/DateWiseCashRecived.jsx";
+// import DateWiseRecovery from "./pages/admin/Accounts/Reports/DateWiseRecovery.jsx";
+// import ItemWiseRecovery from "./pages/admin/Accounts/Reports/ItemWiseRecovery.jsx";
+// import SalesmanWiseRecovery from "./pages/admin/Accounts/Reports/SalesmanWiseRecovery.jsx";
 import DailySalesReport from "./pages/admin/Sales/Reports/DaliySalesReport.jsx";
 
-import DefineBank from "./pages/admin/Bank/DefineBank.jsx";
+import DefineBank from "./pages/admin/Accounts/Bank/DefineBank.jsx";
 import Sales from "./pages/admin/Sales/Functionalities/SalesProfit.jsx";
 import CreditAgingReport from "./pages/admin/Sales/Reports/CreditAgingReport.jsx";
 import ItemCategory from "./pages/admin/Sales/SetUp/ItemCategory.jsx";
@@ -71,18 +70,19 @@ import ItemUnit from "./pages/admin/Sales/SetUp/ItemUnit.jsx";
 import OpeningStock from "./pages/admin/Sales/Reports/OpeningStock.jsx";
 import OpeningStockSupplierwise from "./pages/admin/Purchase/Reports/OpeningStockSupplierwise.jsx";
 import Recovery from "./pages/admin/Sales/Functionalities/Recovery.jsx";
-import ExpenseSheet from "./pages/admin/Sales/Reports/ExpenseSheet.jsx";
-import Expense from "./pages/admin/Sales/Functionalities/Expense.jsx";
+import ExpenseSheet from "./pages/admin/Accounts/Expense/ExpenseSheet.jsx";
+import Expense from "./pages/admin/Accounts/Expense/Expense.jsx";
 import Security from "./components/Security.jsx";
-import BankSideBar from "./pages/admin/Bank/BankPage.jsx";
-import PaymentVoucher from './pages/admin/Bank/PaymentVoucher.jsx'
-import ReceiptVoucher from "./pages/admin/Bank/ReceiptVoucher.jsx";
-import BankLedger from './pages/admin/Bank/BankLedger.jsx'
-import BankPosition from "./pages/admin/Bank/BankPosition.jsx";
-import DayBook from "./pages/admin/DayBook.jsx";
+import BankSideBar from "./pages/admin/Accounts/Bank/BankPage.jsx";
+import PaymentVoucher from "./pages/admin/Accounts/Bank/PaymentVoucher.jsx";
+import ReceiptVoucher from "./pages/admin/Accounts/Bank/ReceiptVoucher.jsx";
+import BankLedger from "./pages/admin/Accounts/Bank/BankLedger.jsx";
+import BankPosition from "./pages/admin/Accounts/Bank/BankPosition.jsx";
+import DayBook from "./pages/admin/Accounts/DayBook.jsx";
 import AllorderInvoice from "./pages/admin/AllOrdersInvoice/AllorderInvoice.jsx";
 import SalesmanAmountReceivales from "./pages/admin/Sales/Reports/SalesmanAmountReceivales.jsx";
-
+import ExSideBar from "./pages/admin/Accounts/Expense/ExpensePage.jsx";
+import DefineExpenseHead from "./pages/admin/Accounts/Expense/DefineExpenseHead.jsx";
 
 function AppContent() {
   return (
@@ -118,7 +118,7 @@ function AppContent() {
             <Route path="sales/sales" element={<Sales />} />
             <Route path="sales/cash-deposite" element={<CashDeposite />} />
             <Route path="sales/load-return" element={<LoadReturn />} />
-            <Route path="sales/expense" element={<Expense />} />
+         
 
             {/* Reports */}
             <Route
@@ -137,7 +137,10 @@ function AppContent() {
               element={<ProductWiseOrder />}
             />
             <Route path="report/opening-stock" element={<OpeningStock />} />
-            <Route path="report/opening-stock-supplierwise" element={<OpeningStockSupplierwise />} />
+            <Route
+              path="report/opening-stock-supplierwise"
+              element={<OpeningStockSupplierwise />}
+            />
             <Route path="report/stock-price" element={<OpeningStockPrice />} />
             <Route
               path="report/customerwise-orders"
@@ -148,10 +151,7 @@ function AppContent() {
               path="report/salesmanwise-orders"
               element={<SalesmanwiseOrders />}
             />
-            <Route
-              path="report/expense-sheet"
-              element={<ExpenseSheet />}
-            />
+           
             <Route
               path="report/salesman-amount-receivable"
               element={<SalesmanAmountReceivales />}
@@ -216,33 +216,38 @@ function AppContent() {
 
             {/* =================== ACCOUNTS SECTION =================== */}
 
-            <Route path="accounts" element={<AccountSideBar />} />
+            {/* <Route path="accounts" element={<AccountSideBar />} /> */}
 
             {/* Functionalities */}
-            <Route
-              path="accounts/expense-voucher"
+            {/* <Route
+              path="admin/expense-voucher"
               element={<ExpenseVoucher />}
-            />
-
+            /> */}
 
             {/* Reports */}
-            <Route
-              path="accounts/datewise-cashrecived"
+            {/* <Route
+              path="admin/datewise-cashrecived"
               element={<DateWiseCashRecived />}
             />
             <Route
-              path="accounts/datewise-recovery"
+              path="admin/datewise-recovery"
               element={<DateWiseRecovery />}
             />
             <Route
-              path="accounts/itemwise-recovery"
+              path="admin/itemwise-recovery"
               element={<ItemWiseRecovery />}
             />
             <Route
-              path="accounts/salesmanwise-recovery"
+              path="admin/salesmanwise-recovery"
               element={<SalesmanWiseRecovery />}
-            />
+            /> */}
 
+            {/* Expense Section */}
+            {/* Expense Section */}
+            <Route path="expense" element={<ExSideBar />} />
+            <Route path="expense/expense" element={<Expense />} />
+            <Route path="expense/expense-sheet" element={<ExpenseSheet />} />
+            <Route path="expense/define-expense-head" element={<DefineExpenseHead />} />
 
             {/* Bank */}
             <Route path="bank" element={<BankSideBar />} />

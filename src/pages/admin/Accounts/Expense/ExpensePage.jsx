@@ -1,80 +1,68 @@
 import { NavLink } from "react-router-dom";
 import {
   FaMoneyBillWave,
-  FaCalendarAlt,
+  FaThList,
+  FaUsers,
+  FaBox,
+  FaIndustry,
+  FaWarehouse,
   FaBoxOpen,
+  FaBook,
+  FaCalendarAlt,
   FaUserTie,
-  FaUniversity,
-  FaCashRegister,
+  FaTruck,
 } from "react-icons/fa";
+import { AiFillBank } from "react-icons/ai";
+import { RiBankCard2Line, RiBankCardLine  } from "react-icons/ri";
+
 import {
+  BadgeEuro,
   DollarSign,
-  Scale,
   FileSpreadsheet,
-  ReceiptText,
+  Scale,
 } from "lucide-react";
 import CommanHeader from "../../Components/CommanHeader";
 
 
 // 🔹 Functionalities
-const accountFunctionalities = [
+const expenseFunctionalities = [
   {
-    to: "/admin/accounts/expense-voucher",
-    label: "Expense Voucher",
-    icon: <DollarSign strokeWidth={3} size={40} />,
+    to: "/admin/expense/expense",
+    label: "Expense",
+    icon: <RiBankCard2Line strokeWidth={3} size={40} />,
   },
-  
 ];
 
 // 🔹 Reports
-const accountReports = [
+const expenseReports = [
   {
-    to: "/admin/accounts/bank-ledger",
-    label: "Bank Ledger",
-    icon: <FaUniversity className="text-4xl" />,
-  },
-  {
-    to: "/admin/accounts/datewise-cashrecived",
-    label: "Datewise Cash Received",
-    icon: <FaCashRegister className="text-4xl" />,
-  },
-  {
-    to: "/admin/accounts/datewise-recovery",
-    label: "Datewise Recovery",
-    icon: <FaCalendarAlt className="text-4xl" />,
-  },
-  {
-    to: "/admin/accounts/itemwise-recovery",
-    label: "Itemwise Recovery",
-    icon: <FaBoxOpen className="text-4xl" />,
-  },
-  {
-    to: "/admin/accounts/salesmanwise-recovery",
-    label: "Salesmanwise Recovery",
-    icon: <FaUserTie className="text-4xl" />,
+    to: "/admin/expense/expense-sheet",
+    label: "Expense Sheet",
+    icon: <FaBook className="text-4xl" />,
   },
 ];
 
 // 🔹 Setup
-const accountSetup = [
-  {
-    to: "/admin/accounts/define-bank",
-    label: "Define Bank",
-    icon: <FaMoneyBillWave className="text-4xl" />,
+const expenseSetup = [
+    {
+    to: "/admin/expense/define-expense-head",
+    label: "Define Expense Heads",
+    icon: <RiBankCard2Line strokeWidth={3} size={40} />,
   },
 ];
 
-const AccountSideBar = () => {
+
+const ExSideBar = () => {
   return (
     <div>
       <CommanHeader />
 
       <div
         className="p-6 relative min-h-screen bg-cover bg-center"
-        style={{ backgroundImage: "url('/images/sales-invoice1.jpg')" }}
+        style={{ backgroundImage: "url('/images/sales-invoice2.jpg')" }}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black opacity-50 backdrop-blur-sm"></div>
+        <div className="absolute inset-0 bg-black opacity-10 backdrop-blur-sm"></div>
 
         {/* Content */}
         <div className="relative z-10">
@@ -82,7 +70,7 @@ const AccountSideBar = () => {
           <h1 className="text-2xl text-white font-bold mb-6">Functionalities</h1>
           <div className="bg-gray-400 opacity-80 rounded-xl px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-              {accountFunctionalities.map((item) => (
+              {expenseFunctionalities.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -101,7 +89,7 @@ const AccountSideBar = () => {
           <h1 className="mt-2 text-2xl text-white font-bold mb-6">Reports</h1>
           <div className="bg-gray-400 opacity-80 rounded-xl px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-              {accountReports.map((item) => (
+              {expenseReports.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -120,7 +108,7 @@ const AccountSideBar = () => {
           <h1 className="mt-2 text-2xl text-white font-bold mb-6">Setup</h1>
           <div className="bg-gray-400 opacity-80 rounded-xl px-4 py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-              {accountSetup.map((item) => (
+              {expenseSetup.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -140,4 +128,4 @@ const AccountSideBar = () => {
   );
 };
 
-export default AccountSideBar;
+export default ExSideBar;

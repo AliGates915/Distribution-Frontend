@@ -72,11 +72,7 @@ const salesChildren = [
     label: "Sales Profit",
     icon: <FileSpreadsheetIcon strokeWidth={3} size={40} />,
   },
-  {
-    to: "/admin/sales/expense",
-    label: "Expense",
-    icon: <FaWallet strokeWidth={3} size={40} />,
-  },
+
   // {
   //   to: "/admin/sales/cash-deposite",
   //   label: "Cash Deposit",
@@ -184,11 +180,7 @@ const reportsChildren = [
     label: "Daily Sales Report",
     icon: <FaCalendarAlt />,
   },
-  {
-    to: "/admin/report/expense-sheet",
-    label: "Expense Sheet",
-    icon: <FaRegFileAlt />,
-  },
+ 
   // {
   //   to: "/admin/report/opening-stock",
   //   label: "Opening Stock",
