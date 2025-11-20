@@ -16,7 +16,7 @@ const AmountReceivables = () => {
   const fetchReceivables = useCallback(async () => {
     try {
       setLoading(true);
-     const response = await api.get(`/customer-ledger/receivables`);
+      const response = await api.get(`/customer-ledger/receivables`);
 
       // ✅ API returns "data" inside response.data
       setReceivables(response.data || []);
@@ -33,7 +33,7 @@ const AmountReceivables = () => {
   }, [fetchReceivables]);
 
   // 🔹 Filter by Zero Balance toggle
- const filteredCustomers = receivables;
+  const filteredCustomers = receivables;
 
   // 🔹 Search filter (matches by Customer name or Balance)
   const searchedCustomers = filteredCustomers.filter(
@@ -54,6 +54,11 @@ const AmountReceivables = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+  // 🔹 Total Balance Calculation
+  const totalBalance = filteredCustomers.reduce(
+    (sum, r) => sum + (parseFloat(r.Balance) || 0),
+    0
+  );
 
   console.log({ currentRecords });
 
@@ -65,14 +70,12 @@ const AmountReceivables = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-newPrimary">
-           Customer Amount Receivable Details
+            Customer Amount Receivable Details
           </h1>
         </div>
 
         {/* Filter Controls */}
         <div className="flex gap-6 mb-4 justify-end">
-          
-
           <div>
             <input
               type="text"
@@ -95,11 +98,14 @@ const AmountReceivables = () => {
                 <div>Balance</div>
               </div>
 
-
               {/* Table Body */}
               <div className="flex flex-col divide-y divide-gray-100">
                 {loading ? (
-                  <TableSkeleton rows={10} cols={3} className="lg:grid grid-cols-[0.2fr_0.5fr_1fr]" />
+                  <TableSkeleton
+                    rows={10}
+                    cols={3}
+                    className="lg:grid-cols-[0.2fr_0.5fr_1fr]"
+                  />
                 ) : currentRecords.length > 0 ? (
                   currentRecords.map((cust, index) => (
                     <div
@@ -123,6 +129,22 @@ const AmountReceivables = () => {
                   </div>
                 )}
               </div>
+              {/* TOTAL BALANCE ROW */}
+              {!loading && currentRecords.length > 0 && (
+                <div className="grid grid-cols-[0.2fr_0.5fr_1fr] gap-4 bg-gray-100 py-3 px-6 text-sm font-semibold text-gray-700 border-t">
+                  <div></div>
+                  <div className="text-right">Total Balance:</div>
+                  <div className="text-blue-600">
+                    {Number(totalBalance.toFixed(0)).toLocaleString("en-PK", {
+                      style: "currency",
+                      currency: "PKR",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-between items-center py-4 px-6 bg-white border-t mt-2 rounded-b-xl">
@@ -138,10 +160,11 @@ const AmountReceivables = () => {
                         setCurrentPage((prev) => Math.max(prev - 1, 1))
                       }
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Previous
                     </button>
@@ -150,10 +173,11 @@ const AmountReceivables = () => {
                         setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                      }`}
                     >
                       Next
                     </button>
