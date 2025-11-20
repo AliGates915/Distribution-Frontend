@@ -10,11 +10,12 @@ const Sales = () => {
   const [salesmanList, setSalesmanList] = useState([]);
   const [reportData, setReportData] = useState(null); // holds whole response
   const [selectedSalesman, setSelectedSalesman] = useState("");
-  const today = new Date().toLocaleDateString("en-CA");
-  const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSalesmanError, setShowSalesmanError] = useState(false);
+  const today = new Date().toISOString().split("T")[0];
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState("");
 
   // ✅ Fetch Salesman List
   const fetchSalesmanList = useCallback(async () => {
@@ -35,22 +36,20 @@ const Sales = () => {
       setShowSalesmanError(true);
       return;
     }
-    if (!selectedDate) return;
+    if (!dateFrom) return; // only require from date
     try {
       setLoading(true);
 
-      const formattedDate = new Date(selectedDate).toISOString().split("T")[0];
+      const from = new Date(dateFrom).toISOString().split("T")[0];
+      let query = `/salesman-report/${selectedSalesman}?from=${from}`;
 
-      const response = await api.get(
-        `/salesman-report/${selectedSalesman}?date=${formattedDate}`
-      );
+      if (dateTo) {
+        const to = new Date(dateTo).toISOString().split("T")[0];
+        query += `&to=${to}`;
+      }
 
-      // ✅ Log to verify
-      // console.log("📊 Salesman Report Response:", response);
-
-      // ✅ Fix: response itself IS the data
-      const data = response;
-      console.log("✅ Parsed Salesman Report Data:", data);
+      const response = await api.get(query);
+      const data = response.data;
 
       if (data?.success) {
         setReportData(data);
@@ -69,15 +68,17 @@ const Sales = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSalesman, selectedDate]);
+  }, [selectedSalesman, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchSalesmanList();
   }, [fetchSalesmanList]);
 
   useEffect(() => {
-    fetchSalesmanReport();
-  }, [selectedSalesman, selectedDate, fetchSalesmanReport]);
+    if (selectedSalesman && dateFrom && dateTo) {
+      fetchSalesmanReport();
+    }
+  }, [selectedSalesman, dateFrom, dateTo]);
 
   const productSection = reportData?.productSection || [];
   const customerSection = reportData?.customerSection || [];
@@ -118,13 +119,28 @@ const Sales = () => {
 
         {/* Filters */}
         <div className="flex flex-wrap items-end gap-5 mb-6 w-full">
-          {/* Date */}
+          {/* From Date */}
           <div className="w-[200px]">
-            <label className="block text-gray-700 font-medium mb-2">Date</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Date From
+            </label>
             <input
               type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
+            />
+          </div>
+
+          {/* To Date */}
+          <div className="w-[200px]">
+            <label className="block text-gray-700 font-medium mb-2">
+              Date To
+            </label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
             />
           </div>
@@ -208,9 +224,8 @@ const Sales = () => {
                 {filteredProductSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${
-                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition`}
+                    className={`grid  grid-cols-[0.2fr_1fr_1fr_0.7fr_0.7fr_0.4fr_0.8fr_0.8fr_0.6fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
                     <div className="">{row.supplier || "-"}</div>
@@ -288,9 +303,8 @@ const Sales = () => {
                 {filteredCustomerSection.map((row, i) => (
                   <div
                     key={i}
-                    className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${
-                      i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition`}
+                    className={`grid grid-cols-[0.2fr_1fr_1fr_1.5fr_0.8fr_0.8fr] items-center px-6 py-2 text-sm text-center ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-gray-100 transition`}
                   >
                     <div>{i + 1}</div>
                     <div className="">{row.customer || "-"}</div>

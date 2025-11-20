@@ -19,6 +19,7 @@ const OpeningStock = () => {
   const [editingStockIndex, setEditingStockIndex] = useState(null);
   const [showCategoryError, setShowCategoryError] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [zeroFilter, setZeroFilter] = useState("withZero");
   const tableRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -96,8 +97,7 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/item-type/category/${itemCategory}`
         );
         setItemTypeList(res.data);
@@ -119,8 +119,7 @@ const OpeningStock = () => {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${
-            import.meta.env.VITE_API_BASE_URL
+          `${import.meta.env.VITE_API_BASE_URL
           }/item-details/item-type/${itemType}`
         );
 
@@ -170,16 +169,24 @@ const OpeningStock = () => {
   // ✅ Filter + Pagination logic
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const filteredItems = itemNameList.filter(
-    (item) =>
-      item.itemName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.itemCategory?.categoryName
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      item.itemType?.itemTypeName
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = itemNameList.filter((item) => {
+    const matchesCategory = itemCategory
+      ? item?.itemCategory?.categoryName?.toLowerCase() === itemCategory.toLowerCase()
+      : true;
+
+    const matchesSearch =
+      (item?.itemName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item?.itemCategory?.categoryName || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    const totalAmount = (item.purchase || 0) * (item.stock || 0);
+
+    const matchesZeroFilter =
+      zeroFilter === "withoutZero" ? totalAmount > 0 : true; // With Zero => show all
+
+    return matchesCategory && matchesSearch && matchesZeroFilter;
+  });
+
+
 
   const currentRecords = filteredItems.slice(
     indexOfFirstRecord,
@@ -209,7 +216,7 @@ const OpeningStock = () => {
         </div>
       ) : (
         <div className=" space-y-6">
-          <h1 className="text-2xl font-bold text-newPrimary">Opening Price</h1>
+          <h1 className="text-2xl font-bold text-newPrimary">Stock Price</h1>
 
           {/* Form */}
           <div className="border rounded-lg shadow bg-white p-6 w-full">
@@ -243,7 +250,7 @@ const OpeningStock = () => {
                 </div>
 
                 {/* Item Type */}
-                <div className="w-full">
+                {/* <div className="w-full">
                   <label className="block text-gray-700 font-medium mb-1">
                     Item Type
                   </label>
@@ -261,7 +268,7 @@ const OpeningStock = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
               </div>
               <div className="w-[350px] justify-end mt-12">
                 {/* Add this after Item Type */}
@@ -276,6 +283,34 @@ const OpeningStock = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="flex gap-6 mt-4">
+
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="zeroFilter"
+                value="withZero"
+                checked={zeroFilter === "withZero"}
+                onChange={() => setZeroFilter("withZero")}
+                className="w-4 h-4"
+              />
+              With Zero
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="zeroFilter"
+                value="withoutZero"
+                checked={zeroFilter === "withoutZero"}
+                onChange={() => setZeroFilter("withoutZero")}
+                className="w-4 h-4"
+              />
+              Without Zero
+            </label>
+
           </div>
 
           {/* Table */}
@@ -350,11 +385,10 @@ const OpeningStock = () => {
                           setCurrentPage((prev) => Math.max(prev - 1, 1))
                         }
                         disabled={currentPage === 1}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === 1
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === 1
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Previous
                       </button>
@@ -366,11 +400,10 @@ const OpeningStock = () => {
                           )
                         }
                         disabled={currentPage === totalPages}
-                        className={`px-3 py-1 rounded-md ${
-                          currentPage === totalPages
-                            ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                            : "bg-newPrimary text-white hover:bg-newPrimary/80"
-                        }`}
+                        className={`px-3 py-1 rounded-md ${currentPage === totalPages
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                       >
                         Next
                       </button>
