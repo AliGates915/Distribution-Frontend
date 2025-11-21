@@ -52,8 +52,7 @@ const ViewModal = ({ type, data, onClose }) => {
           </div>
 
           {/* 🔹 Dynamic Heading */}
-
-          <h2 className="text-2xl font-bold mb-6  pb-2">
+          <h2 className="text-2xl font-bold mb-6 pb-2">
             {type === "loadsheet"
               ? "Loadsheet Details"
               : type === "order"
@@ -66,12 +65,36 @@ const ViewModal = ({ type, data, onClose }) => {
               ? "Salesman-Wise Invoice Details"
               : type === "customerwise"
               ? "Customer-Wise Invoice Details"
+              : type === "grn"
+              ? "Goods Received Note (GRN)"
               : "Details"}
           </h2>
 
           {/* 🔹 Info Sections */}
           <div className="grid grid-cols-2 gap-4 text-base mb-6">
-            {/* ✅ Productwise Report Header */}
+
+            {/* ✅ GRN DETAILS SECTION */}
+            {type === "grn" && (
+              <>
+                <div>
+                  <strong>GRN ID:</strong> {data.grnId}
+                </div>
+                <div>
+                  <strong>GRN Date:</strong> {data.grnDate}
+                </div>
+                <div>
+                  <strong>Supplier:</strong>{" "}
+                  {data.supplier?.supplierName || "-"}
+                </div>
+                <div>
+                  <strong>Total Amount:</strong>{" "}
+                  {data.totalAmount?.toLocaleString()}
+                </div>
+              </>
+            )}
+
+            {/* ---- EXISTING SECTIONS (UNCHANGED) ---- */}
+
             {type === "productwise" && (
               <>
                 <div>
@@ -104,7 +127,6 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Customer-wise existing section */}
             {type === "customerwise" && (
               <>
                 <div>
@@ -141,7 +163,6 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Salesman-wise Report Header */}
             {type === "salesmanwise" && (
               <>
                 <div>
@@ -172,7 +193,6 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Order Details Section */}
             {type === "order" && (
               <>
                 <div>
@@ -180,16 +200,19 @@ const ViewModal = ({ type, data, onClose }) => {
                 </div>
                 <div>
                   <strong>Date:</strong>{" "}
-                  {new Date(data.date).toLocaleDateString() || '-'}
+                  {new Date(data.date).toLocaleDateString() || "-"}
                 </div>
                 <div>
-                  <strong>Salesman:</strong> {data.salesmanId?.employeeName || '-'}
+                  <strong>Salesman:</strong>{" "}
+                  {data.salesmanId?.employeeName || "-"}
                 </div>
                 <div>
-                  <strong>Customer:</strong> {data.customerId?.customerName || '-'}
+                  <strong>Customer:</strong>{" "}
+                  {data.customerId?.customerName || "-"}
                 </div>
                 <div>
-                  <strong>Phone:</strong> {data.customerId?.phoneNumber || '-'}
+                  <strong>Phone:</strong>{" "}
+                  {data.customerId?.phoneNumber || "-"}
                 </div>
                 <div>
                   <strong>Address:</strong> {data.customerId?.address}
@@ -200,7 +223,6 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Loadsheet Details Section */}
             {type === "loadsheet" && (
               <>
                 <div>
@@ -234,7 +256,6 @@ const ViewModal = ({ type, data, onClose }) => {
               </>
             )}
 
-            {/* ✅ Invoice Details Section */}
             {type === "DateWise-Sales" && (
               <>
                 <div>
@@ -274,6 +295,17 @@ const ViewModal = ({ type, data, onClose }) => {
               <tr>
                 <th>Sr #</th>
 
+                {/* GRN Columns */}
+                {type === "grn" && (
+                  <>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                  </>
+                )}
+
+                {/* Existing Columns */}
                 {(type === "DateWise-Sales" ||
                   type === "productwise" ||
                   type === "salesmanwise" ||
@@ -312,9 +344,27 @@ const ViewModal = ({ type, data, onClose }) => {
             </thead>
 
             <tbody>
+              {/* GRN Items */}
+              {type === "grn" &&
+                (data.items || []).map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="text-center py-2">{idx + 1}</td>
+                    <td className="text-center">{item.item}</td>
+                    <td className="text-center">{item.qty}</td>
+                    <td className="text-center">{item.rate}</td>
+                    <td className="text-center">
+                      {item.total?.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+
+              {/* Existing Items */}
               {(data.products || []).map((item, idx) => (
                 <tr key={idx}>
-                  <td className="text-center">{idx + 1}</td>
+                  {/* Already handled above for GRN */}
+                  {type !== "grn" && (
+                    <td className="text-center">{idx + 1}</td>
+                  )}
 
                   {(type === "DateWise-Sales" ||
                     type === "productwise" ||
@@ -368,7 +418,7 @@ const ViewModal = ({ type, data, onClose }) => {
           </table>
         </div>
 
-        {/* 🔹 Footer Buttons */}
+        {/* 🔹 Footer Buttons
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handlePDF}
@@ -382,7 +432,7 @@ const ViewModal = ({ type, data, onClose }) => {
           >
             Print
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

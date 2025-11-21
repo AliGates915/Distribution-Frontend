@@ -110,6 +110,7 @@ const OrderTaking = () => {
   }, []);
 
   // fetch order Taking
+console.log({productsList});
 
   async function fetchOrderTaking() {
     try {
@@ -190,18 +191,12 @@ const OrderTaking = () => {
       toast.error("Please enter a valid Quantity");
       return;
     }
-    if (!unit) {
-      toast.error("Please select a Unit");
-      return;
-    }
+   
     if (!rate || rate <= 0) {
       toast.error("Rate is missing or invalid");
       return;
     }
-    if (!purchase || purchase <= 0) {
-      toast.error("Purchase value is missing or invalid");
-      return;
-    }
+   
 
     if (Number(rate) <= Number(purchase)) {
       setRateError("Rate should be greater than Purchase!");
@@ -211,7 +206,7 @@ const OrderTaking = () => {
     const newItem = {
       id: items.length + 1,
       product,
-      unit,
+
       purchase, // API price
       rate, // Manual rate typed by user
       qty,
@@ -223,7 +218,6 @@ const OrderTaking = () => {
     // Reset inputs
     setProduct("");
     setQty("");
-    setUnit("");
     setRate("");
     setPurchase("");
     setTotal("");
@@ -255,7 +249,6 @@ const OrderTaking = () => {
       products: items.map((it) => ({
         itemName: it.product,
         qty: Number(it.qty),
-        itemUnit: it.unit,
         rate: Number(it.rate),
         totalAmount: Number(it.total),
       })),
@@ -744,7 +737,7 @@ const OrderTaking = () => {
                               (p) => p.itemName === e.target.value
                             );
                             setProduct(e.target.value);
-                            setUnit(selected?.itemUnit.unitName || "");
+                            // setUnit(selected?.itemUnit.unitName || "");
                             setPurchase(selected?.purchase || ""); // Auto-fill Purchase field with product price
                           }}
                           className="w-full p-2 border border-gray-300 rounded-md"
@@ -756,15 +749,7 @@ const OrderTaking = () => {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="text-gray-700 text-sm">Unit</label>
-                        <input
-                          type="text"
-                          value={unit}
-                          disabled
-                          className="w-full p-2 border border-gray-300 rounded-md bg-gray-50"
-                        />
-                      </div>
+                      
 
                       <div>
                         <label className="text-gray-700 text-sm">
@@ -830,9 +815,9 @@ const OrderTaking = () => {
 
                     {/* Items Table */}
                     <div className="mt-4 border border-gray-200 rounded-lg">
-                      <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
+                      <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr] bg-gray-200 text-sm font-semibold text-gray-600">
                         <div className="px-4 py-2">Product</div>
-                        <div className="px-4 py-2">Unit</div>
+                    
                         {/* <div className="px-4 py-2">Purchase</div> */}
                         <div className="px-4 py-2">Rate</div>
                         <div className="px-4 py-2">Qty</div>
@@ -848,10 +833,10 @@ const OrderTaking = () => {
                         items.map((it, i) => (
                           <div
                             key={i}
-                            className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
+                            className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr_1fr] text-sm bg-white border-t"
                           >
                             <div className="px-4 py-2">{it.product}</div>
-                            <div className="px-4 py-2">{it.unit}</div>
+                         
                             {/* <div className="px-4 py-2">{it.purchase}</div>  */}
                             <div className="px-4 py-2">{it.rate}</div>{" "}
                             {/* Manual rate */}

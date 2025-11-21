@@ -383,7 +383,7 @@ const DefineCustomers = () => {
           <div className="min-w-[1100px]">
             <div className="hidden lg:grid grid-cols-[20px_1fr_1fr_1fr_1fr_1.5fr_auto] gap-6 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-600 uppercase sticky top-0 z-10 border-b border-gray-200">
               <div>SR</div>
-              <div>Company</div>
+              <div>Customer Name</div>
               <div>Address</div>
               <div>Phone</div>
               <div>Balance</div>

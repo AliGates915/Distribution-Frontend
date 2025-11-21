@@ -66,8 +66,8 @@ const CustomerLedger = () => {
       const transformedData = (response.data?.data || response.data || []).map(
         (entry) => ({
           ...entry,
-          Debit: entry.Paid || "0.00",
-          Credit: entry.Received || "0.00",
+          Debit: entry.Debit || "0.00",
+          Credit: entry.Credit || "0.00", // ✅ FIXED HERE
           SR: entry.SR,
           ID: entry.ID,
           Date: entry.Date,
@@ -87,7 +87,6 @@ const CustomerLedger = () => {
       }, 2000);
     }
   }, [selectedCustomer, dateFrom, dateTo, showAllLedger]);
-
 
   // INITIAL LOAD
   useEffect(() => {
@@ -118,10 +117,11 @@ const CustomerLedger = () => {
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
   //  Search Filter (Customer Name, Description, ID)
-  const searchedEntries = ledgerEntries.filter(entry =>
-    entry.Description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.ID?.toString().includes(searchTerm) ||
-    entry.Date?.includes(searchTerm)
+  const searchedEntries = ledgerEntries.filter(
+    (entry) =>
+      entry.Description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.ID?.toString().includes(searchTerm) ||
+      entry.Date?.includes(searchTerm)
   );
 
   // Apply pagination to searched data
@@ -260,7 +260,6 @@ const CustomerLedger = () => {
               </div>
             </div>
 
-
             {/* Ledger Table */}
             <div className="rounded-xl shadow border border-gray-200 overflow-hidden bg-white">
               {loading ? (
@@ -283,8 +282,8 @@ const CustomerLedger = () => {
                     <div>SR</div>
                     <div>Date</div>
                     <div>ID</div>
-                    <div>Description</div>                 
-                    <div>Credit</div> 
+                    <div>Description</div>
+                    <div>Credit</div>
                     <div>Debit</div>
                     <div>Balance</div>
                   </div>
@@ -337,10 +336,11 @@ const CustomerLedger = () => {
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${currentPage === 1
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === 1
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
                     >
                       Previous
                     </button>
@@ -349,10 +349,11 @@ const CustomerLedger = () => {
                         setCurrentPage((p) => Math.min(p + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${currentPage === totalPages
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-newPrimary text-white"
-                        }`}
+                      className={`px-3 py-1 rounded-md ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 cursor-not-allowed"
+                          : "bg-newPrimary text-white"
+                      }`}
                     >
                       Next
                     </button>
