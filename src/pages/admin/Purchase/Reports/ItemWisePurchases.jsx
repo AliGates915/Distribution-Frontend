@@ -235,7 +235,7 @@ const ItemWisePurchase = () => {
                   <div>Rate</div>
                   <div>Qty</div>
                   <div>Total Amount</div>
-                  <div>Payable Discount</div>
+                  <div>Net Amount</div>
                 </div>
 
                 {/* Rows */}

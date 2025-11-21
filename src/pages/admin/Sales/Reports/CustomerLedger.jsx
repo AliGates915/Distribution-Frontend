@@ -99,19 +99,24 @@ const CustomerLedger = () => {
     setCurrentPage(1);
   }, [fetchCustomerLedger]);
 
+  const toNumber = (value) => {
+  if (!value) return 0;
+  return parseFloat(value.toString().replace(/,/g, ""));
+};
+
   // Calculate totals
-  const totalCredit = ledgerEntries.reduce(
-    (sum, entry) => sum + (parseFloat(entry.Credit) || 0),
-    0
-  );
+const totalCredit = ledgerEntries.reduce(
+  (sum, entry) => sum + toNumber(entry.Credit),
+  0
+);
   const totalDebit = ledgerEntries.reduce(
-    (sum, entry) => sum + (parseFloat(entry.Debit) || 0),
-    0
-  );
+  (sum, entry) => sum + toNumber(entry.Debit),
+  0
+);
   const totalBalance = ledgerEntries.reduce(
-    (sum, entry) => sum + (parseFloat(entry.Balance) || 0),
-    0
-  );
+  (sum, entry) => sum + toNumber(entry.Balance),
+  0
+);
 
   // Pagination
   const indexOfLastRecord = currentPage * recordsPerPage;

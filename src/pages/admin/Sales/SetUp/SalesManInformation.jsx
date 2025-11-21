@@ -618,7 +618,7 @@ const SalesManInformation = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Salesman
+       {isEdit ? "Update Salesman" : "Save Salesman"} 
               </button>
             </div>
           </div>

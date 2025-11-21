@@ -86,13 +86,22 @@ const SupplierLedger = () => {
     }
   }, [dateFrom, dateTo]);
 
+  const toNumber = (value) => {
+    if (!value) return 0;
+    return parseFloat(value.toString().replace(/,/g, ""));
+  };
+
   // 3️⃣ TOTALS
   const totalDebit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Credit) || 0),
+    (sum, e) => sum + (toNumber(e.Credit) || 0),
     0
   );
   const totalCredit = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Debit) || 0),
+    (sum, e) => sum + (toNumber(e.Debit) || 0),
+    0
+  );
+  const totalBalance = ledgerEntries.reduce(
+    (sum, e) => sum + (toNumber(e.Balance) || 0),
     0
   );
 
@@ -257,12 +266,20 @@ const SupplierLedger = () => {
                 {/* Totals */}
                 <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] whitespace-nowrap gap-4 bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                   <div></div>
+
                   <div className="text-green-600">
                     Total Debit: {totalCredit.toLocaleString()}
                   </div>
+
                   <div className="text-red-600">
                     Total Credit: {totalDebit.toLocaleString()}
                   </div>
+
+                  <div className="text-blue-600">
+                    Total Balance: {totalBalance.toLocaleString()}
+                  </div>
+
+                 
                 </div>
               </>
             )}

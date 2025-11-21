@@ -366,22 +366,25 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   console.log(ledgerEntries);
 
   if (!ledgerEntries.length) return;
-  // console.log({ledgerEntries});
 
   const firstEntry = ledgerEntries[0];
 
+  // Helper to convert comma values "1,500" → 1500
+  const toNum = (v) => parseFloat(String(v || "0").replace(/,/g, ""));
+
   // Totals
-  const totalPaid = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Paid) || 0),
+  const totalDebit = ledgerEntries.reduce(
+    (sum, e) => sum + toNum(e.Debit),
     0
   );
-  const totalReceived = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Received) || 0),
+
+  const totalCredit = ledgerEntries.reduce(
+    (sum, e) => sum + toNum(e.Credit),
     0
   );
+
   const totalBalance = ledgerEntries.reduce(
-    (sum, e) =>
-      sum + (parseFloat(String(e.Balance || "0").replace(/,/g, "")) || 0),
+    (sum, e) => sum + toNum(e.Balance),
     0
   );
 
@@ -389,7 +392,7 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   win.document.write(`
     <html>
       <head>
-        <title>Customer Ledger Report</title>
+        <title>Supplier Ledger Report</title>
         <style>
           body { font-family: Arial, sans-serif; padding: 20px; }
           h1, h2, p { margin: 0; text-align: center; }
@@ -423,8 +426,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
               <th>Date</th>
               <th>ID</th>
               <th>Description</th>
-              <th>Paid</th>
-              <th>Received</th>
+              <th>Debit</th>
+              <th>Credit</th>
               <th>Balance</th>
             </tr>
           </thead>
@@ -437,12 +440,9 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${entry.Date || "-"}</td>
                     <td>${entry.ID || "-"}</td>
                     <td>${entry.Description || "-"}</td>
-                    <td>${parseFloat(entry.Paid || 0).toLocaleString()}</td>
-                    <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
-                   <td>${parseFloat(
-                     String(entry.Balance || "0").replace(/,/g, "")
-                   ).toLocaleString()}</td>
-
+                    <td>${toNum(entry.Debit).toLocaleString()}</td>
+                    <td>${toNum(entry.Credit).toLocaleString()}</td>
+                    <td>${toNum(entry.Balance).toLocaleString()}</td>
                   </tr>`
               )
               .join("")}
@@ -450,8 +450,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
           <tfoot>
             <tr>
               <td colspan="4" style="text-align:right;">Totals:</td>
-              <td>${totalPaid.toLocaleString()}</td>
-              <td>${totalReceived.toLocaleString()}</td>
+              <td>${totalDebit.toLocaleString()}</td>
+              <td>${totalCredit.toLocaleString()}</td>
               <td>${totalBalance.toLocaleString()}</td>
             </tr>
           </tfoot>
@@ -466,6 +466,7 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   win.document.close();
   win.print();
 };
+
 
 export const handleDateWisePrint = (ledgerEntries = []) => {
   if (!ledgerEntries.length) return;
