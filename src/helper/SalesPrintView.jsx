@@ -363,6 +363,8 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
 };
 
 export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
+  console.log(ledgerEntries);
+  
   if (!ledgerEntries.length) return;
   // console.log({ledgerEntries});
 
@@ -377,10 +379,11 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
     (sum, e) => sum + (parseFloat(e.Received) || 0),
     0
   );
-  const totalBalance = ledgerEntries.reduce(
-    (sum, e) => sum + (parseFloat(e.Balance) || 0),
-    0
-  );
+ const totalBalance = ledgerEntries.reduce(
+  (sum, e) => sum + (parseFloat(String(e.Balance || "0").replace(/,/g, "")) || 0),
+  0
+);
+
 
   const win = window.open("", "", "width=900,height=700");
   win.document.write(`
@@ -436,7 +439,8 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${entry.Description || "-"}</td>
                     <td>${parseFloat(entry.Paid || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
-                    <td>${parseFloat(entry.Balance || 0).toLocaleString()}</td>
+                   <td>${parseFloat(String(entry.Balance || "0").replace(/,/g, "")).toLocaleString()}</td>
+
                   </tr>`
               )
               .join("")}

@@ -58,12 +58,10 @@ const GRN = () => {
       setTimeout(() => {
         toast.error("Failed to load salesmen");
       }, 2000);
-
     } finally {
       setTimeout(() => {
         setLoading(false);
       }, 2000);
-
     }
   }, []);
 
@@ -84,7 +82,6 @@ const GRN = () => {
       setTimeout(() => {
         setLoading(false);
       }, 2000);
-
     }
   }, []);
 
@@ -157,14 +154,12 @@ const GRN = () => {
       setTimeout(() => {
         setLoading(false);
       }, 3000);
-
     }
   }, []);
 
   useEffect(() => {
     fetchGrns();
   }, [fetchGrns]);
-
 
   // Next GRN ID
   useEffect(() => {
@@ -185,7 +180,7 @@ const GRN = () => {
   const handleAddClick = () => {
     setEditingGrn(null);
     setGrnId("");
-    setDate(new Date().toLocaleDateString('en-CA'));
+    setDate(new Date().toLocaleDateString("en-CA"));
     setGatePassIn("");
     setSelectedSalesman(""); // ✅ clear selected supplier dropdown
     setBalance(""); // ✅ clear balance
@@ -243,7 +238,7 @@ const GRN = () => {
     // ✅ This line ensures totalAmount (3000) appears correctly in summary section
     setDiscount(
       (grn.items || []).reduce((sum, i) => sum + i.total, 0) -
-      (grn.totalAmount || 0)
+        (grn.totalAmount || 0)
     );
 
     setIsSliderOpen(true);
@@ -386,15 +381,21 @@ const GRN = () => {
   };
 
   // Filter GRNs by GRN ID or Supplier Name
-  const filteredGrns = grns.filter((grn) =>
-    grn.grnId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    grn.supplier?.supplierName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredGrns = grns.filter(
+    (grn) =>
+      grn.grnId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      grn.supplier?.supplierName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   // Pagination based on filtered records
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredGrns.slice(indexOfFirstRecord, indexOfLastRecord);
+  const currentRecords = filteredGrns.slice(
+    indexOfFirstRecord,
+    indexOfLastRecord
+  );
 
   // Update total pages based on filtered results
   const totalPages = Math.ceil(filteredGrns.length / recordsPerPage);
@@ -441,7 +442,9 @@ const GRN = () => {
                     <div>GRN Date</div>
                     <div>Supplier</div>
                     <div>Total Amount</div>
-                    <div className={`${loading ? "" : "text-right"}`}>Actions</div>
+                    <div className={`${loading ? "" : "text-right"}`}>
+                      Actions
+                    </div>
                   </div>
 
                   <div className="flex flex-col divide-y divide-gray-100">
@@ -461,8 +464,12 @@ const GRN = () => {
                           key={grn._id}
                           className="grid grid-cols-1 lg:grid-cols-[0.2fr_1fr_1fr_1fr_1fr_0.2fr] items-center gap-6 px-6 py-4 text-sm bg-white hover:bg-gray-50 transition"
                         >
-                          <div className="text-gray-600">{indexOfFirstRecord + i + 1}</div>
-                          <div className="text-gray-600">{grn.grnId || "-"}</div>
+                          <div className="text-gray-600">
+                            {indexOfFirstRecord + i + 1}
+                          </div>
+                          <div className="text-gray-600">
+                            {grn.grnId || "-"}
+                          </div>
                           <div className="text-gray-600">
                             {grn.grnDate || "-"}
                           </div>
@@ -481,6 +488,13 @@ const GRN = () => {
                           >
                             <SquarePen size={18} />
                           </button> */}
+                            <button
+                              onClick={() => handleView(grn)}
+                              className="text-amber-600 hover:bg-amber-50 rounded"
+                              title="View GRN"
+                            >
+                              <Eye size={18} />
+                            </button>
                             <button
                               onClick={() => handleDelete(grn._id)}
                               className="py-1 text-sm text-red-600"
@@ -503,29 +517,44 @@ const GRN = () => {
                   {totalPages > 1 && (
                     <div className="flex justify-between items-center py-4 px-6 bg-white border-t">
                       <p className="text-sm text-gray-600">
-                        Showing {indexOfFirstRecord + 1} to {Math.min(indexOfLastRecord, grns.length)} of {grns.length} GRNs
+                        Showing {indexOfFirstRecord + 1} to{" "}
+                        {Math.min(indexOfLastRecord, grns.length)} of{" "}
+                        {grns.length} GRNs
                       </p>
 
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.max(prev - 1, 1))
+                          }
                           disabled={currentPage === 1}
-                          className={`px-3 py-1 rounded-md ${currentPage === 1 ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === 1
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                         >
                           Previous
                         </button>
 
                         <button
-                          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                          onClick={() =>
+                            setCurrentPage((prev) =>
+                              Math.min(prev + 1, totalPages)
+                            )
+                          }
                           disabled={currentPage === totalPages}
-                          className={`px-3 py-1 rounded-md ${currentPage === totalPages ? "bg-gray-300 cursor-not-allowed" : "bg-newPrimary text-white hover:bg-newPrimary/80"}`}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === totalPages
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : "bg-newPrimary text-white hover:bg-newPrimary/80"
+                          }`}
                         >
                           Next
                         </button>
                       </div>
                     </div>
                   )}
-
                 </div>
               </div>
             </div>
@@ -710,7 +739,6 @@ const GRN = () => {
                           }
                           className="w-full outline-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-newPrimary"
                           placeholder="Enter quantity"
-
                         />
                       </div>
 
@@ -894,8 +922,8 @@ const GRN = () => {
                     {loading
                       ? "Saving..."
                       : editingGrn
-                        ? "Update GRN"
-                        : "Save GRN"}
+                      ? "Update GRN"
+                      : "Save GRN"}
                   </button>
                 </form>
               </div>
@@ -911,21 +939,21 @@ const GRN = () => {
           )}
 
           <style jsx>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #edf2f7;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #a0aec0;
-            border-radius: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #718096;
-          }
-        `}</style>
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background: #edf2f7;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background: #a0aec0;
+              border-radius: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+              background: #718096;
+            }
+          `}</style>
         </div>
       )}
     </div>
