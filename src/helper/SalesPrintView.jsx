@@ -364,7 +364,7 @@ export const handleItemWisePrint = (ledgerEntries = []) => {
 
 export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
   console.log(ledgerEntries);
-  
+
   if (!ledgerEntries.length) return;
   // console.log({ledgerEntries});
 
@@ -379,11 +379,11 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
     (sum, e) => sum + (parseFloat(e.Received) || 0),
     0
   );
- const totalBalance = ledgerEntries.reduce(
-  (sum, e) => sum + (parseFloat(String(e.Balance || "0").replace(/,/g, "")) || 0),
-  0
-);
-
+  const totalBalance = ledgerEntries.reduce(
+    (sum, e) =>
+      sum + (parseFloat(String(e.Balance || "0").replace(/,/g, "")) || 0),
+    0
+  );
 
   const win = window.open("", "", "width=900,height=700");
   win.document.write(`
@@ -439,7 +439,9 @@ export const handleSupplierLedgerPrint = (ledgerEntries = []) => {
                     <td>${entry.Description || "-"}</td>
                     <td>${parseFloat(entry.Paid || 0).toLocaleString()}</td>
                     <td>${parseFloat(entry.Received || 0).toLocaleString()}</td>
-                   <td>${parseFloat(String(entry.Balance || "0").replace(/,/g, "")).toLocaleString()}</td>
+                   <td>${parseFloat(
+                     String(entry.Balance || "0").replace(/,/g, "")
+                   ).toLocaleString()}</td>
 
                   </tr>`
               )
@@ -925,18 +927,60 @@ export const handleSaleInvoicePrint = (orders = []) => {
 
     win.document.write(`
 
-      <div class="heading">SALES TAX INVOICE TO FOLLOW</div>
-      <div class="sub-heading">City Trader Pvt. Ltd.</div>
+      <div class="heading">City Trader Pvt. Ltd.</div>
+     
+     <div style="
+  text-align:center; 
+  font-size:16px; 
+  margin:0;
+  line-height:18px;
+">
+  Taj Pura, Lahore
+</div>
+ <div style="
+  text-align:center; 
+  font-size:16px; 
+  margin:0;
+  line-height:18px;
+">
+  03184486979
+</div>
+<div style="
+  text-align:center; 
+  margin-top:16px;
+  font-size:22px; 
+  font-weight:bold; 
+  text-decoration:underline; 
+  margin-bottom:15px;
+">
+  DELIVERY CHALLAN
+</div>
+      <div style="
+  text-align:center; 
+  font-size:15px; 
+  margin-top:6px; 
+  margin-bottom:40px; 
+  font-weight:bold; 
+  letter-spacing:0.5px;
+">
+  SALES TAX INVOICE TO FOLLOW
+</div>
 
       <!-- TOP SECTION FIXED ALIGNMENT -->
       <div class="row">
-        <div class="left-block"><span class="label">Particular:</span> ${customer.customerName || "-"}</div>
-        <div class="right-block"><span class="label">Area:</span> ${customer.salesArea || "-"}</div>
+        <div class="left-block"><span class="label">Particular:</span> ${
+          customer.customerName || "-"
+        }</div>
+        <div class="right-block"><span class="label">Area:</span> ${
+          customer.salesArea || "-"
+        }</div>
       </div>
 
       <div class="row">
         <div class="left-block"><span class="label">Date:</span> ${invoiceDate}</div>
-        <div class="right-block"><span class="label">Sales Officer:</span> ${order.salesmanId?.employeeName || "-"}</div>
+        <div class="right-block"><span class="label">Sales Officer:</span> ${
+          order.salesmanId?.employeeName || "-"
+        }</div>
       </div>
 
       <div class="row">
@@ -945,13 +989,15 @@ export const handleSaleInvoicePrint = (orders = []) => {
       </div>
 
       <div class="row">
-        <div class="left-block"><span class="label">Ref No:</span> ${order.orderTakingId?.orderId || "-"}</div>
-        <div class="right-block"><span class="label">Code:</span> ${order.recoveryId || "-"}</div>
-      </div>
+  <div class="left-block"><span class="label">Phone:</span> ${
+    customer.phoneNumber || "-"
+  }</div>
+  <div class="right-block">
+    <span class="label">Ref No:</span> ${order.orderTakingId?.orderId || "-"}
+  </div>
+</div>
 
-      <div class="row">
-        <div class="left-block"><span class="label">Phone:</span> ${customer.phoneNumber || "-"}</div>
-        <div class="right-block"><span class="label">Other:</span> -</div>
+       
       </div>
 
       <!-- PRODUCT TABLE -->
@@ -969,7 +1015,7 @@ export const handleSaleInvoicePrint = (orders = []) => {
         <tbody>
           ${products
             .map(
-              p => `
+              (p) => `
                 <tr>
                   <td>${invoiceNo}</td>
                   <td>${p.itemName}</td>
@@ -987,11 +1033,24 @@ export const handleSaleInvoicePrint = (orders = []) => {
         <div><span>Amount:</span> <span>${totalAmount.toLocaleString()}</span></div>
         <div><span>Additional Discount:</span> <span>0</span></div>
         <div><span>Trade Offer:</span> <span>${order.received || 0}</span></div>
-        <div><span><b>Net Amount:</b></span> <span><b>${order.totalAmount.toLocaleString()}</b></span></div>
+        <div><span><b>Net Amount:</b></span> <span><b>${
+          order.receivable
+        }</b></span></div>
       </div>
 
       <!-- AMOUNT IN WORDS -->
-      <div class="words">IN WORDS: ${numberToWords(order.totalAmount).toUpperCase()} ONLY</div>
+    <div class="words">
+  IN WORDS:
+  <span style="font-weight: normal;"> 
+    ${
+      order.receivable == 0
+        ? "ZERO"
+        : numberToWords(order.receivable).toUpperCase()
+    } ONLY
+  </span>
+</div>
+
+
 
       <!-- SIGNATURE ROW -->
       <div class="sign-row">
@@ -999,6 +1058,19 @@ export const handleSaleInvoicePrint = (orders = []) => {
         <div class="sign-box"><div class="line"></div>Authorize</div>
         <div class="sign-box"><div class="line"></div>Shopkeeper</div>
       </div>
+
+      <div style="
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: right;
+  direction: rtl;
+  line-height: 22px;
+  font-family: 'Noto Nastaliq Urdu', serif;
+">
+  خبردار! <br />
+  کمپنی نمائندہ سے مال کے بغیر مال کی خرید و فروخت اور کسی قسم کی ادائیگی نہ کریں، کرنے کی صورت میں ذمہ دار نہ ہوگا۔
+</div>
+
 
       ${index < orders.length - 1 ? "<hr/>" : ""}
     `);
@@ -1009,20 +1081,56 @@ export const handleSaleInvoicePrint = (orders = []) => {
   win.print();
 };
 
-
 /* Convert number to words */
 function numberToWords(num) {
-  const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-  const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+  const a = [
+    "",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+    "Fourteen",
+    "Fifteen",
+    "Sixteen",
+    "Seventeen",
+    "Eighteen",
+    "Nineteen",
+  ];
+  const b = [
+    "",
+    "",
+    "Twenty",
+    "Thirty",
+    "Forty",
+    "Fifty",
+    "Sixty",
+    "Seventy",
+    "Eighty",
+    "Ninety",
+  ];
 
   if (num < 20) return a[num];
-  if (num < 100) return b[Math.floor(num/10)] + " " + a[num%10];
-  if (num < 1000) return a[Math.floor(num/100)] + " Hundred " + numberToWords(num%100);
-  if (num < 1000000) return numberToWords(Math.floor(num/1000)) + " Thousand " + numberToWords(num%1000);
+  if (num < 100) return b[Math.floor(num / 10)] + " " + a[num % 10];
+  if (num < 1000)
+    return a[Math.floor(num / 100)] + " Hundred " + numberToWords(num % 100);
+  if (num < 1000000)
+    return (
+      numberToWords(Math.floor(num / 1000)) +
+      " Thousand " +
+      numberToWords(num % 1000)
+    );
 
   return "";
 }
-
 
 export const handleCustomerLedgerPrint = (ledgerEntries = []) => {
   if (!ledgerEntries.length) return;

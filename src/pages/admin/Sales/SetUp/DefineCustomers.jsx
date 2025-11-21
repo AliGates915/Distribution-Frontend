@@ -843,7 +843,7 @@ const DefineCustomers = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Customer
+              {isEdit?"Update Customer":"Save Customer"}  
               </button>
             </div>
           </div>
