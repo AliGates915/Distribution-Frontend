@@ -243,7 +243,7 @@ const SupplierWisePurchase = () => {
                   <div>Rate</div>
                   <div>Qty</div>
                   <div>Amount</div>
-                  <div>Payable Discount</div>
+                  <div>Net Amount</div>
                 </div>
 
                 {/* Rows */}

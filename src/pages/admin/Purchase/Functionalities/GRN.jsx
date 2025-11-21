@@ -64,6 +64,8 @@ const GRN = () => {
       }, 2000);
     }
   }, []);
+  // console.log({salesmanList});
+  
 
   // 🔹 Fetch Item Options
   const fetchItems = useCallback(async () => {
@@ -95,11 +97,11 @@ const GRN = () => {
     const salesmanId = e.target.value;
     setSelectedSalesman(salesmanId);
     const selected = salesmanList.find((s) => s._id === salesmanId);
-    console.log({ selected });
+    // console.log({ selected });
 
     if (selected) {
       setBalance(selected.payableBalance || 0);
-      setPhone(selected.phoneNumber || "-");
+      setPhone(selected.contactNumber || "-");
       setAddress(selected.address || "-");
     }
   };

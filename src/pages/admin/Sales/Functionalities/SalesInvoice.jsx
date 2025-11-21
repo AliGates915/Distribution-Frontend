@@ -386,19 +386,21 @@ const SalesInvoice = () => {
                 />
 
                 {/* Print Button */}
-                <button
-                  onClick={() =>
-                    handleSaleInvoicePrint(
-                      activeTab === "pending"
-                        ? currentPendingRecords
-                        : currentInvoiceRecords
-                    )
-                  }
-                  className="p-2 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition-colors flex items-center"
-                  title="Print"
-                >
-                  <Printer size={18} />
-                </button>
+                {activeTab === "invoices" && (
+                  <button
+                    onClick={() =>
+                      handleSaleInvoicePrint(
+                        activeTab === "pending"
+                          ? currentPendingRecords
+                          : currentInvoiceRecords
+                      )
+                    }
+                    className="p-2 bg-newPrimary text-white rounded-lg hover:bg-newPrimary/80 transition-colors flex items-center"
+                    title="Print"
+                  >
+                    <Printer size={18} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

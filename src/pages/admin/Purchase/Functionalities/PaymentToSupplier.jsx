@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { api } from "../../../../context/ApiService";
 import axios from "axios";
 import { ScaleLoader } from "react-spinners";
+import toast from "react-hot-toast";
 
 const PaymentToSupplier = () => {
   const [deliveryChallans, setDeliveryChallans] = useState([]);
@@ -318,7 +319,7 @@ const PaymentToSupplier = () => {
       date: formatDate(voucher.date),
       supplier: voucher.supplier?._id || "",
       balance: voucher.newBalance || 0,
-      amountReceived: voucher.amountReceived || 0,
+      amountReceived:  0,
       newBalance: voucher.newBalance || 0,
       remarks: voucher.remarks || "",
     });
@@ -387,7 +388,7 @@ const PaymentToSupplier = () => {
       resetForm();
     } catch (error) {
       console.error("Error submitting supplier payment:", error);
-      Swal.fire("Error", "Failed to save supplier payment.", "error");
+     toast.error(error.response.data.message)
     } finally {
       setIsSaving(false)
     }
@@ -459,34 +460,7 @@ const PaymentToSupplier = () => {
     setCurrentPage(pageNumber);
   };
   // 🟢 Handle Product Selection
-  const handleProductSelect = (selectedName) => {
-    setProduct(selectedName);
 
-    const selectedProd = availableProducts.find((p) => p.name === selectedName);
-    console.log("Selected product:", selectedProd);
-
-    if (selectedProd) {
-      setTimeout(() => {
-        setSpecification(selectedProd.details || "");
-
-        const initialQty = selectedProd.orderedQty || 1;
-
-        // 🧮 calculate base total from orderedQty and total
-        const baseTotal = selectedProd.total || 0;
-
-        // store orderedQty and total-based calc
-        setQty(initialQty);
-        setTotal(baseTotal);
-        setRate(selectedProd.rate);
-      }, 300);
-    } else {
-      setSpecification("");
-      setRate("");
-      setInStock("");
-      setQty(1);
-      setTotal(0);
-    }
-  };
   console.log({ supplierDeposits });
 
   return (
@@ -795,7 +769,7 @@ const PaymentToSupplier = () => {
                   type="submit"
                   className="w-full bg-newPrimary text-white px-4 py-3 rounded-lg hover:bg-newPrimary/80 transition-colors disabled:bg-blue-300"
                 >
-                  Save Payment
+                 {editingVoucher ? "Update Payment" : "Save Payment"} 
                 </button>
               </form>
             </div>
