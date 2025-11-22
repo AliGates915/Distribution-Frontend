@@ -465,7 +465,7 @@ console.log({productsList});
                   <div>SR</div>
                   <div>Order ID</div>
                   <div>Date</div>
-                  <div>Salesman</div>
+                  <div>Sales Officer</div>
                   <div>Customer</div>
                   <div>Phone</div>
                   <div>Actions</div>
@@ -609,14 +609,14 @@ console.log({productsList});
                   {/* Salesman */}
                   <div className="w-[49%]">
                     <label className="block text-gray-700 mb-2">
-                      Salesman <span className="text-red-500">*</span>
+                      Sales Officer <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={salesman}
                       onChange={(e) => setSalesman(e.target.value)}
                       className="w-full p-3 border border-gray-300 rounded-md"
                     >
-                      <option value="">Select Salesman</option>
+                      <option value="">Select Sales Officer</option>
                       {salesmanList.map((sale) => (
                         <option key={sale._id} value={sale._id}>
                           {sale?.employeeName}

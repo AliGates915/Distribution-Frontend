@@ -54,12 +54,12 @@ const BankLedger = () => {
   }, [selectedBank, dateFrom, dateTo]);
 
   const totalDebit = ledgerEntries
-    .filter((e) => e.type === "Debit")
+    
     .reduce((sum, e) => sum + e.amount, 0);
 
   const totalCredit = ledgerEntries
-    .filter((e) => e.type === "Credit")
-    .reduce((sum, e) => sum + e.amount, 0);
+  
+    .reduce((sum, e) => sum + e.balanceAfter, 0);
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
@@ -163,11 +163,13 @@ const BankLedger = () => {
               {/* Totals */}
               <div className="grid grid-cols-[3.7fr_1fr_1fr_1fr] bg-gray-100 py-3 px-6 text-xs font-semibold text-gray-700">
                 <div></div>
-                <div className="text-green-600">
-                  Total Credit: {totalCredit.toLocaleString()}
-                </div>
+                <div></div>
+               
                 <div className="text-red-600">
-                  Total Debit: {totalDebit.toLocaleString()}
+                  Total Amount: {totalDebit.toLocaleString()}
+                </div>
+                 <div className="text-green-600">
+                  Total Balance After: {totalCredit.toLocaleString()}
                 </div>
               </div>
             </>

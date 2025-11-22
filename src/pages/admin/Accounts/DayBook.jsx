@@ -38,8 +38,8 @@ const DayBook = () => {
       setSalesRecoveryData(res.data.salesRecovery || []);
 
       // Flatten expenses
-      const allExpenses = (res.data.expenses || [])
-        .flatMap(item => item.expenses || []);
+     const allExpenses = res.data.expenses || [];
+
 
       setExpenseData(allExpenses);
 
@@ -63,7 +63,7 @@ const filteredSalesRecovery = salesRecoveryData?.filter((item) =>
 
 
  const filteredExpenses = expenseData?.filter((item) =>
-  (item?.description || "").toLowerCase().includes(search.toLowerCase())
+  (item?.expenseName || "").toLowerCase().includes(search.toLowerCase())
 );
 
 
@@ -168,7 +168,7 @@ console.log({currentExpenses});
                           <td className="p-3 border">
                             {indexOfFirstSales + idx + 1}
                           </td>
-                          <td className="p-3 border">{item.description}</td>
+                        <td className="p-3 border">{ item.expenseName ||item.description }</td>
                           <td className="p-3 border font-semibold">
                             {item.amount}
                           </td>
@@ -254,7 +254,7 @@ console.log({currentExpenses});
                           <td className="p-3 border">
                             {indexOfFirstExpense + idx + 1}
                           </td>
-                          <td className="p-3 border">{item.description}</td>
+                          <td className="p-3 border">{item.description || item.expenseName}</td>
                           <td className="p-3 border font-semibold">
                             {item.amount}
                           </td>

@@ -505,7 +505,7 @@ const ExpensePage = () => {
               </p>
 
               <div className="mt-3">
-                <h3 className="font-semibold mb-2">Items:</h3>
+              
 
                 <ul className="space-y-1">
                   <div className="mt-3 space-y-2 text-sm">

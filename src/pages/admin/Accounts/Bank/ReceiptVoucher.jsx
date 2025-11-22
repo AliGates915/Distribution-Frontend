@@ -421,7 +421,7 @@ const ReceiptVoucher = () => {
                 {submitting ? (
                   <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  "Save Voucher"
+                isEditing ? "Update Voucher" :  "Save Voucher"
                 )}
               </button>
             </form>

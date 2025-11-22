@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { SquarePen, Trash2 } from "lucide-react";
 
 import TableSkeleton from "../../Components/Skeleton";
+import CommanHeader from "../../Components/CommanHeader";
 
 const staticBanks = [
   { bankName: "National Bank of Pakistan" },
@@ -179,6 +180,7 @@ const Bank = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
+      <CommanHeader/>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-newPrimary">Bank List</h1>
@@ -324,7 +326,7 @@ const Bank = () => {
                 className="bg-newPrimary text-white px-4 py-2 rounded-lg hover:bg-newPrimary/80 w-full"
                 onClick={handleSave}
               >
-                Save Bank
+              {isEdit ? "Update" : "Save Bank"}  
               </button>
             </div>
           </div>
