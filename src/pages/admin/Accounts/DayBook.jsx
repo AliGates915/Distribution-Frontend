@@ -234,7 +234,7 @@ console.log({currentExpenses});
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="p-3 border">SR</th>
-                      <th className="p-3 border">Description</th>
+                      <th className="p-3 border">EXpense Name</th>
                       <th className="p-3 border">Amount</th>
                     </tr>
                   </thead>

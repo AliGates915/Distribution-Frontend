@@ -95,7 +95,7 @@ const OrderTaking = () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/item-details/order-taker`
+        `${import.meta.env.VITE_API_BASE_URL}/item-details/pending`
       );
       setProductsList(res.data);
     } catch (error) {
@@ -291,7 +291,7 @@ console.log({productsList});
       resetForm();
     } catch (error) {
       console.error("Error saving order:", error);
-      toast.error(error.response?.data?.message || "Failed to save order");
+      toast.error(error.response?.data?.error || "Failed to save order");
     } finally {
       setIsSaving(false);
     }
