@@ -306,7 +306,7 @@ const ExpensePage = () => {
                   <strong>Date:</strong> {viewExpense.date}
                 </p>
 
-                <div className="mt-3">
+                <div className="">
                   <p>
                     <strong>Expense Head:</strong> {viewExpense.headName}
                   </p>

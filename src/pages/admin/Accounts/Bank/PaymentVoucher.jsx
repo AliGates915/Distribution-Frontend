@@ -229,7 +229,7 @@ if (Number(formData.amountPaid) > formData.bankBalance) {
 
   /** ================== FILTER / PAGINATION ================== **/
   const filteredData = vouchers.filter((v) =>
-    v.paymentId?.toLowerCase().includes(searchTerm.toLowerCase())
+    v.supplier?.supplierName.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const indexOfLast = currentPage * recordsPerPage;
   const indexOfFirst = indexOfLast - recordsPerPage;
@@ -252,7 +252,7 @@ if (Number(formData.amountPaid) > formData.bankBalance) {
         <div className="flex gap-3">
           <input
             type="text"
-            placeholder="Search by Payment ID"
+            placeholder="Search by Supplier Name"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border px-3 py-2 rounded-lg"
@@ -498,7 +498,7 @@ if (Number(formData.amountPaid) > formData.bankBalance) {
                 {submitting ? (
                   <div className="w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
-                  "Save Payment Voucher"
+                 isEditing ? "Update Payment Voucher" : "Save Payment Voucher"
                 )}
               </button>
             </form>
