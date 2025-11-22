@@ -91,6 +91,9 @@ const GRN = () => {
     fetchSalesmen();
     fetchItems();
   }, [fetchSalesmen, fetchItems]);
+ console.log(itemOptions);
+ 
+  
 
   // 🔹 Handle Salesman Select
   const handleSalesmanChange = (e) => {
@@ -128,7 +131,7 @@ const GRN = () => {
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/grn`, {
         headers,
       });
-      console.log("GRN API Response:", res.data); // Debug API response
+      // console.log("GRN API Response:", res.data); // Debug API response
       const transformedGrns = res.data.data.map((grn) => ({
         _id: grn._id,
         grnId: grn.grnId || "-",
@@ -705,7 +708,7 @@ const GRN = () => {
                           <option value="">Select Item</option>
                           {itemOptions.map((opt) => (
                             <option key={opt._id} value={opt._id}>
-                              {opt.itemName} ({opt.itemUnit?.unitName})
+                              {opt.itemName} 
                             </option>
                           ))}
                         </select>
